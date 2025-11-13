@@ -147,6 +147,6 @@ MIT
 
 - Website: [zkrune.com](https://zkrune.com) (Coming Soon)
 - GitHub: [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
-- Twitter: (Coming Soon)
+- X (Twitter): [@zk_rune](https://x.com/zk_rune)
 - Discord: (Coming Soon)
 
