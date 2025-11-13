@@ -297,7 +297,11 @@ export default function VerifyProofPage() {
               {result.checks && (
                 <div className="mb-6 p-4 bg-zk-darker/50 rounded-lg">
                   <h4 className="text-sm font-medium text-white mb-3">Validation Checks:</h4>
-                  <div className="grid grid-cols-2 gap-2 text-xs">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <span>{result.checks.hasGroth16Proof}</span>
+                      <span className="text-zk-gray">ZK Proof Type</span>
+                    </div>
                     <div className="flex items-center gap-2">
                       <span>{result.checks.hasProofHash}</span>
                       <span className="text-zk-gray">Proof Hash</span>
@@ -309,6 +313,10 @@ export default function VerifyProofPage() {
                     <div className="flex items-center gap-2">
                       <span>{result.checks.hasTimestamp}</span>
                       <span className="text-zk-gray">Timestamp</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span>{result.checks.hasVerificationKey}</span>
+                      <span className="text-zk-gray">Verification Key</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span>{result.checks.validFormat}</span>
