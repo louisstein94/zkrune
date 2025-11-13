@@ -51,6 +51,15 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
@@ -63,6 +72,17 @@
   animation: pulse-slow 3s ease-in-out infinite;
 }
 
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+  background: linear-gradient(
+    to right,
+    transparent 0%,
+    rgba(0, 255, 163, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 1000px 100%;
+}
+
 /* Noise texture */
 .noise-texture::before {
   content: '';
@@ -73,3 +93,26 @@
   pointer-events: none;
 }
 
+/* Scrollbar styling */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0A0E27;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #00FFA3;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #6B4CFF;
+}
+
+/* Selection color */
+::selection {
+  background: #00FFA3;
+  color: #0A0E27;
+}
