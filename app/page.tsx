@@ -6,7 +6,6 @@ import Navigation from "@/components/Navigation";
 import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
 import ComparisonTable from "@/components/ComparisonTable";
-import Testimonials from "@/components/Testimonials";
 import EducationalBanner from "@/components/EducationalBanner";
 import CTAShowcase from "@/components/CTAShowcase";
 
@@ -132,9 +131,6 @@ export default function Home() {
 
       {/* Comparison Table */}
       <ComparisonTable />
-
-      {/* Testimonials & Use Cases */}
-      <Testimonials />
 
       {/* FAQ Section */}
       <FAQ />
