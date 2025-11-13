@@ -69,13 +69,17 @@ const templates: Template[] = [
 
 export default function TemplateGallery() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [searchQuery, setSearchQuery] = useState<string>("");
 
   const categories = ["All", "Identity", "Financial", "Access", "Data", "Governance"];
 
-  const filteredTemplates =
-    selectedCategory === "All"
-      ? templates
-      : templates.filter((t) => t.category === selectedCategory);
+  const filteredTemplates = templates.filter((t) => {
+    const matchesCategory = selectedCategory === "All" || t.category === selectedCategory;
+    const matchesSearch = searchQuery === "" || 
+      t.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      t.description.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesCategory && matchesSearch;
+  });
 
   return (
     <section className="relative py-24 px-16" id="templates">
@@ -97,8 +101,33 @@ export default function TemplateGallery() {
         </p>
       </div>
 
-      {/* Category Filter */}
+      {/* Search & Filter */}
       <div className="max-w-7xl mx-auto mb-12">
+        {/* Search Bar */}
+        <div className="mb-6">
+          <div className="relative max-w-md">
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search templates..."
+              className="w-full px-4 py-3 pl-12 bg-zk-dark/30 border border-zk-gray/30 rounded-full text-white placeholder:text-zk-gray focus:border-zk-primary focus:outline-none transition-colors"
+            />
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zk-gray">
+              🔍
+            </div>
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-zk-gray hover:text-white"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* Category Filter */}
         <div className="flex gap-3 flex-wrap">
           {categories.map((category) => (
             <button
@@ -115,6 +144,15 @@ export default function TemplateGallery() {
           ))}
         </div>
       </div>
+
+      {/* Results Count */}
+      {searchQuery && (
+        <div className="max-w-7xl mx-auto mb-6">
+          <p className="text-sm text-zk-gray">
+            Found {filteredTemplates.length} template{filteredTemplates.length !== 1 ? 's' : ''} matching "{searchQuery}"
+          </p>
+        </div>
+      )}
 
       {/* Template Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
