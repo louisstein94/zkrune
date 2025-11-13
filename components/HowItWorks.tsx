@@ -2,6 +2,17 @@
 
 import { ChooseIcon, GenerateIcon, DeployIcon } from "./StepIcons";
 
+function VerifyIcon({ className = "w-12 h-12" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="1.5" className="text-zk-primary" />
+      <path d="M9 12l2 2 4-4" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-zk-primary" />
+      <circle cx="12" cy="12" r="7" stroke="currentColor" strokeWidth="0.5" className="text-zk-secondary opacity-40" />
+      <path d="M12 2v2M12 20v2M2 12h2M20 12h2" stroke="currentColor" strokeWidth="1" strokeLinecap="round" className="text-zk-primary opacity-20" />
+    </svg>
+  );
+}
+
 export default function HowItWorks() {
   const steps = [
     {
@@ -18,9 +29,15 @@ export default function HowItWorks() {
     },
     {
       number: "03",
-      title: "Use Anywhere",
-      description: "Export your proof, share it, or deploy to Zcash testnet. Your sensitive data stays private forever.",
+      title: "Export & Share",
+      description: "Download your proof as JSON or code. Share it, integrate into apps, or deploy to Zcash testnet.",
       IconComponent: DeployIcon,
+    },
+    {
+      number: "04",
+      title: "Verify Independently",
+      description: "Anyone can verify your proof using our tool or CLI. Math guarantees it's real - no trust needed!",
+      IconComponent: VerifyIcon,
     },
   ];
 
@@ -35,16 +52,16 @@ export default function HowItWorks() {
           </span>
         </div>
 
-        <h2 className="font-hatton text-5xl text-white mb-4">
-          How It <span className="text-zk-primary">Works</span>
-        </h2>
-        <p className="text-xl text-zk-gray max-w-2xl mx-auto">
-          Three simple steps to create your zero-knowledge proofs. No cryptography knowledge required.
-        </p>
+          <h2 className="font-hatton text-5xl text-white mb-4">
+            How It <span className="text-zk-primary">Works</span>
+          </h2>
+          <p className="text-xl text-zk-gray max-w-2xl mx-auto">
+            Four simple steps to create and verify zero-knowledge proofs. No cryptography knowledge required.
+          </p>
       </div>
 
       {/* Steps */}
-      <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {steps.map((step, index) => (
           <div
             key={step.number}
