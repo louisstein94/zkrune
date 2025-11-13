@@ -19,27 +19,55 @@ export default function RangeProofForm({ onProofGenerated }: RangeProofFormProps
     }
 
     setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const valueNum = parseFloat(value);
-    const minNum = parseFloat(minRange);
-    const maxNum = parseFloat(maxRange);
-    const isInRange = valueNum >= minNum && valueNum <= maxNum;
+    try {
+      const valueNum = parseFloat(value);
+      const minNum = parseFloat(minRange);
+      const maxNum = parseFloat(maxRange);
+      const isInRange = valueNum >= minNum && valueNum <= maxNum;
 
-    const proof = {
-      statement: isInRange
-        ? `Value is between ${minNum} and ${maxNum}`
-        : `Value is outside range ${minNum}-${maxNum}`,
-      isValid: isInRange,
-      timestamp: new Date().toISOString(),
-      proofHash: `0x${Math.random().toString(16).substring(2, 66)}`,
-      verificationKey: `vk_${Math.random().toString(36).substring(2, 15)}`,
-      actualValue: valueNum,
-      range: { min: minNum, max: maxNum },
-    };
+      // Call REAL ZK proof API
+      const response = await fetch("/api/generate-proof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId: "range-proof",
+          inputs: {
+            value: Math.floor(valueNum).toString(),
+            minRange: Math.floor(minNum).toString(),
+            maxRange: Math.floor(maxNum).toString(),
+          },
+        }),
+      });
 
-    onProofGenerated(proof);
-    setIsGenerating(false);
+      const data = await response.json();
+
+      if (data.success) {
+        const resultProof = {
+          statement: isInRange
+            ? `Value is between ${minNum} and ${maxNum}`
+            : `Value is outside range ${minNum}-${maxNum}`,
+          isValid: isInRange,
+          timestamp: data.proof?.timestamp || new Date().toISOString(),
+          proofHash: data.proof?.proofHash || "0x...",
+          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          actualValue: valueNum,
+          range: { min: minNum, max: maxNum },
+          realProof: data.metadata?.realProof || false,
+          note: data.proof?.note || "Proof generated",
+          groth16Proof: data.proof?.groth16Proof,
+          publicSignals: data.proof?.publicSignals,
+        };
+        onProofGenerated(resultProof);
+      } else {
+        alert("Proof generation failed");
+      }
+    } catch (error) {
+      console.error("Range proof error:", error);
+      alert("Error generating proof. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (

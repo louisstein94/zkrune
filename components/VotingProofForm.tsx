@@ -27,25 +27,54 @@ export default function VotingProofForm({ onProofGenerated }: VotingProofFormPro
     }
 
     setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 3000));
 
-    const isValidVoter = voterId.length >= 8;
+    try {
+      const isValidVoter = voterId.length >= 8;
+      const voteValue = choices.indexOf(choice); // 0, 1, 2
 
-    const proof = {
-      statement: isValidVoter
-        ? "Vote successfully cast and verified"
-        : "Invalid voter credentials",
-      isValid: isValidVoter,
-      timestamp: new Date().toISOString(),
-      proofHash: `0x${Math.random().toString(16).substring(2, 66)}`,
-      verificationKey: `vk_${Math.random().toString(36).substring(2, 15)}`,
-      voterId: voterId,
-      choice: choice,
-      poll: pollTitle,
-    };
+      // Call REAL ZK proof API
+      const response = await fetch("/api/generate-proof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId: "private-voting",
+          inputs: {
+            voterId: voterId.length.toString(),
+            voteChoice: voteValue.toString(),
+            pollId: pollTitle.length.toString(),
+          },
+        }),
+      });
 
-    onProofGenerated(proof);
-    setIsGenerating(false);
+      const data = await response.json();
+
+      if (data.success) {
+        const resultProof = {
+          statement: isValidVoter
+            ? "Vote successfully cast and verified"
+            : "Invalid voter credentials",
+          isValid: isValidVoter,
+          timestamp: data.proof?.timestamp || new Date().toISOString(),
+          proofHash: data.proof?.proofHash || "0x...",
+          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          voterId: voterId,
+          choice: choice,
+          poll: pollTitle,
+          realProof: data.metadata?.realProof || false,
+          note: data.proof?.note || "Proof generated",
+          groth16Proof: data.proof?.groth16Proof,
+          publicSignals: data.proof?.publicSignals,
+        };
+        onProofGenerated(resultProof);
+      } else {
+        alert("Proof generation failed");
+      }
+    } catch (error) {
+      console.error("Voting proof error:", error);
+      alert("Error generating proof. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
