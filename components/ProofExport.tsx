@@ -168,6 +168,24 @@ if (isValid) {
           </button>
         )}
       </div>
+
+      {/* Verification Instructions */}
+      <div className="mt-4 p-4 bg-zk-darker/50 border border-zk-gray/10 rounded-lg">
+        <div className="flex items-start gap-3">
+          <span className="text-xl">🔬</span>
+          <div className="text-xs text-zk-gray">
+            <p className="font-medium text-white mb-2">Verify Independently:</p>
+            <ol className="space-y-1 list-decimal list-inside">
+              <li>Export this proof (Download button)</li>
+              <li>Run: <code className="text-zk-primary bg-black/30 px-1 rounded">snarkjs groth16 verify vkey.json public.json proof.json</code></li>
+              <li>Or use our <a href="/verify-proof" className="text-zk-primary hover:underline">verification tool</a></li>
+            </ol>
+            <p className="mt-2 text-[10px] opacity-60">
+              Don't trust zkRune - verify cryptographically! ✓
+            </p>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
