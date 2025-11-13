@@ -8,6 +8,8 @@ import MembershipProofForm from "@/components/MembershipProofForm";
 import RangeProofForm from "@/components/RangeProofForm";
 import VotingProofForm from "@/components/VotingProofForm";
 import ZcashMock from "@/components/ZcashMock";
+import ProofExport from "@/components/ProofExport";
+import CodePreview from "@/components/CodePreview";
 
 // Template data
 const templates: { [key: string]: any } = {
@@ -450,9 +452,15 @@ export default function TemplatePage() {
               </div>
             </div>
 
+            {/* Code Preview (always visible) */}
+            <CodePreview templateId={templateId} />
+
             {/* Zcash Deploy (only show when proof exists in left column) */}
             {proof && (
-              <ZcashMock proofHash={proof.proofHash} />
+              <>
+                <ZcashMock proofHash={proof.proofHash} />
+                <ProofExport proof={proof} templateId={templateId} />
+              </>
             )}
           </div>
         </div>
