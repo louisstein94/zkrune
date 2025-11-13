@@ -10,9 +10,12 @@ import FAQ from "@/components/FAQ";
 export default function Home() {
   const [proofsGenerated, setProofsGenerated] = useState(0);
   const [activeUsers, setActiveUsers] = useState(0);
+  const [isMounted, setIsMounted] = useState(false);
 
   // Animated counters
   useEffect(() => {
+    setIsMounted(true);
+    
     const proofsInterval = setInterval(() => {
       setProofsGenerated((prev) => (prev < 1234 ? prev + 23 : 1234));
     }, 50);
@@ -70,7 +73,7 @@ export default function Home() {
           <div className="flex gap-12 pt-8">
             <div className="space-y-2">
               <p className="font-hatton text-4xl text-white">
-                {proofsGenerated.toLocaleString()}
+                {isMounted ? proofsGenerated.toLocaleString('en-US') : '0'}
                 <span className="text-zk-primary">+</span>
               </p>
               <p className="text-sm font-medium text-zk-gray uppercase tracking-wider">
@@ -80,7 +83,7 @@ export default function Home() {
 
             <div className="space-y-2">
               <p className="font-hatton text-4xl text-white">
-                {activeUsers}
+                {isMounted ? activeUsers : '0'}
                 <span className="text-zk-primary">+</span>
               </p>
               <p className="text-sm font-medium text-zk-gray uppercase tracking-wider">
