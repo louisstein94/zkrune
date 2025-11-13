@@ -138,8 +138,8 @@ export default function Home() {
 
           {/* Social Links */}
           <div className="flex gap-6 text-sm font-medium uppercase tracking-wider">
-            <a href="https://twitter.com/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-              Twitter
+            <a href="https://x.com/zk_rune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
+              X (Twitter)
             </a>
             <a href="https://discord.gg/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
               Discord
