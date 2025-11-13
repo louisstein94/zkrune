@@ -8,7 +8,7 @@ interface ProofExportProps {
 }
 
 export default function ProofExport({ proof, templateId }: ProofExportProps) {
-  const [exportFormat, setExportFormat] = useState<"json" | "code" | "share">("json");
+  const [exportFormat, setExportFormat] = useState<"json" | "code">("json");
   const [copied, setCopied] = useState(false);
 
   const generateJSON = () => {
@@ -63,19 +63,12 @@ if (isValid) {
 `;
   };
 
-  const generateShareLink = () => {
-    const encoded = btoa(JSON.stringify(proof));
-    return `https://zkrune.com/verify/${encoded.substring(0, 20)}`;
-  };
-
   const copyToClipboard = async () => {
     let content = "";
     if (exportFormat === "json") {
       content = generateJSON();
-    } else if (exportFormat === "code") {
-      content = generateCode();
     } else {
-      content = generateShareLink();
+      content = generateCode();
     }
 
     await navigator.clipboard.writeText(content);
@@ -92,7 +85,7 @@ if (isValid) {
       content = generateJSON();
       filename = `zkrune-proof-${Date.now()}.json`;
       type = "application/json";
-    } else if (exportFormat === "code") {
+    } else {
       content = generateCode();
       filename = `zkrune-proof-${Date.now()}.js`;
       type = "text/javascript";
@@ -133,16 +126,6 @@ if (isValid) {
         >
           Code
         </button>
-        <button
-          onClick={() => setExportFormat("share")}
-          className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
-            exportFormat === "share"
-              ? "bg-zk-primary text-zk-darker"
-              : "bg-zk-darker text-zk-gray hover:text-white"
-          }`}
-        >
-          Share
-        </button>
       </div>
 
       {/* Preview */}
@@ -151,7 +134,6 @@ if (isValid) {
           <pre className="text-xs text-zk-gray font-mono whitespace-pre-wrap">
             {exportFormat === "json" && generateJSON()}
             {exportFormat === "code" && generateCode()}
-            {exportFormat === "share" && generateShareLink()}
           </pre>
         </div>
       </div>
@@ -162,16 +144,14 @@ if (isValid) {
           onClick={copyToClipboard}
           className="flex-1 py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-sm font-medium hover:bg-zk-primary/20 transition-all"
         >
-          {copied ? "✓ Copied!" : "Copy"}
+          {copied ? "✓ Copied!" : "Copy to Clipboard"}
         </button>
-        {exportFormat !== "share" && (
-          <button
-            onClick={downloadFile}
-            className="flex-1 py-2 bg-zk-secondary/10 border border-zk-secondary/30 text-zk-secondary rounded-lg text-sm font-medium hover:bg-zk-secondary/20 transition-all"
-          >
-            Download
-          </button>
-        )}
+        <button
+          onClick={downloadFile}
+          className="flex-1 py-2 bg-zk-secondary/10 border border-zk-secondary/30 text-zk-secondary rounded-lg text-sm font-medium hover:bg-zk-secondary/20 transition-all"
+        >
+          Download File
+        </button>
       </div>
 
       {/* Simple Verification Info */}
