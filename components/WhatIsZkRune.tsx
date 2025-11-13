@@ -1,5 +1,54 @@
 "use client";
 
+// Premium Icons
+function PrivacyIcon({ className = "w-12 h-12" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M12 2L4 6v6c0 5.5 3.8 10.7 8 12 4.2-1.3 8-6.5 8-12V6l-8-4z" stroke="url(#privacy-gradient)" strokeWidth="1.5" fill="url(#privacy-gradient)" fillOpacity="0.1" />
+      <circle cx="12" cy="12" r="3" stroke="currentColor" strokeWidth="1.5" className="text-zk-primary" />
+      <path d="M12 9v3l2 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-zk-primary" />
+      <defs>
+        <linearGradient id="privacy-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00FFA3" />
+          <stop offset="100%" stopColor="#6B4CFF" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function TrustIcon({ className = "w-12 h-12" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" strokeWidth="1.5" className="text-zk-primary" />
+      <path d="M7 11V7a5 5 0 0110 0v4" stroke="url(#trust-gradient)" strokeWidth="1.5" strokeLinecap="round" />
+      <circle cx="12" cy="16" r="2" fill="currentColor" className="text-zk-primary" />
+      <path d="M12 18v1" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-zk-primary" />
+      <defs>
+        <linearGradient id="trust-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00FFA3" />
+          <stop offset="100%" stopColor="#6B4CFF" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
+function SpeedIcon({ className = "w-12 h-12" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" stroke="url(#speed-gradient)" strokeWidth="1.5" strokeLinejoin="round" fill="url(#speed-gradient)" fillOpacity="0.1" />
+      <circle cx="12" cy="12" r="1.5" fill="currentColor" className="text-zk-primary" />
+      <defs>
+        <linearGradient id="speed-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stopColor="#00FFA3" />
+          <stop offset="100%" stopColor="#6B4CFF" />
+        </linearGradient>
+      </defs>
+    </svg>
+  );
+}
+
 export default function WhatIsZkRune() {
   return (
     <section className="relative py-24 px-16 bg-zk-dark/20">
@@ -23,7 +72,9 @@ export default function WhatIsZkRune() {
           {/* Card 1 */}
           <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
             <div className="flex items-start gap-6">
-              <div className="text-5xl">🎭</div>
+              <div className="p-4 bg-zk-primary/10 rounded-2xl border border-zk-primary/20">
+                <PrivacyIcon className="w-12 h-12" />
+              </div>
               <div>
                 <h3 className="text-2xl font-hatton text-white mb-3">
                   Prove Things Without Revealing Secrets
@@ -40,7 +91,9 @@ export default function WhatIsZkRune() {
           {/* Card 2 */}
           <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
             <div className="flex items-start gap-6">
-              <div className="text-5xl">🔒</div>
+              <div className="p-4 bg-zk-secondary/10 rounded-2xl border border-zk-secondary/20">
+                <TrustIcon className="w-12 h-12" />
+              </div>
               <div>
                 <h3 className="text-2xl font-hatton text-white mb-3">
                   Privacy You Can Trust
@@ -57,7 +110,9 @@ export default function WhatIsZkRune() {
           {/* Card 3 */}
           <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
             <div className="flex items-start gap-6">
-              <div className="text-5xl">⚡</div>
+              <div className="p-4 bg-zk-accent/10 rounded-2xl border border-zk-accent/20">
+                <SpeedIcon className="w-12 h-12" />
+              </div>
               <div>
                 <h3 className="text-2xl font-hatton text-white mb-3">
                   Simple to Use, Powerful Technology
