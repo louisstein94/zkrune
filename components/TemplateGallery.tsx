@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 
 interface Template {
   id: string;
@@ -168,9 +169,11 @@ export default function TemplateGallery() {
               </div>
 
               {/* CTA */}
-              <button className="w-full py-3 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg font-medium hover:bg-zk-primary hover:text-zk-darker transition-all group-hover:shadow-lg group-hover:shadow-zk-primary/20">
-                Use Template →
-              </button>
+              <Link href={`/templates/${template.id}`}>
+                <button className="w-full py-3 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg font-medium hover:bg-zk-primary hover:text-zk-darker transition-all group-hover:shadow-lg group-hover:shadow-zk-primary/20">
+                  Use Template →
+                </button>
+              </Link>
 
               {/* Estimated Time */}
               <div className="mt-3 text-center">
