@@ -45,15 +45,16 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
             ? `Balance ≥ ${minBalanceNum} ZEC`
             : `Balance < ${minBalanceNum} ZEC`,
           isValid: hasSufficientBalance,
-          timestamp: data.proof.timestamp,
-          proofHash: data.proof.proofHash,
-          verificationKey: typeof data.proof.verificationKey === 'string'
-            ? data.proof.verificationKey
-            : 'vk_real_circuit',
+          timestamp: data.proof?.timestamp || new Date().toISOString(),
+          proofHash: data.proof?.proofHash || "0x...",
+          verificationKey: data.proof?.verificationKey || 'vk_circuit',
           actualBalance: balanceNum,
           threshold: minBalanceNum,
-          realProof: data.realProof || false,
-          note: data.note,
+          realProof: data.metadata?.realProof || false,
+          note: data.proof?.note || data.note || "Proof generated",
+          // Store full proof for export
+          groth16Proof: data.proof?.groth16Proof,
+          publicSignals: data.proof?.publicSignals,
         };
         onProofGenerated(resultProof);
       } else {
