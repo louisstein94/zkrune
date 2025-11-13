@@ -7,6 +7,7 @@ import BalanceProofForm from "@/components/BalanceProofForm";
 import MembershipProofForm from "@/components/MembershipProofForm";
 import RangeProofForm from "@/components/RangeProofForm";
 import VotingProofForm from "@/components/VotingProofForm";
+import ZcashMock from "@/components/ZcashMock";
 
 // Template data
 const templates: { [key: string]: any } = {
@@ -448,6 +449,11 @@ export default function TemplatePage() {
                 </div>
               </div>
             </div>
+
+            {/* Zcash Deploy (only show when proof exists in left column) */}
+            {proof && (
+              <ZcashMock proofHash={proof.proofHash} />
+            )}
           </div>
         </div>
       </div>
