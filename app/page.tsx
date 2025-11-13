@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import RuneAnimation from "@/components/RuneAnimation";
-import TemplateGallery from "@/components/TemplateGallery";
 import Navigation from "@/components/Navigation";
 import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
@@ -107,12 +106,18 @@ export default function Home() {
 
           {/* CTA Buttons */}
           <div className="flex gap-4 pt-4">
-            <button className="px-8 py-4 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20">
-              Try Free Templates
-            </button>
-            <button className="px-8 py-4 border border-zk-primary/30 text-zk-primary font-medium rounded-full hover:border-zk-primary hover:bg-zk-primary/10 transition-all">
-              Watch Demo
-            </button>
+            <a
+              href="/templates"
+              className="px-8 py-4 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20 inline-block text-center"
+            >
+              Launch App →
+            </a>
+            <a
+              href="#how-it-works"
+              className="px-8 py-4 border border-zk-primary/30 text-zk-primary font-medium rounded-full hover:border-zk-primary hover:bg-zk-primary/10 transition-all inline-block text-center"
+            >
+              Learn More
+            </a>
           </div>
         </div>
 
@@ -121,9 +126,6 @@ export default function Home() {
           <RuneAnimation />
         </div>
       </div>
-
-      {/* Template Gallery Section */}
-      <TemplateGallery />
 
       {/* How It Works Section */}
       <HowItWorks />
