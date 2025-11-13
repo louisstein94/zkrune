@@ -15,54 +15,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // REAL ZK PROOF CODE - ACTIVE!
+    // REAL ZK PROOF CODE - ACTIVE (with timeout for demo)
     const realCircuits = ["age-verification", "balance-proof"];
     
     if (realCircuits.includes(templateId)) {
       try {
-        console.log("🔮 Generating REAL ZK proof for:", templateId);
+        console.log("🔮 Attempting REAL ZK proof for:", templateId);
         console.log("Inputs:", inputs);
         
-        const snarkjs = await import("snarkjs");
-        const wasmPath = path.join(process.cwd(), "public", "circuits", `${templateId}.wasm`);
-        const zkeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}.zkey`);
-        
-        console.log("📂 WASM path:", wasmPath);
-        console.log("📂 zKey path:", zkeyPath);
-        
-        console.log("⚡ Calling snarkjs.groth16.fullProve...");
-        const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-          inputs,
-          wasmPath,
-          zkeyPath
+        // Create a timeout promise (5 seconds for demo speed)
+        const timeoutPromise = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error("Timeout - using fast demo mode")), 5000)
         );
-        console.log("✓ Proof generated!");
-        console.log("Public signals:", publicSignals);
         
-        const vKeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}_vkey.json`);
-        const vKey = JSON.parse(fs.readFileSync(vKeyPath, "utf8"));
-        
-        console.log("🔍 Verifying proof...");
-        const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-        console.log("✓ Verification result:", isValid);
-
-        return NextResponse.json({
-          success: true,
-          proof: {
+        const proofPromise = (async () => {
+          const snarkjs = await import("snarkjs");
+          const wasmPath = path.join(process.cwd(), "public", "circuits", `${templateId}.wasm`);
+          const zkeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}.zkey`);
+          
+          console.log("⚡ Generating with snarkjs...");
+          const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+            inputs,
+            wasmPath,
+            zkeyPath
+          );
+          
+          const vKeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}_vkey.json`);
+          const vKey = JSON.parse(fs.readFileSync(vKeyPath, "utf8"));
+          const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+          
+          console.log("✓ REAL ZK proof generated and verified!");
+          return {
             proof,
             publicSignals,
             proofHash: JSON.stringify(proof).substring(0, 66),
             verificationKey: vKey,
             timestamp: new Date().toISOString(),
             isValid,
-          },
+          };
+        })();
+
+        // Race between proof generation and timeout
+        const result = await Promise.race([proofPromise, timeoutPromise]);
+
+        return NextResponse.json({
+          success: true,
+          proof: result,
           note: "✅ REAL ZK-SNARK proof generated and verified!",
           realProof: true,
         });
-      } catch (circuitError) {
-        console.error("❌ Real circuit error:", circuitError);
-        console.error("Stack:", circuitError);
-        // Fall through to mock
+      } catch (circuitError: any) {
+        if (circuitError.message?.includes("Timeout")) {
+          console.log("⏰ Timeout - using fast demo mode for better UX");
+        } else {
+          console.error("❌ Circuit error:", circuitError);
+        }
+        // Fall through to mock for fast demo
       }
     }
 
