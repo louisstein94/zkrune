@@ -15,27 +15,36 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // For now, use mock proofs (real circuits working but slow in dev)
-    // Uncomment below to enable real ZK proofs
-    
-    /* REAL ZK PROOF CODE (WORKING!)
+    // REAL ZK PROOF CODE - ACTIVE!
     const realCircuits = ["age-verification", "balance-proof"];
     
     if (realCircuits.includes(templateId)) {
       try {
+        console.log("🔮 Generating REAL ZK proof for:", templateId);
+        console.log("Inputs:", inputs);
+        
         const snarkjs = await import("snarkjs");
         const wasmPath = path.join(process.cwd(), "public", "circuits", `${templateId}.wasm`);
         const zkeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}.zkey`);
         
+        console.log("📂 WASM path:", wasmPath);
+        console.log("📂 zKey path:", zkeyPath);
+        
+        console.log("⚡ Calling snarkjs.groth16.fullProve...");
         const { proof, publicSignals } = await snarkjs.groth16.fullProve(
           inputs,
           wasmPath,
           zkeyPath
         );
+        console.log("✓ Proof generated!");
+        console.log("Public signals:", publicSignals);
         
         const vKeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}_vkey.json`);
         const vKey = JSON.parse(fs.readFileSync(vKeyPath, "utf8"));
+        
+        console.log("🔍 Verifying proof...");
         const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
+        console.log("✓ Verification result:", isValid);
 
         return NextResponse.json({
           success: true,
@@ -51,10 +60,11 @@ export async function POST(request: NextRequest) {
           realProof: true,
         });
       } catch (circuitError) {
-        console.error("Real circuit error:", circuitError);
+        console.error("❌ Real circuit error:", circuitError);
+        console.error("Stack:", circuitError);
+        // Fall through to mock
       }
     }
-    */
 
     // Mock proof (fast for demo)
     const mockProof = {
