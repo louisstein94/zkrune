@@ -24,9 +24,6 @@ export async function POST(request: NextRequest) {
     
     if (realCircuits.includes(templateId)) {
       try {
-        console.log("🔮 Generating REAL ZK proof via CLI for:", templateId);
-        console.log("⏰ Started at:", new Date().toISOString());
-        
         const circuitDir = path.join(process.cwd(), "circuits", templateId);
         const publicDir = path.join(process.cwd(), "public", "circuits");
         
@@ -41,26 +38,20 @@ export async function POST(request: NextRequest) {
         const startTime = Date.now();
         
         // Step 1: Generate witness  
-        console.log("📝 Generating witness...");
         const witnessCmd = `node ${circuitDir}/circuit_js/generate_witness.js ${publicDir}/${templateId}.wasm ${inputPath} ${witnessPath} 2>&1`;
-        const witnessResult = await execAsync(witnessCmd);
-        console.log("✓ Witness generated");
+        await execAsync(witnessCmd);
         
         // Step 2: Generate proof
-        console.log("⚡ Generating proof with snarkjs CLI...");
         const proveCmd = `snarkjs groth16 prove ${publicDir}/${templateId}.zkey ${witnessPath} ${proofPath} ${publicPath} 2>&1`;
-        const proveResult = await execAsync(proveCmd);
+        await execAsync(proveCmd);
         const proofTime = Date.now() - startTime;
-        console.log("✓ Proof generated in", proofTime, "ms");
         
         // Step 3: Verify
-        console.log("🔍 Verifying...");
         const verifyStart = Date.now();
         const verifyCmd = `snarkjs groth16 verify ${publicDir}/${templateId}_vkey.json ${publicPath} ${proofPath} 2>&1`;
         const { stdout } = await execAsync(verifyCmd);
         const verifyTime = Date.now() - verifyStart;
         const isValid = stdout.includes("OK");
-        console.log("✓ Verification:", isValid ? "OK ✅" : "FAILED ❌");
         
         // Read generated files
         const groth16Proof = JSON.parse(fs.readFileSync(proofPath, "utf8"));
@@ -74,10 +65,8 @@ export async function POST(request: NextRequest) {
           fs.unlinkSync(proofPath);
           fs.unlinkSync(publicPath);
         } catch (cleanupError) {
-          console.warn("Cleanup warning:", cleanupError);
+          // Silent cleanup
         }
-        
-        console.log("🎉 REAL ZK proof complete! Total:", proofTime + verifyTime, "ms");
 
         return NextResponse.json({
           success: true,
@@ -104,9 +93,7 @@ export async function POST(request: NextRequest) {
           },
         });
       } catch (circuitError: any) {
-        console.error("❌ CLI circuit error:", circuitError);
-        console.error("stderr:", circuitError.stderr);
-        // Fall through to mock
+        // Fall through to mock on error
       }
     }
 

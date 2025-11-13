@@ -34,8 +34,6 @@ export default function VerifyProofPage() {
       // Validation checks
       const proof = exported.proof;
       
-      console.log("🔍 Validating proof:", proof);
-      
       // Check for real Groth16 proof structure
       const hasGroth16 = proof.groth16Proof && 
         proof.groth16Proof.pi_a && 
@@ -50,22 +48,11 @@ export default function VerifyProofPage() {
       const hasPublicSignals = !!(proof.publicSignals && Array.isArray(proof.publicSignals));
       const hasVerificationKey = proof.verificationKey !== undefined;
 
-      console.log("Field checks:", {
-        hasStatement,
-        hasTimestamp,
-        hasProofHash,
-        hasVerificationKey,
-        hasGroth16,
-        hasPublicSignals
-      });
-
       // STRICT validation - all required fields must exist
       const allRequiredFields = hasStatement && hasTimestamp && hasProofHash && hasVerificationKey;
-      console.log("All required fields present?", allRequiredFields);
       
       // If ANY field missing, IMMEDIATELY fail
       if (!allRequiredFields) {
-        console.log("❌ Validation FAILED - missing required fields");
         setResult({
           success: false,
           isValid: false,
