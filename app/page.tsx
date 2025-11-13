@@ -141,9 +141,6 @@ export default function Home() {
             <a href="https://x.com/zk_rune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
               X (Twitter)
             </a>
-            <a href="https://discord.gg/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-              Discord
-            </a>
             <a href="https://github.com/louisstein94/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
               GitHub
             </a>

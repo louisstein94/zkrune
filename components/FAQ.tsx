@@ -102,22 +102,20 @@ export default function FAQ() {
             Still have questions?
           </h3>
           <p className="text-zk-gray mb-6">
-            Join our Discord community or check out the documentation
+            Check out the documentation or contribute on GitHub
           </p>
           <div className="flex gap-4 justify-center">
             <a
-              href="https://discord.gg/zkrune"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="px-6 py-3 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg font-medium hover:bg-zk-secondary/30 transition-all"
+              href="/docs"
+              className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
             >
-              Join Discord
+              Read Documentation
             </a>
             <a
               href="https://github.com/louisstein94/zkrune"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
+              className="px-6 py-3 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg font-medium hover:bg-zk-secondary/30 transition-all"
             >
               View on GitHub
             </a>
