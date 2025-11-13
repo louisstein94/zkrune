@@ -324,7 +324,7 @@ export default function TemplatePage() {
                           {proof.statement}
                         </h3>
                         <p className="text-sm text-zk-gray">
-                          Verified at {new Date(proof.timestamp).toLocaleString()}
+                          Verified at {new Date(proof.timestamp).toLocaleString('en-US')}
                         </p>
                       </div>
                     </div>

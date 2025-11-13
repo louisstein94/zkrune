@@ -150,7 +150,7 @@ export default function TemplateGallery() {
                 <div className="flex items-center gap-2">
                   <span className="text-zk-gray">Used</span>
                   <span className="font-medium text-white">
-                    {template.usageCount.toLocaleString()}×
+                    {template.usageCount.toLocaleString('en-US')}×
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
