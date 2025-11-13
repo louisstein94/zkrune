@@ -20,7 +20,13 @@ export async function POST(request: NextRequest) {
     }
 
     // REAL ZK PROOF VIA CLI (Avoids Node.js GC issues!)
-    const realCircuits = ["age-verification", "balance-proof"];
+    const realCircuits = [
+      "age-verification",
+      "balance-proof",
+      "membership-proof",
+      "range-proof",
+      "private-voting"
+    ];
     
     if (realCircuits.includes(templateId)) {
       try {
