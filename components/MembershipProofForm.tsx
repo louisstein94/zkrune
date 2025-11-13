@@ -56,12 +56,17 @@ export default function MembershipProofForm({ onProofGenerated }: MembershipProo
           type="text"
           value={memberId}
           onChange={(e) => setMemberId(e.target.value)}
-          placeholder="Enter your member ID"
+          placeholder="Example: MEMBER123456"
           className="w-full px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white focus:border-zk-primary focus:outline-none transition-colors"
         />
-        <p className="text-xs text-zk-gray mt-2">
-          Your identity will remain anonymous
-        </p>
+        <div className="mt-2 space-y-1">
+          <p className="text-xs text-zk-gray">
+            💡 Minimum 6 characters required (e.g., MEMBER123456)
+          </p>
+          <p className="text-xs text-zk-gray opacity-60">
+            Your identity will remain anonymous in the proof
+          </p>
+        </div>
       </div>
 
       <div>
