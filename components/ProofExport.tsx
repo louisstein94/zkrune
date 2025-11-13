@@ -169,20 +169,22 @@ if (isValid) {
         )}
       </div>
 
-      {/* Verification Instructions */}
-      <div className="mt-4 p-4 bg-zk-darker/50 border border-zk-gray/10 rounded-lg">
+      {/* Simple Verification Info */}
+      <div className="mt-4 p-4 bg-zk-secondary/10 border border-zk-secondary/20 rounded-lg">
         <div className="flex items-start gap-3">
-          <span className="text-xl">🔬</span>
-          <div className="text-xs text-zk-gray">
-            <p className="font-medium text-white mb-2">Verify Independently:</p>
-            <ol className="space-y-1 list-decimal list-inside">
-              <li>Export this proof (Download button)</li>
-              <li>Run: <code className="text-zk-primary bg-black/30 px-1 rounded">snarkjs groth16 verify vkey.json public.json proof.json</code></li>
-              <li>Or use our <a href="/verify-proof" className="text-zk-primary hover:underline">verification tool</a></li>
-            </ol>
-            <p className="mt-2 text-[10px] opacity-60">
-              Don't trust zkRune - verify cryptographically! ✓
+          <span className="text-2xl">✓</span>
+          <div className="text-sm">
+            <p className="font-medium text-white mb-2">Want to Double-Check?</p>
+            <p className="text-zk-gray mb-3 leading-relaxed">
+              Download your proof and verify it yourself using free tools.
+              Math guarantees it's real - no need to trust us!
             </p>
+            <a
+              href="/verify-proof"
+              className="inline-block px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-xs font-medium hover:bg-zk-primary/20 transition-all"
+            >
+              Verify Tool →
+            </a>
           </div>
         </div>
       </div>
