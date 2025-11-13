@@ -209,9 +209,9 @@ export default function TemplateGallery() {
               {/* Stats */}
               <div className="flex items-center justify-between text-sm mb-6">
                 <div className="flex items-center gap-2">
-                  <span className="text-zk-gray">Used</span>
+                  <span className="text-zk-gray">Type:</span>
                   <span className="font-medium text-white">
-                    {template.usageCount.toLocaleString('en-US')}×
+                    Groth16
                   </span>
                 </div>
                 <div className="flex items-center gap-2">
