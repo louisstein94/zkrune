@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
+import BalanceProofForm from "@/components/BalanceProofForm";
+import MembershipProofForm from "@/components/MembershipProofForm";
+import RangeProofForm from "@/components/RangeProofForm";
+import VotingProofForm from "@/components/VotingProofForm";
 
 // Template data
 const templates: { [key: string]: any } = {
@@ -34,6 +38,19 @@ const templates: { [key: string]: any } = {
     icon: "💰",
     category: "Financial",
     difficulty: "Easy",
+    howItWorks: [
+      "Connect your wallet",
+      "Set minimum balance threshold",
+      "System checks balance privately",
+      "Generate proof of sufficient funds",
+      "Actual balance stays hidden",
+    ],
+    useCases: [
+      "Loan applications",
+      "Credit line approval",
+      "Investment eligibility",
+      "Financial verification",
+    ],
   },
   "membership-proof": {
     id: "membership-proof",
@@ -42,6 +59,61 @@ const templates: { [key: string]: any } = {
     icon: "🎫",
     category: "Access",
     difficulty: "Medium",
+    howItWorks: [
+      "Select your membership group",
+      "Provide membership credentials",
+      "System verifies membership",
+      "Generate anonymous proof",
+      "Your identity remains private",
+    ],
+    useCases: [
+      "Private club access",
+      "Anonymous voting rights",
+      "Exclusive content access",
+      "Credential verification",
+    ],
+  },
+  "range-proof": {
+    id: "range-proof",
+    name: "Range Proof",
+    description: "Prove value is within range without exact number",
+    icon: "📊",
+    category: "Data",
+    difficulty: "Medium",
+    howItWorks: [
+      "Enter your value (private)",
+      "Set acceptable range",
+      "System validates range",
+      "Generate proof of validity",
+      "Exact value stays confidential",
+    ],
+    useCases: [
+      "Income verification",
+      "Credit score ranges",
+      "Asset valuation",
+      "Compliance reporting",
+    ],
+  },
+  "private-voting": {
+    id: "private-voting",
+    name: "Private Voting",
+    description: "Vote anonymously with cryptographic proof",
+    icon: "🗳️",
+    category: "Governance",
+    difficulty: "Advanced",
+    howItWorks: [
+      "Register as eligible voter",
+      "Cast your vote privately",
+      "System encrypts your choice",
+      "Generate vote proof",
+      "Vote is counted, identity hidden",
+    ],
+    useCases: [
+      "DAO governance",
+      "Anonymous polls",
+      "Board elections",
+      "Community decisions",
+    ],
   },
 };
 
@@ -81,34 +153,34 @@ export default function TemplatePage() {
     return age;
   };
 
-  const generateProof = async () => {
+  const generateAgeProof = async () => {
     if (!birthDate) {
       alert("Please enter your date of birth");
       return;
     }
 
     setIsGenerating(true);
-
-    // Simulate proof generation
     await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const age = calculateAge(birthDate);
     const isOver18 = age >= 18;
 
-    // Generate mock proof
     const mockProof = {
       statement: isOver18 ? "User is 18 or older" : "User is under 18",
       isValid: isOver18,
       timestamp: new Date().toISOString(),
       proofHash: `0x${Math.random().toString(16).substring(2, 66)}`,
       verificationKey: `vk_${Math.random().toString(36).substring(2, 15)}`,
-      // Hidden data
-      actualAge: age, // This would NOT be in real ZK proof
-      birthDate: birthDate, // This would NOT be in real ZK proof
+      actualAge: age,
+      birthDate: birthDate,
     };
 
     setProof(mockProof);
     setIsGenerating(false);
+  };
+
+  const handleProofGenerated = (generatedProof: any) => {
+    setProof(generatedProof);
   };
 
   const resetForm = () => {
@@ -180,38 +252,58 @@ export default function TemplatePage() {
               </h2>
 
               {!proof ? (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm font-medium text-zk-gray mb-2">
-                      Date of Birth
-                    </label>
-                    <input
-                      type="date"
-                      value={birthDate}
-                      onChange={(e) => setBirthDate(e.target.value)}
-                      className="w-full px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white focus:border-zk-primary focus:outline-none transition-colors"
-                      max={new Date().toISOString().split("T")[0]}
-                    />
-                    <p className="text-xs text-zk-gray mt-2">
-                      Your date of birth will NOT be revealed in the proof
-                    </p>
-                  </div>
+                <>
+                  {templateId === "age-verification" && (
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-medium text-zk-gray mb-2">
+                          Date of Birth
+                        </label>
+                        <input
+                          type="date"
+                          value={birthDate}
+                          onChange={(e) => setBirthDate(e.target.value)}
+                          className="w-full px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white focus:border-zk-primary focus:outline-none transition-colors"
+                          max={new Date().toISOString().split("T")[0]}
+                        />
+                        <p className="text-xs text-zk-gray mt-2">
+                          Your date of birth will NOT be revealed in the proof
+                        </p>
+                      </div>
 
-                  <button
-                    onClick={generateProof}
-                    disabled={isGenerating || !birthDate}
-                    className="w-full py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <div className="w-5 h-5 border-2 border-zk-darker/30 border-t-zk-darker rounded-full animate-spin" />
-                        Generating Proof...
-                      </>
-                    ) : (
-                      <>⚡ Generate ZK Proof</>
-                    )}
-                  </button>
-                </div>
+                      <button
+                        onClick={generateAgeProof}
+                        disabled={isGenerating || !birthDate}
+                        className="w-full py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                      >
+                        {isGenerating ? (
+                          <>
+                            <div className="w-5 h-5 border-2 border-zk-darker/30 border-t-zk-darker rounded-full animate-spin" />
+                            Generating Proof...
+                          </>
+                        ) : (
+                          <>⚡ Generate ZK Proof</>
+                        )}
+                      </button>
+                    </div>
+                  )}
+
+                  {templateId === "balance-proof" && (
+                    <BalanceProofForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "membership-proof" && (
+                    <MembershipProofForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "range-proof" && (
+                    <RangeProofForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "private-voting" && (
+                    <VotingProofForm onProofGenerated={handleProofGenerated} />
+                  )}
+                </>
               ) : (
                 <div className="space-y-6">
                   {/* Proof Result */}
@@ -259,9 +351,22 @@ export default function TemplatePage() {
                       🔒 Privacy Protected
                     </h4>
                     <p className="text-xs text-zk-gray">
-                      Your exact age ({proof.actualAge}) and birth date (
-                      {proof.birthDate}) are NOT included in the proof. Only the
-                      statement "{proof.statement}" is verifiable.
+                      {templateId === "age-verification" && proof.actualAge && (
+                        <>Your exact age ({proof.actualAge}) and birth date ({proof.birthDate}) are NOT included in the proof. </>
+                      )}
+                      {templateId === "balance-proof" && proof.actualBalance && (
+                        <>Your actual balance ({proof.actualBalance} ZEC) is NOT included in the proof. </>
+                      )}
+                      {templateId === "membership-proof" && proof.memberId && (
+                        <>Your member ID ({proof.memberId}) is NOT included in the proof. </>
+                      )}
+                      {templateId === "range-proof" && proof.actualValue && (
+                        <>Your exact value ({proof.actualValue}) is NOT included in the proof. </>
+                      )}
+                      {templateId === "private-voting" && proof.choice && (
+                        <>Your vote choice ({proof.choice}) and voter ID are encrypted. </>
+                      )}
+                      Only the statement "{proof.statement}" is verifiable.
                     </p>
                   </div>
 
