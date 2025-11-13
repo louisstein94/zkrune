@@ -45,17 +45,39 @@ zkrune/
 └── package.json        # Dependencies
 ```
 
-## 🎯 Features (Planned)
+## 🎯 Features
 
-- [ ] 5 ZK Proof Templates
-- [ ] Visual Circuit Builder
+### ✅ Completed (Day 1)
+- [x] Landing Page with Cyber Rune branding
+- [x] Animated Rune particles
+- [x] Template Gallery (5 templates)
+- [x] Working ZK Proof demos:
+  - Age Verification (18+)
+  - Balance Proof
+  - Membership Proof
+  - Range Proof
+  - Private Voting
+
+### 🚧 In Progress
 - [ ] Zcash Testnet Integration
+- [ ] User Authentication
+- [ ] Save/Share Proofs
+
+### 📋 Planned
+- [ ] Visual Circuit Builder
 - [ ] Template Marketplace
-- [ ] Code Export
+- [ ] Real Circom Circuits
+- [ ] Production Deployment
 
 ## 🏆 Hackathon
 
 Built for **ZypherPunk Hackathon** - Deadline: December 2, 2024
+
+### Progress
+- **Day 1** (Nov 13): ✅ Landing page + 5 working templates
+- **Day 2** (Nov 14): 🎯 GitHub push + Navigation + Polish
+- **Week 2**: Zcash integration + Features
+- **Week 3**: Demo prep + Deployment
 
 ## 📄 License
 
