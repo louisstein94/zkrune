@@ -1,24 +1,26 @@
 "use client";
 
+import { ChooseIcon, GenerateIcon, DeployIcon } from "./StepIcons";
+
 export default function HowItWorks() {
   const steps = [
     {
       number: "01",
       title: "Choose Template",
       description: "Browse our collection of 5 zero-knowledge proof templates. Select the one that fits your privacy needs.",
-      icon: "📋",
+      IconComponent: ChooseIcon,
     },
     {
       number: "02",
       title: "Generate Proof",
       description: "Fill in the simple form with your data. Click generate and watch as your ZK proof is created in seconds.",
-      icon: "⚡",
+      IconComponent: GenerateIcon,
     },
     {
       number: "03",
       title: "Use Anywhere",
       description: "Export your proof, share it, or deploy to Zcash testnet. Your sensitive data stays private forever.",
-      icon: "🚀",
+      IconComponent: DeployIcon,
     },
   ];
 
@@ -60,7 +62,11 @@ export default function HowItWorks() {
               </div>
 
               {/* Icon */}
-              <div className="text-5xl mb-4">{step.icon}</div>
+              <div className="mb-6 flex justify-center">
+                <div className="p-4 bg-zk-primary/10 rounded-2xl border border-zk-primary/20">
+                  <step.IconComponent className="w-12 h-12" />
+                </div>
+              </div>
 
               {/* Title */}
               <h3 className="font-hatton text-2xl text-white mb-3">
