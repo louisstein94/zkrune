@@ -3,6 +3,9 @@
 import { useState, useEffect } from "react";
 import RuneAnimation from "@/components/RuneAnimation";
 import TemplateGallery from "@/components/TemplateGallery";
+import Navigation from "@/components/Navigation";
+import HowItWorks from "@/components/HowItWorks";
+import FAQ from "@/components/FAQ";
 
 export default function Home() {
   const [proofsGenerated, setProofsGenerated] = useState(0);
@@ -25,7 +28,10 @@ export default function Home() {
   }, []);
 
   return (
-    <main className="relative min-h-screen bg-zk-darker overflow-hidden">
+    <main id="home" className="relative min-h-screen bg-zk-darker overflow-hidden">
+      {/* Navigation */}
+      <Navigation />
+      
       {/* Noise Texture */}
       <div className="noise-texture absolute inset-0 pointer-events-none" />
 
@@ -35,35 +41,9 @@ export default function Home() {
         <div className="absolute top-1/3 right-1/3 w-[400px] h-[400px] rounded-full bg-zk-primary/10 blur-[100px] animate-pulse-slow" style={{ animationDelay: '1s' }} />
       </div>
 
-      {/* Header */}
-      <header className="relative z-10 flex items-center justify-between px-8 py-6 border-b border-white/5">
-        <div className="flex items-center gap-4">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <div className="text-3xl font-bold text-zk-primary">ᚱ</div>
-            <h1 className="text-2xl font-hatton text-white">zkRune</h1>
-          </div>
-        </div>
-
-        <nav className="flex items-center gap-8 text-sm font-medium uppercase tracking-wider">
-          <a href="#docs" className="text-zk-gray hover:text-zk-primary transition-colors">
-            Documentation
-          </a>
-          <a href="#templates" className="text-zk-gray hover:text-zk-primary transition-colors">
-            Templates
-          </a>
-          <a href="https://github.com/louisstein94/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-            GitHub
-          </a>
-        </nav>
-
-        <button className="px-6 py-2 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105">
-          Start Building
-        </button>
-      </header>
 
       {/* Main Content */}
-      <div className="relative z-10 flex items-center justify-between px-16 py-20 min-h-[calc(100vh-100px)]">
+      <div className="relative z-10 flex items-center justify-between px-16 py-20 pt-32 min-h-screen">
         {/* Left Side - Content */}
         <div className="max-w-2xl space-y-8">
           {/* Badge */}
@@ -137,6 +117,12 @@ export default function Home() {
 
       {/* Template Gallery Section */}
       <TemplateGallery />
+
+      {/* How It Works Section */}
+      <HowItWorks />
+
+      {/* FAQ Section */}
+      <FAQ />
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 px-16 py-6">
