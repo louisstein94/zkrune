@@ -6,6 +6,8 @@ import TemplateGallery from "@/components/TemplateGallery";
 import Navigation from "@/components/Navigation";
 import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
+import ComparisonTable from "@/components/ComparisonTable";
+import Testimonials from "@/components/Testimonials";
 
 export default function Home() {
   const [proofsGenerated, setProofsGenerated] = useState(0);
@@ -123,6 +125,12 @@ export default function Home() {
 
       {/* How It Works Section */}
       <HowItWorks />
+
+      {/* Comparison Table */}
+      <ComparisonTable />
+
+      {/* Testimonials & Use Cases */}
+      <Testimonials />
 
       {/* FAQ Section */}
       <FAQ />
