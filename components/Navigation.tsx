@@ -9,7 +9,7 @@ export default function Navigation() {
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Templates", href: "/#templates" },
-    { name: "How It Works", href: "/#how-it-works" },
+    { name: "Verify Proof", href: "/verify-proof" },
     { name: "Dashboard", href: "/dashboard" },
     { name: "FAQ", href: "/#faq" },
   ];
