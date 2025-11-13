@@ -9,6 +9,7 @@ import FAQ from "@/components/FAQ";
 import ComparisonTable from "@/components/ComparisonTable";
 import Testimonials from "@/components/Testimonials";
 import EducationalBanner from "@/components/EducationalBanner";
+import CTAShowcase from "@/components/CTAShowcase";
 
 export default function Home() {
   const [proofsGenerated, setProofsGenerated] = useState(0);
@@ -138,6 +139,9 @@ export default function Home() {
 
       {/* Educational Banner */}
       <EducationalBanner />
+
+      {/* Final CTA */}
+      <CTAShowcase />
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 px-16 py-6">
