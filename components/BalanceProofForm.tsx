@@ -18,26 +18,53 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
     }
 
     setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const balanceNum = parseFloat(balance);
-    const minBalanceNum = parseFloat(minBalance);
-    const hasSufficientBalance = balanceNum >= minBalanceNum;
+    try {
+      const balanceNum = parseFloat(balance);
+      const minBalanceNum = parseFloat(minBalance);
+      const hasSufficientBalance = balanceNum >= minBalanceNum;
 
-    const proof = {
-      statement: hasSufficientBalance
-        ? `Balance ≥ ${minBalanceNum} ZEC`
-        : `Balance < ${minBalanceNum} ZEC`,
-      isValid: hasSufficientBalance,
-      timestamp: new Date().toISOString(),
-      proofHash: `0x${Math.random().toString(16).substring(2, 66)}`,
-      verificationKey: `vk_${Math.random().toString(36).substring(2, 15)}`,
-      actualBalance: balanceNum,
-      threshold: minBalanceNum,
-    };
+      // Call API for REAL ZK proof
+      const response = await fetch("/api/generate-proof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId: "balance-proof",
+          inputs: {
+            balance: Math.floor(balanceNum * 100).toString(), // Convert to integer (cents)
+            minimumBalance: Math.floor(minBalanceNum * 100).toString(),
+          },
+        }),
+      });
 
-    onProofGenerated(proof);
-    setIsGenerating(false);
+      const data = await response.json();
+
+      if (data.success) {
+        const resultProof = {
+          statement: hasSufficientBalance
+            ? `Balance ≥ ${minBalanceNum} ZEC`
+            : `Balance < ${minBalanceNum} ZEC`,
+          isValid: hasSufficientBalance,
+          timestamp: data.proof.timestamp,
+          proofHash: data.proof.proofHash,
+          verificationKey: typeof data.proof.verificationKey === 'string'
+            ? data.proof.verificationKey
+            : 'vk_real_circuit',
+          actualBalance: balanceNum,
+          threshold: minBalanceNum,
+          realProof: data.realProof || false,
+          note: data.note,
+        };
+        onProofGenerated(resultProof);
+      } else {
+        alert("Proof generation failed");
+      }
+    } catch (error) {
+      console.error("Balance proof error:", error);
+      alert("Error generating proof. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
