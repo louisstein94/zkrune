@@ -158,15 +158,9 @@ export default function VerifyProofPage() {
           {/* Actions */}
           <div className="flex gap-4 mb-8">
             <button
-              onClick={loadExample}
-              className="px-6 py-3 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary hover:text-zk-primary transition-colors"
-            >
-              Load Example
-            </button>
-            <button
               onClick={verifyProof}
-              disabled={isVerifying || !proofJson || !publicJson || !vKeyJson}
-              className="flex-1 py-3 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+              disabled={isVerifying || !exportedJson}
+              className="flex-1 py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2 text-lg"
             >
               {isVerifying ? (
                 <>
