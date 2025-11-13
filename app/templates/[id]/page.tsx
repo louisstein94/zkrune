@@ -10,6 +10,7 @@ import VotingProofForm from "@/components/VotingProofForm";
 import ZcashMock from "@/components/ZcashMock";
 import ProofExport from "@/components/ProofExport";
 import CodePreview from "@/components/CodePreview";
+import TrustExplainer from "@/components/TrustExplainer";
 
 // Template data
 const templates: { [key: string]: any } = {
@@ -510,6 +511,7 @@ export default function TemplatePage() {
               <>
                 <ZcashMock proofHash={proof.proofHash} />
                 <ProofExport proof={proof} templateId={templateId} />
+                <TrustExplainer />
               </>
             )}
           </div>
