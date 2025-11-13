@@ -1,0 +1,69 @@
+# 🔮 zkRune
+
+**Visual Zero-Knowledge Proof Builder for Zcash**
+
+Build privacy-preserving applications without cryptography expertise.
+
+## 🎨 Brand Identity
+
+- **Colors**: Cyber Rune palette (#00FFA3 neon green + #6B4CFF mystic purple)
+- **Typography**: PP Hatton (display) + DM Sans (body)
+- **Theme**: Dark, mystical, tech-forward
+
+## 🚀 Tech Stack
+
+- **Framework**: Next.js 14 (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Blockchain**: Zcash (via Lightwalletd)
+- **ZK System**: Circom + snarkjs
+
+## 💻 Development
+
+```bash
+# Install dependencies
+npm install
+
+# Run development server
+npm run dev
+
+# Build for production
+npm run build
+```
+
+## 📦 Project Structure
+
+```
+zkrune/
+├── app/                 # Next.js app directory
+│   ├── page.tsx        # Landing page
+│   ├── layout.tsx      # Root layout
+│   └── globals.css     # Global styles
+├── components/          # React components
+│   └── RuneAnimation.tsx
+├── public/             # Static assets
+└── package.json        # Dependencies
+```
+
+## 🎯 Features (Planned)
+
+- [ ] 5 ZK Proof Templates
+- [ ] Visual Circuit Builder
+- [ ] Zcash Testnet Integration
+- [ ] Template Marketplace
+- [ ] Code Export
+
+## 🏆 Hackathon
+
+Built for **ZypherPunk Hackathon** - Deadline: December 2, 2024
+
+## 📄 License
+
+MIT
+
+## 🔗 Links
+
+- Website: [zkrune.com](https://zkrune.com)
+- Twitter: 
+- GitHub: [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
+
