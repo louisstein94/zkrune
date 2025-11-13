@@ -15,16 +15,21 @@ export default function ProofExport({ proof, templateId }: ProofExportProps) {
     return JSON.stringify(
       {
         proof: {
-          hash: proof.proofHash,
-          verificationKey: proof.verificationKey,
+          // Include real Groth16 proof if available
+          ...(proof.groth16Proof && { groth16Proof: proof.groth16Proof }),
+          ...(proof.publicSignals && { publicSignals: proof.publicSignals }),
           statement: proof.statement,
           isValid: proof.isValid,
           timestamp: proof.timestamp,
+          verificationKey: proof.verificationKey,
+          proofHash: proof.proofHash,
+          ...(proof.note && { note: proof.note }),
         },
         metadata: {
           template: templateId,
           generatedBy: "zkRune",
           version: "0.1.0",
+          realProof: proof.realProof || false,
         },
       },
       null,
