@@ -58,14 +58,12 @@ export default function ZcashMock({ proofHash }: ZcashMockProps) {
 
           <div className="flex justify-between items-center p-3 bg-zk-darker rounded-lg">
             <span className="text-zk-gray">Block Explorer:</span>
-            <a
-              href={`https://testnet.zcha.in/tx/${txHash}`}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-zk-primary hover:underline text-xs"
-            >
-              View on Explorer →
-            </a>
+            <div className="text-xs text-zk-gray flex items-center gap-2">
+              <span className="opacity-60">Simulated TX</span>
+              <span className="px-2 py-0.5 bg-zk-secondary/20 text-zk-secondary rounded text-[10px]">
+                TESTNET MOCK
+              </span>
+            </div>
           </div>
         </div>
 
