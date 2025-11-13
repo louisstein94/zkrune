@@ -41,21 +41,27 @@ export default function CTAShowcase() {
             Create your first zero-knowledge proof in under 60 seconds.
           </p>
 
-          {/* Stats Bar */}
+          {/* Real Technical Stats */}
           <div className="flex justify-center gap-8 mb-10">
             <div>
-              <p className="text-3xl font-hatton text-white">1,234+</p>
-              <p className="text-sm text-zk-gray">Proofs Created</p>
+              <p className="text-3xl font-hatton text-white">
+                0.44<span className="text-zk-primary">s</span>
+              </p>
+              <p className="text-sm text-zk-gray">Proof Speed</p>
             </div>
             <div className="w-px bg-zk-gray/20" />
             <div>
-              <p className="text-3xl font-hatton text-white">100+</p>
-              <p className="text-sm text-zk-gray">Active Users</p>
+              <p className="text-3xl font-hatton text-white">
+                5<span className="text-zk-primary">/5</span>
+              </p>
+              <p className="text-sm text-zk-gray">Real Circuits</p>
             </div>
             <div className="w-px bg-zk-gray/20" />
             <div>
-              <p className="text-3xl font-hatton text-white">5</p>
-              <p className="text-sm text-zk-gray">Templates</p>
+              <p className="text-3xl font-hatton text-white">
+                100<span className="text-zk-primary">%</span>
+              </p>
+              <p className="text-sm text-zk-gray">Open Source</p>
             </div>
           </div>
 
