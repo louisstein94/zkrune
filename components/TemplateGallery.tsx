@@ -2,6 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { 
+  AgeVerificationIcon, 
+  BalanceIcon, 
+  MembershipIcon, 
+  RangeIcon, 
+  VotingIcon 
+} from "./TemplateIcons";
 
 interface Template {
   id: string;
@@ -19,7 +26,7 @@ const templates: Template[] = [
     id: "age-verification",
     name: "Age Verification",
     description: "Prove you're 18+ without revealing your exact age",
-    icon: "👤",
+    icon: "age",
     category: "Identity",
     usageCount: 1234,
     difficulty: "Easy",
@@ -29,7 +36,7 @@ const templates: Template[] = [
     id: "balance-proof",
     name: "Balance Proof",
     description: "Prove minimum balance without showing amount",
-    icon: "💰",
+    icon: "balance",
     category: "Financial",
     usageCount: 567,
     difficulty: "Easy",
@@ -39,7 +46,7 @@ const templates: Template[] = [
     id: "membership-proof",
     name: "Membership Proof",
     description: "Prove group membership without revealing identity",
-    icon: "🎫",
+    icon: "membership",
     category: "Access",
     usageCount: 890,
     difficulty: "Medium",
@@ -49,7 +56,7 @@ const templates: Template[] = [
     id: "range-proof",
     name: "Range Proof",
     description: "Prove value is within range without exact number",
-    icon: "📊",
+    icon: "range",
     category: "Data",
     usageCount: 432,
     difficulty: "Medium",
@@ -59,13 +66,24 @@ const templates: Template[] = [
     id: "private-voting",
     name: "Private Voting",
     description: "Vote anonymously with cryptographic proof",
-    icon: "🗳️",
+    icon: "voting",
     category: "Governance",
     usageCount: 756,
     difficulty: "Advanced",
     estimatedTime: "2 min",
   },
 ];
+
+const getIconComponent = (iconName: string) => {
+  switch (iconName) {
+    case "age": return AgeVerificationIcon;
+    case "balance": return BalanceIcon;
+    case "membership": return MembershipIcon;
+    case "range": return RangeIcon;
+    case "voting": return VotingIcon;
+    default: return AgeVerificationIcon;
+  }
+};
 
 export default function TemplateGallery() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
@@ -168,8 +186,13 @@ export default function TemplateGallery() {
             {/* Content */}
             <div className="relative z-10">
               {/* Icon & Category */}
-              <div className="flex items-start justify-between mb-4">
-                <div className="text-5xl">{template.icon}</div>
+              <div className="flex items-start justify-between mb-6">
+                <div className="p-3 bg-zk-primary/10 rounded-xl border border-zk-primary/20 group-hover:bg-zk-primary/20 transition-colors">
+                  {(() => {
+                    const IconComponent = getIconComponent(template.icon);
+                    return <IconComponent className="w-10 h-10" />;
+                  })()}
+                </div>
                 <span className="text-xs px-3 py-1 bg-zk-secondary/20 text-zk-secondary rounded-full font-medium">
                   {template.category}
                 </span>
