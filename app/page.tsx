@@ -8,6 +8,7 @@ import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
 import ComparisonTable from "@/components/ComparisonTable";
 import Testimonials from "@/components/Testimonials";
+import EducationalBanner from "@/components/EducationalBanner";
 
 export default function Home() {
   const [proofsGenerated, setProofsGenerated] = useState(0);
@@ -134,6 +135,9 @@ export default function Home() {
 
       {/* FAQ Section */}
       <FAQ />
+
+      {/* Educational Banner */}
+      <EducationalBanner />
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 px-16 py-6">
