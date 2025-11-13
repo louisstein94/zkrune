@@ -50,12 +50,7 @@ export default function HowItWorks() {
             key={step.number}
             className="relative group"
           >
-            {/* Connection Line */}
-            {index < steps.length - 1 && (
-              <div className="hidden md:block absolute top-20 left-full w-full h-px bg-gradient-to-r from-zk-primary to-transparent" />
-            )}
-
-            <div className="relative bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8 hover:border-zk-primary/50 transition-all duration-300">
+            <div className="relative bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8 hover:border-zk-primary/50 transition-all duration-300 hover:scale-105">
               {/* Number */}
               <div className="text-6xl font-hatton text-zk-primary/20 mb-4">
                 {step.number}
