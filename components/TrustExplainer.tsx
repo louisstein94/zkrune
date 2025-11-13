@@ -24,9 +24,25 @@ export default function TrustExplainer() {
           </div>
           <div>
             <h4 className="text-white font-medium mb-2">Download Your Proof</h4>
-            <p className="text-sm text-zk-gray leading-relaxed">
-              Click the "Download" button above. You'll get a small file (~2KB) containing your proof.
-              This is like getting a receipt - it proves what you did.
+            <p className="text-sm text-zk-gray leading-relaxed mb-3">
+              Scroll up to "Export Proof" section above this box. You'll see three tabs:
+            </p>
+            <div className="space-y-2 text-xs bg-zk-darker/50 rounded-lg p-3">
+              <div className="flex items-center gap-2">
+                <span className="text-zk-primary">→</span>
+                <span className="text-white">Click <span className="bg-zk-primary/20 px-2 py-0.5 rounded text-zk-primary">JSON</span> tab</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-zk-primary">→</span>
+                <span className="text-white">Click <span className="bg-zk-primary/20 px-2 py-0.5 rounded text-zk-primary">Download</span> button</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-zk-primary">→</span>
+                <span className="text-white">Save file: <code className="text-zk-gray">zkrune-proof-[date].json</code></span>
+              </div>
+            </div>
+            <p className="text-xs text-zk-gray mt-2">
+              💡 This file (~2KB) contains your mathematical proof - like a receipt!
             </p>
           </div>
         </div>
@@ -37,26 +53,34 @@ export default function TrustExplainer() {
             2
           </div>
           <div>
-            <h4 className="text-white font-medium mb-2">Use a Checking Tool</h4>
+            <h4 className="text-white font-medium mb-2">Check It's Real</h4>
             <p className="text-sm text-zk-gray leading-relaxed mb-3">
-              Think of this like checking if a password is correct - but for math problems.
-              You can use free tools (like a calculator) to check if the proof is real.
+              Use a free checking tool - like using a calculator to verify math. Two easy options:
             </p>
-            <div className="flex gap-3">
-              <a
-                href="/verify-proof"
-                className="px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-sm hover:bg-zk-primary/20 transition-all"
-              >
-                Use Our Verification Tool
-              </a>
-              <a
-                href="https://zkp.science/"
-                target="_blank"
-                rel="noopener noreferrer"
-                className="px-4 py-2 border border-zk-gray/30 text-zk-gray rounded-lg text-sm hover:border-zk-primary hover:text-zk-primary transition-all"
-              >
-                External Verifier
-              </a>
+            
+            {/* Option A: Web Tool */}
+            <div className="space-y-3 mb-3">
+              <div className="bg-zk-darker/50 rounded-lg p-3">
+                <p className="text-xs font-medium text-white mb-2">Option A: Web Tool (Easiest)</p>
+                <div className="space-y-1 text-xs text-zk-gray">
+                  <div>→ Go to <a href="/verify-proof" className="text-zk-primary hover:underline">zkrune.com/verify-proof</a></div>
+                  <div>→ Open your downloaded file</div>
+                  <div>→ Copy-paste the content</div>
+                  <div>→ Click "Verify"</div>
+                  <div>→ See result: ✅ or ❌</div>
+                </div>
+              </div>
+
+              {/* Option B: CLI */}
+              <div className="bg-zk-darker/50 rounded-lg p-3">
+                <p className="text-xs font-medium text-white mb-2">Option B: Terminal (For Techies)</p>
+                <div className="text-xs text-zk-gray">
+                  <code className="block bg-black/40 p-2 rounded text-[10px] text-zk-primary">
+                    snarkjs groth16 verify proof.json
+                  </code>
+                  <p className="mt-1 opacity-60">Requires: snarkjs installed</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
