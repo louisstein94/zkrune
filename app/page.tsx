@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import RuneAnimation from "@/components/RuneAnimation";
+import TemplateGallery from "@/components/TemplateGallery";
 
 export default function Home() {
   const [proofsGenerated, setProofsGenerated] = useState(0);
@@ -133,6 +134,9 @@ export default function Home() {
           <RuneAnimation />
         </div>
       </div>
+
+      {/* Template Gallery Section */}
+      <TemplateGallery />
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 px-16 py-6">
