@@ -4,25 +4,27 @@ import { useState } from "react";
 import Navigation from "@/components/Navigation";
 
 export default function VerifyProofPage() {
-  const [proofJson, setProofJson] = useState("");
-  const [publicJson, setPublicJson] = useState("");
-  const [vKeyJson, setVKeyJson] = useState("");
+  const [exportedJson, setExportedJson] = useState("");
   const [result, setResult] = useState<any>(null);
   const [isVerifying, setIsVerifying] = useState(false);
 
   const verifyProof = async () => {
-    if (!proofJson || !publicJson || !vKeyJson) {
-      alert("Please fill all fields");
+    if (!exportedJson) {
+      alert("Please paste your exported proof");
       return;
     }
 
     setIsVerifying(true);
 
     try {
-      // Parse JSONs
-      const proof = JSON.parse(proofJson);
-      const publicSignals = JSON.parse(publicJson);
-      const vKey = JSON.parse(vKeyJson);
+      // Parse the exported JSON from zkRune
+      const exported = JSON.parse(exportedJson);
+      
+      // Extract proof, public signals, and verification key
+      // For now, we'll do basic validation since it's a mock proof
+      const proof = exported.proof || exported;
+      const publicSignals = ["1"]; // Mock
+      const vKey = { protocol: "groth16" }; // Mock
 
       // Call verification API
       const response = await fetch("/api/verify-proof", {
@@ -44,14 +46,20 @@ export default function VerifyProofPage() {
   };
 
   const loadExample = () => {
-    setProofJson(JSON.stringify({
-      "pi_a": ["12345..."],
-      "pi_b": [["67890..."]],
-      "pi_c": ["abcde..."],
-      "protocol": "groth16"
+    setExportedJson(JSON.stringify({
+      "proof": {
+        "hash": "0x1a2b3c4d...",
+        "verificationKey": "vk_example",
+        "statement": "User is 18 or older",
+        "isValid": true,
+        "timestamp": new Date().toISOString()
+      },
+      "metadata": {
+        "template": "age-verification",
+        "generatedBy": "zkRune",
+        "version": "0.1.0"
+      }
     }, null, 2));
-    setPublicJson(JSON.stringify(["1"], null, 2));
-    setVKeyJson('{"protocol": "groth16", "curve": "bn128"}');
   };
 
   return (
@@ -103,39 +111,47 @@ export default function VerifyProofPage() {
             </ul>
           </div>
 
-          {/* Input Forms */}
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
-            {/* Proof */}
-            <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-6">
-              <h3 className="font-hatton text-xl text-white mb-4">1. Proof</h3>
-              <textarea
-                value={proofJson}
-                onChange={(e) => setProofJson(e.target.value)}
-                placeholder='{"pi_a": [...], "pi_b": [...], ...}'
-                className="w-full h-64 px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white text-xs font-mono focus:border-zk-primary focus:outline-none resize-none"
-              />
-            </div>
+          {/* Simple Input - Just Paste Everything */}
+          <div className="mb-8">
+            <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h3 className="font-hatton text-2xl text-white mb-2">
+                    Paste Your Exported Proof
+                  </h3>
+                  <p className="text-sm text-zk-gray">
+                    Copy the entire JSON from zkRune's "Export → JSON → Copy" and paste below
+                  </p>
+                </div>
+                <button
+                  onClick={loadExample}
+                  className="px-4 py-2 border border-zk-gray/30 text-zk-gray rounded-lg text-sm hover:border-zk-primary hover:text-zk-primary transition-all"
+                >
+                  Load Example
+                </button>
+              </div>
 
-            {/* Public Signals */}
-            <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-6">
-              <h3 className="font-hatton text-xl text-white mb-4">2. Public Signals</h3>
               <textarea
-                value={publicJson}
-                onChange={(e) => setPublicJson(e.target.value)}
-                placeholder='["1"]'
-                className="w-full h-64 px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white text-xs font-mono focus:border-zk-primary focus:outline-none resize-none"
+                value={exportedJson}
+                onChange={(e) => setExportedJson(e.target.value)}
+                placeholder={`Paste your proof here. Example:\n{\n  "proof": {\n    "hash": "0x...",\n    "statement": "User is 18+",\n    ...\n  },\n  "metadata": {...}\n}`}
+                className="w-full h-96 px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white text-xs font-mono focus:border-zk-primary focus:outline-none resize-none"
               />
-            </div>
 
-            {/* Verification Key */}
-            <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-6">
-              <h3 className="font-hatton text-xl text-white mb-4">3. Verification Key</h3>
-              <textarea
-                value={vKeyJson}
-                onChange={(e) => setVKeyJson(e.target.value)}
-                placeholder='{"protocol": "groth16", ...}'
-                className="w-full h-64 px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white text-xs font-mono focus:border-zk-primary focus:outline-none resize-none"
-              />
+              {/* Helper Text */}
+              <div className="mt-4 flex items-start gap-2 text-xs text-zk-gray">
+                <span className="text-zk-primary">💡</span>
+                <div>
+                  <p className="font-medium text-white mb-1">How to get this:</p>
+                  <ol className="space-y-1 list-decimal list-inside">
+                    <li>Generate a proof on any template</li>
+                    <li>Scroll to "Export Proof" section</li>
+                    <li>Click "JSON" tab</li>
+                    <li>Click "Copy" button</li>
+                    <li>Paste here!</li>
+                  </ol>
+                </div>
+              </div>
             </div>
           </div>
 
