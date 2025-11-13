@@ -40,54 +40,63 @@ export async function POST(request: NextRequest) {
         
         const startTime = Date.now();
         
-        // Step 1: Generate witness
+        // Step 1: Generate witness  
         console.log("📝 Generating witness...");
-        const witnessCmd = `node ${circuitDir}/circuit_js/generate_witness.js ${publicDir}/${templateId}.wasm ${inputPath} ${witnessPath}`;
-        await execAsync(witnessCmd);
+        const witnessCmd = `node ${circuitDir}/circuit_js/generate_witness.js ${publicDir}/${templateId}.wasm ${inputPath} ${witnessPath} 2>&1`;
+        const witnessResult = await execAsync(witnessCmd);
         console.log("✓ Witness generated");
         
         // Step 2: Generate proof
         console.log("⚡ Generating proof with snarkjs CLI...");
-        const proveCmd = `snarkjs groth16 prove ${publicDir}/${templateId}.zkey ${witnessPath} ${proofPath} ${publicPath}`;
-        await execAsync(proveCmd);
+        const proveCmd = `snarkjs groth16 prove ${publicDir}/${templateId}.zkey ${witnessPath} ${proofPath} ${publicPath} 2>&1`;
+        const proveResult = await execAsync(proveCmd);
         const proofTime = Date.now() - startTime;
         console.log("✓ Proof generated in", proofTime, "ms");
         
         // Step 3: Verify
         console.log("🔍 Verifying...");
         const verifyStart = Date.now();
-        const verifyCmd = `snarkjs groth16 verify ${publicDir}/${templateId}_vkey.json ${publicPath} ${proofPath}`;
+        const verifyCmd = `snarkjs groth16 verify ${publicDir}/${templateId}_vkey.json ${publicPath} ${proofPath} 2>&1`;
         const { stdout } = await execAsync(verifyCmd);
         const verifyTime = Date.now() - verifyStart;
         const isValid = stdout.includes("OK");
         console.log("✓ Verification:", isValid ? "OK ✅" : "FAILED ❌");
         
-        // Read generated proof
-        const proof = JSON.parse(fs.readFileSync(proofPath, "utf8"));
+        // Read generated files
+        const groth16Proof = JSON.parse(fs.readFileSync(proofPath, "utf8"));
         const publicSignals = JSON.parse(fs.readFileSync(publicPath, "utf8"));
         const vKey = JSON.parse(fs.readFileSync(`${publicDir}/${templateId}_vkey.json`, "utf8"));
         
         // Cleanup temp files
-        fs.unlinkSync(inputPath);
-        fs.unlinkSync(witnessPath);
-        fs.unlinkSync(proofPath);
-        fs.unlinkSync(publicPath);
+        try {
+          fs.unlinkSync(inputPath);
+          fs.unlinkSync(witnessPath);
+          fs.unlinkSync(proofPath);
+          fs.unlinkSync(publicPath);
+        } catch (cleanupError) {
+          console.warn("Cleanup warning:", cleanupError);
+        }
         
         console.log("🎉 REAL ZK proof complete! Total:", proofTime + verifyTime, "ms");
 
         return NextResponse.json({
           success: true,
           proof: {
-            proof,
+            groth16Proof, // Real Groth16 proof structure
             publicSignals,
-            proofHash: JSON.stringify(proof).substring(0, 66),
             verificationKey: vKey,
             timestamp: new Date().toISOString(),
             isValid,
+            proofHash: JSON.stringify(groth16Proof).substring(0, 66),
+            note: `🔥 REAL ZK-SNARK! Generated in ${(proofTime/1000).toFixed(2)}s`,
           },
-          note: `🔥 REAL ZK-SNARK via CLI! ${(proofTime/1000).toFixed(1)}s`,
-          realProof: true,
-          method: "snarkjs-cli",
+          metadata: {
+            template: templateId,
+            generatedBy: "zkRune",
+            version: "0.1.0",
+            method: "snarkjs-cli",
+            realProof: true,
+          },
           timing: {
             proofGeneration: proofTime,
             verification: verifyTime,
