@@ -49,7 +49,6 @@ circuits/**/witness.wtns
 circuits/**/input.json
 
 # Generated circuit files (will be in public/)
-# Uncomment if circuits are too large for git
-# public/circuits/*.wasm
-# public/circuits/*.zkey
+# .zkey files are binary and can be regenerated
+public/circuits/*.zkey
 
