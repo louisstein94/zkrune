@@ -23,9 +23,9 @@ export async function POST(request: NextRequest) {
         console.log("🔮 Attempting REAL ZK proof for:", templateId);
         console.log("Inputs:", inputs);
         
-        // Create a timeout promise (5 seconds for demo speed)
+        // Create a timeout promise (15 seconds - optimized circuits are fast!)
         const timeoutPromise = new Promise((_, reject) => 
-          setTimeout(() => reject(new Error("Timeout - using fast demo mode")), 5000)
+          setTimeout(() => reject(new Error("Timeout - using fast demo mode")), 15000)
         );
         
         const proofPromise = (async () => {
