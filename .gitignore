@@ -36,3 +36,20 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# Circom compilation outputs (large files)
+circuits/**/*.r1cs
+circuits/**/*.sym
+circuits/**/*.zkey
+circuits/**/*.wtns
+circuits/**/*.ptau
+circuits/**/circuit_js/
+circuits/**/proof.json
+circuits/**/public.json
+circuits/**/witness.wtns
+circuits/**/input.json
+
+# Generated circuit files (will be in public/)
+# Uncomment if circuits are too large for git
+# public/circuits/*.wasm
+# public/circuits/*.zkey
+
