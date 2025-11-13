@@ -11,6 +11,13 @@ import ZcashMock from "@/components/ZcashMock";
 import ProofExport from "@/components/ProofExport";
 import CodePreview from "@/components/CodePreview";
 import TrustExplainer from "@/components/TrustExplainer";
+import { 
+  AgeVerificationIcon, 
+  BalanceIcon, 
+  MembershipIcon, 
+  RangeIcon, 
+  VotingIcon 
+} from "@/components/TemplateIcons";
 
 // Template data
 const templates: { [key: string]: any } = {
@@ -18,7 +25,7 @@ const templates: { [key: string]: any } = {
     id: "age-verification",
     name: "Age Verification",
     description: "Prove you're 18+ without revealing your exact age",
-    icon: "👤",
+    icon: "age",
     category: "Identity",
     difficulty: "Easy",
     howItWorks: [
@@ -39,7 +46,7 @@ const templates: { [key: string]: any } = {
     id: "balance-proof",
     name: "Balance Proof",
     description: "Prove minimum balance without showing amount",
-    icon: "💰",
+    icon: "balance",
     category: "Financial",
     difficulty: "Easy",
     howItWorks: [
@@ -60,7 +67,7 @@ const templates: { [key: string]: any } = {
     id: "membership-proof",
     name: "Membership Proof",
     description: "Prove group membership without revealing identity",
-    icon: "🎫",
+    icon: "membership",
     category: "Access",
     difficulty: "Medium",
     howItWorks: [
@@ -81,7 +88,7 @@ const templates: { [key: string]: any } = {
     id: "range-proof",
     name: "Range Proof",
     description: "Prove value is within range without exact number",
-    icon: "📊",
+    icon: "range",
     category: "Data",
     difficulty: "Medium",
     howItWorks: [
@@ -102,7 +109,7 @@ const templates: { [key: string]: any } = {
     id: "private-voting",
     name: "Private Voting",
     description: "Vote anonymously with cryptographic proof",
-    icon: "🗳️",
+    icon: "voting",
     category: "Governance",
     difficulty: "Advanced",
     howItWorks: [
@@ -250,7 +257,22 @@ export default function TemplatePage() {
         {/* Template Header */}
         <div className="mb-12">
           <div className="flex items-start gap-6 mb-6">
-            <div className="text-7xl">{template.icon}</div>
+            <div className="p-6 bg-zk-primary/10 rounded-2xl border border-zk-primary/20">
+              {(() => {
+                const getIcon = () => {
+                  switch (template.icon) {
+                    case "age": return AgeVerificationIcon;
+                    case "balance": return BalanceIcon;
+                    case "membership": return MembershipIcon;
+                    case "range": return RangeIcon;
+                    case "voting": return VotingIcon;
+                    default: return AgeVerificationIcon;
+                  }
+                };
+                const IconComponent = getIcon();
+                return <IconComponent className="w-16 h-16" />;
+              })()}
+            </div>
             <div>
               <h1 className="font-hatton text-5xl text-white mb-3">
                 {template.name}
