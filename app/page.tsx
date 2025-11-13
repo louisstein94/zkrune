@@ -10,27 +10,6 @@ import EducationalBanner from "@/components/EducationalBanner";
 import CTAShowcase from "@/components/CTAShowcase";
 
 export default function Home() {
-  const [proofsGenerated, setProofsGenerated] = useState(0);
-  const [activeUsers, setActiveUsers] = useState(0);
-  const [isMounted, setIsMounted] = useState(false);
-
-  // Animated counters
-  useEffect(() => {
-    setIsMounted(true);
-    
-    const proofsInterval = setInterval(() => {
-      setProofsGenerated((prev) => (prev < 1234 ? prev + 23 : 1234));
-    }, 50);
-
-    const usersInterval = setInterval(() => {
-      setActiveUsers((prev) => (prev < 100 ? prev + 2 : 100));
-    }, 80);
-
-    return () => {
-      clearInterval(proofsInterval);
-      clearInterval(usersInterval);
-    };
-  }, []);
 
   return (
     <main id="home" className="relative min-h-screen bg-zk-darker overflow-hidden">
@@ -71,34 +50,32 @@ export default function Home() {
             </p>
           </div>
 
-          {/* Stats */}
+          {/* Real Stats - Technical Achievements */}
           <div className="flex gap-12 pt-8">
             <div className="space-y-2">
               <p className="font-hatton text-4xl text-white">
-                {isMounted ? proofsGenerated.toLocaleString('en-US') : '0'}
-                <span className="text-zk-primary">+</span>
+                0.44<span className="text-zk-primary">s</span>
               </p>
               <p className="text-sm font-medium text-zk-gray uppercase tracking-wider">
-                Proofs Generated
+                Proof Generation
               </p>
             </div>
 
             <div className="space-y-2">
               <p className="font-hatton text-4xl text-white">
-                {isMounted ? activeUsers : '0'}
-                <span className="text-zk-primary">+</span>
+                100<span className="text-zk-primary">%</span>
               </p>
               <p className="text-sm font-medium text-zk-gray uppercase tracking-wider">
-                Active Users
+                Privacy Guarantee
               </p>
             </div>
 
             <div className="space-y-2">
               <p className="font-hatton text-4xl text-white">
-                5<span className="text-zk-primary">+</span>
+                5<span className="text-zk-primary">/5</span>
               </p>
               <p className="text-sm font-medium text-zk-gray uppercase tracking-wider">
-                Templates Ready
+                Real ZK Circuits
               </p>
             </div>
           </div>
