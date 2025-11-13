@@ -424,16 +424,16 @@ export default function TemplatePage() {
                   </div>
 
                   {/* Actions */}
-                  <div className="flex gap-3">
+                  <div className="space-y-3">
                     <button
                       onClick={resetForm}
-                      className="flex-1 py-3 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary hover:text-zk-primary transition-colors"
+                      className="w-full py-3 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary hover:text-zk-primary transition-colors"
                     >
-                      Generate New Proof
+                      ← Generate New Proof
                     </button>
-                    <button className="flex-1 py-3 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all">
-                      Export Proof
-                    </button>
+                    <p className="text-xs text-center text-zk-gray">
+                      Scroll down for Export and Zcash Deployment options
+                    </p>
                   </div>
                 </div>
               )}
