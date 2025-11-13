@@ -46,10 +46,12 @@ export default function VerifyProofPage() {
       
       const hasStatement = proof.statement && proof.statement.length > 0;
       const hasTimestamp = proof.timestamp;
+      const hasProofHash = proof.proofHash && proof.proofHash.length > 10;
       const isValidFormat = proof.isValid !== undefined;
       const hasPublicSignals = proof.publicSignals && Array.isArray(proof.publicSignals);
+      const hasVerificationKey = proof.verificationKey !== undefined;
 
-      const allChecks = hasStatement && hasTimestamp && isValidFormat;
+      const allChecks = hasStatement && hasTimestamp && hasProofHash && isValidFormat && hasVerificationKey;
       const isRealProof = hasGroth16 && hasPublicSignals;
 
       setResult({
@@ -69,8 +71,10 @@ export default function VerifyProofPage() {
         },
         checks: {
           hasGroth16Proof: hasGroth16 ? "✅ Real Groth16" : "⚠️ Mock",
+          hasProofHash: hasProofHash ? "✅" : "❌",
           hasStatement: hasStatement ? "✅" : "❌",
           hasTimestamp: hasTimestamp ? "✅" : "❌",
+          hasVerificationKey: hasVerificationKey ? "✅" : "❌",
           validFormat: isValidFormat ? "✅" : "❌",
         },
         timing: 1000,
