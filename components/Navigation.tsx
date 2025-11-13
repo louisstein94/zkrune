@@ -9,9 +9,9 @@ export default function Navigation() {
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Templates", href: "/templates" },
-    { name: "Verify Proof", href: "/verify-proof" },
+    { name: "Docs", href: "/docs" },
+    { name: "Verify", href: "/verify-proof" },
     { name: "Dashboard", href: "/dashboard" },
-    { name: "FAQ", href: "/#faq" },
   ];
 
   return (
@@ -47,10 +47,10 @@ export default function Navigation() {
 
           {/* CTA Button */}
           <Link
-            href="#templates"
+            href="/templates"
             className="hidden md:block px-6 py-2 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105"
           >
-            Start Building
+            Try Templates
           </Link>
 
           {/* Mobile Menu Button */}
@@ -100,11 +100,11 @@ export default function Navigation() {
               GitHub
             </a>
             <Link
-              href="#templates"
+              href="/templates"
               onClick={() => setIsOpen(false)}
               className="mt-2 px-6 py-2 bg-zk-primary text-zk-darker font-medium rounded-full text-center"
             >
-              Start Building
+              Try Templates
             </Link>
           </nav>
         )}

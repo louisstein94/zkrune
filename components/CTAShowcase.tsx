@@ -26,14 +26,14 @@ export default function CTAShowcase() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 rounded-full mb-6">
             <span className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
             <span className="text-sm font-medium text-zk-primary uppercase tracking-wider">
-              Start Building Today
+              Open Source • Free to Use
             </span>
           </div>
 
           <h2 className="font-hatton text-5xl md:text-6xl text-white mb-6">
-            Ready to Build
+            Ready to Create
             <br />
-            <span className="text-zk-primary">Private Apps?</span>
+            <span className="text-zk-primary">ZK Proofs?</span>
           </h2>
 
           <p className="text-xl text-zk-gray max-w-2xl mx-auto mb-8">
@@ -62,18 +62,16 @@ export default function CTAShowcase() {
           {/* CTA Buttons */}
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <a
-              href="/#templates"
+              href="/templates"
               className="px-10 py-4 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-2xl shadow-zk-primary/20 text-lg"
             >
-              Get Started Free →
+              Try Templates →
             </a>
             <a
-              href="https://github.com/louisstein94/zkrune"
-              target="_blank"
-              rel="noopener noreferrer"
+              href="/docs"
               className="px-10 py-4 border-2 border-zk-primary/30 text-zk-primary font-medium rounded-full hover:bg-zk-primary/10 transition-all text-lg"
             >
-              View on GitHub
+              Read Documentation
             </a>
           </div>
 
