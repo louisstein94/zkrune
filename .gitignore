@@ -49,6 +49,6 @@ circuits/**/witness.wtns
 circuits/**/input.json
 
 # Generated circuit files (will be in public/)
-# .zkey files are binary and can be regenerated
-public/circuits/*.zkey
+# .zkey files are needed for proof generation
+# Keeping them in git for now (small enough at ~10-40KB)
 
