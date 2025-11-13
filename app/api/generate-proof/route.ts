@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
-const snarkjs = require("snarkjs");
+import fs from "fs";
 
 export async function POST(request: NextRequest) {
   try {
@@ -20,6 +20,9 @@ export async function POST(request: NextRequest) {
     
     if (realCircuits.includes(templateId)) {
       try {
+        // Dynamic import snarkjs (prevents webpack warnings)
+        const snarkjs = await import("snarkjs");
+
         // Paths to circuit files
         const wasmPath = path.join(process.cwd(), "public", "circuits", `${templateId}.wasm`);
         const zkeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}.zkey`);
@@ -33,7 +36,6 @@ export async function POST(request: NextRequest) {
 
         // Load verification key
         const vKeyPath = path.join(process.cwd(), "public", "circuits", `${templateId}_vkey.json`);
-        const fs = require("fs");
         const vKey = JSON.parse(fs.readFileSync(vKeyPath, "utf8"));
 
         // Verify the proof (double check)
