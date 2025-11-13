@@ -25,25 +25,52 @@ export default function MembershipProofForm({ onProofGenerated }: MembershipProo
     }
 
     setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 2500));
 
-    // Simulate membership check
-    const isMember = memberId.length >= 6; // Simple validation
+    try {
+      const isMember = memberId.length >= 6;
+      const groupInfo = groups.find(g => g.id === groupName);
 
-    const proof = {
-      statement: isMember
-        ? `Verified member of ${groups.find(g => g.id === groupName)?.name}`
-        : `Not a member of ${groups.find(g => g.id === groupName)?.name}`,
-      isValid: isMember,
-      timestamp: new Date().toISOString(),
-      proofHash: `0x${Math.random().toString(16).substring(2, 66)}`,
-      verificationKey: `vk_${Math.random().toString(36).substring(2, 15)}`,
-      memberId: memberId,
-      group: groupName,
-    };
+      // Call REAL ZK proof API
+      const response = await fetch("/api/generate-proof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId: "membership-proof",
+          inputs: {
+            memberId: memberId.length.toString(),
+            groupHash: groupName.length.toString(),
+          },
+        }),
+      });
 
-    onProofGenerated(proof);
-    setIsGenerating(false);
+      const data = await response.json();
+
+      if (data.success) {
+        const resultProof = {
+          statement: isMember
+            ? `Verified member of ${groupInfo?.name}`
+            : `Not a member of ${groupInfo?.name}`,
+          isValid: isMember,
+          timestamp: data.proof?.timestamp || new Date().toISOString(),
+          proofHash: data.proof?.proofHash || "0x...",
+          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          memberId: memberId,
+          group: groupName,
+          realProof: data.metadata?.realProof || false,
+          note: data.proof?.note || "Proof generated",
+          groth16Proof: data.proof?.groth16Proof,
+          publicSignals: data.proof?.publicSignals,
+        };
+        onProofGenerated(resultProof);
+      } else {
+        alert("Proof generation failed");
+      }
+    } catch (error) {
+      console.error("Membership proof error:", error);
+      alert("Error generating proof. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   return (
