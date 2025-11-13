@@ -34,6 +34,8 @@ export default function VerifyProofPage() {
       // Validation checks
       const proof = exported.proof;
       
+      console.log("🔍 Validating proof:", proof);
+      
       // Check for real Groth16 proof structure
       const hasGroth16 = proof.groth16Proof && 
         proof.groth16Proof.pi_a && 
@@ -41,15 +43,46 @@ export default function VerifyProofPage() {
         proof.groth16Proof.pi_c &&
         proof.groth16Proof.protocol === "groth16";
       
-      const hasStatement = proof.statement && proof.statement.length > 0;
-      const hasTimestamp = proof.timestamp;
-      const hasProofHash = proof.proofHash && proof.proofHash.length > 10;
+      const hasStatement = !!(proof.statement && proof.statement.length > 0);
+      const hasTimestamp = !!proof.timestamp;
+      const hasProofHash = !!(proof.proofHash && proof.proofHash.length > 10);
       const isValidFormat = proof.isValid !== undefined;
-      const hasPublicSignals = proof.publicSignals && Array.isArray(proof.publicSignals);
+      const hasPublicSignals = !!(proof.publicSignals && Array.isArray(proof.publicSignals));
       const hasVerificationKey = proof.verificationKey !== undefined;
+
+      console.log("Field checks:", {
+        hasStatement,
+        hasTimestamp,
+        hasProofHash,
+        hasVerificationKey,
+        hasGroth16,
+        hasPublicSignals
+      });
 
       // STRICT validation - all required fields must exist
       const allRequiredFields = hasStatement && hasTimestamp && hasProofHash && hasVerificationKey;
+      console.log("All required fields present?", allRequiredFields);
+      
+      // If ANY field missing, IMMEDIATELY fail
+      if (!allRequiredFields) {
+        console.log("❌ Validation FAILED - missing required fields");
+        setResult({
+          success: false,
+          isValid: false,
+          message: "❌ Missing required fields",
+          error: "Proof must have: statement, timestamp, proofHash, and verificationKey",
+          checks: {
+            hasGroth16Proof: hasGroth16 ? "✅" : "❌",
+            hasProofHash: hasProofHash ? "✅" : "❌",
+            hasStatement: hasStatement ? "✅" : "❌",
+            hasTimestamp: hasTimestamp ? "✅" : "❌",
+            hasVerificationKey: hasVerificationKey ? "✅" : "❌",
+            cryptographicVerification: "⚠️ Skipped",
+          },
+        });
+        setIsVerifying(false);
+        return;
+      }
       const isRealProof = hasGroth16 && hasPublicSignals;
       
       // If Groth16 proof exists, validate structure integrity
