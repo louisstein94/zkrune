@@ -20,6 +20,8 @@ Build privacy-preserving applications without cryptography expertise.
 
 ## 💻 Development
 
+### Quick Start
+
 ```bash
 # Install dependencies
 npm install
@@ -31,18 +33,52 @@ npm run dev
 npm run build
 ```
 
+### Real ZK Circuits (Optional)
+
+zkRune comes with mock proofs by default. To use real Circom circuits:
+
+```bash
+# 1. Install Circom compiler (requires Rust)
+cargo install --git https://github.com/iden3/circom.git
+
+# 2. Install snarkjs
+npm install -g snarkjs
+
+# 3. Compile circuits
+npm run compile:circuits
+
+# This takes 5-10 minutes and generates:
+# - WASM files (~200 KB each)
+# - Proving keys (~3-5 MB each)
+# - Verification keys
+
+# See CIRCOM_SETUP.md for detailed instructions
+```
+
 ## 📦 Project Structure
 
 ```
 zkrune/
-├── app/                 # Next.js app directory
-│   ├── page.tsx        # Landing page
-│   ├── layout.tsx      # Root layout
-│   └── globals.css     # Global styles
-├── components/          # React components
-│   └── RuneAnimation.tsx
-├── public/             # Static assets
-└── package.json        # Dependencies
+├── app/                      # Next.js app directory
+│   ├── page.tsx             # Landing page
+│   ├── dashboard/           # Analytics dashboard
+│   ├── templates/[id]/      # Template pages
+│   ├── verify/[id]/         # Proof verification
+│   └── api/generate-proof/  # ZK proof API
+├── components/               # React components (22 components)
+│   ├── Navigation.tsx       # Sticky nav
+│   ├── TemplateGallery.tsx  # Template browser
+│   ├── ProofExport.tsx      # Export functionality
+│   └── ...                  # More components
+├── circuits/                 # Circom ZK circuits
+│   ├── age-verification/
+│   └── balance-proof/
+├── lib/                      # Utilities
+│   └── zkProof.ts           # ZK proof library
+├── scripts/                  # Build scripts
+│   └── compile-circuits.sh  # Circuit compiler
+├── public/circuits/          # Compiled WASM & keys
+└── CIRCOM_SETUP.md          # Circuit setup guide
 ```
 
 ## 🎯 Features
