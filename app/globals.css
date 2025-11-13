@@ -9,7 +9,7 @@
 
 @layer base {
   * {
-    @apply border-border;
+    box-sizing: border-box;
   }
   body {
     @apply bg-background text-foreground;
