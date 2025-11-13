@@ -163,23 +163,55 @@ export default function TemplatePage() {
     }
 
     setIsGenerating(true);
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
-    const age = calculateAge(birthDate);
-    const isOver18 = age >= 18;
+    try {
+      // Calculate inputs for ZK circuit
+      const birth = new Date(birthDate);
+      const birthYear = birth.getFullYear();
+      const currentYear = new Date().getFullYear();
+      const age = calculateAge(birthDate);
+      const isOver18 = age >= 18;
 
-    const mockProof = {
-      statement: isOver18 ? "User is 18 or older" : "User is under 18",
-      isValid: isOver18,
-      timestamp: new Date().toISOString(),
-      proofHash: `0x${Math.random().toString(16).substring(2, 66)}`,
-      verificationKey: `vk_${Math.random().toString(36).substring(2, 15)}`,
-      actualAge: age,
-      birthDate: birthDate,
-    };
+      // Call API to generate REAL ZK proof
+      const response = await fetch("/api/generate-proof", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          templateId: "age-verification",
+          inputs: {
+            birthYear: birthYear.toString(),
+            currentYear: currentYear.toString(),
+            minimumAge: "18",
+          },
+        }),
+      });
 
-    setProof(mockProof);
-    setIsGenerating(false);
+      const data = await response.json();
+
+      if (data.success) {
+        const resultProof = {
+          statement: isOver18 ? "User is 18 or older" : "User is under 18",
+          isValid: isOver18,
+          timestamp: data.proof.timestamp,
+          proofHash: data.proof.proofHash,
+          verificationKey: typeof data.proof.verificationKey === 'string' 
+            ? data.proof.verificationKey 
+            : 'vk_real_circuit',
+          actualAge: age,
+          birthDate: birthDate,
+          realProof: data.realProof || false,
+          note: data.note,
+        };
+        setProof(resultProof);
+      } else {
+        alert("Proof generation failed");
+      }
+    } catch (error) {
+      console.error("Proof generation error:", error);
+      alert("Error generating proof. Please try again.");
+    } finally {
+      setIsGenerating(false);
+    }
   };
 
   const handleProofGenerated = (generatedProof: any) => {
@@ -317,18 +349,27 @@ export default function TemplatePage() {
                         : "bg-red-500/10 border-red-500"
                     }`}
                   >
-                    <div className="flex items-center gap-3 mb-4">
-                      <div className="text-4xl">
-                        {proof.isValid ? "✅" : "❌"}
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <div className="text-4xl">
+                          {proof.isValid ? "✅" : "❌"}
+                        </div>
+                        <div>
+                          <h3 className="font-hatton text-xl text-white">
+                            {proof.statement}
+                          </h3>
+                          <p className="text-sm text-zk-gray">
+                            Verified at {new Date(proof.timestamp).toLocaleString('en-US')}
+                          </p>
+                        </div>
                       </div>
-                      <div>
-                        <h3 className="font-hatton text-xl text-white">
-                          {proof.statement}
-                        </h3>
-                        <p className="text-sm text-zk-gray">
-                          Verified at {new Date(proof.timestamp).toLocaleString('en-US')}
-                        </p>
-                      </div>
+                      {proof.realProof && (
+                        <div className="px-3 py-1 bg-zk-secondary/20 border border-zk-secondary rounded-full">
+                          <span className="text-xs font-medium text-zk-secondary">
+                            🔥 REAL ZK-SNARK
+                          </span>
+                        </div>
+                      )}
                     </div>
 
                     {/* Proof Details */}
@@ -342,9 +383,18 @@ export default function TemplatePage() {
                       <div className="flex justify-between">
                         <span className="text-zk-gray">Verification Key:</span>
                         <span className="text-white font-mono text-xs">
-                          {proof.verificationKey}
+                          {typeof proof.verificationKey === 'string' 
+                            ? proof.verificationKey.substring(0, 15)
+                            : 'vk_circuit'}
                         </span>
                       </div>
+                      {proof.note && (
+                        <div className="pt-3 border-t border-zk-gray/20">
+                          <p className="text-xs text-zk-primary">
+                            {proof.note}
+                          </p>
+                        </div>
+                      )}
                     </div>
                   </div>
 
