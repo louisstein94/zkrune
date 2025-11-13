@@ -85,7 +85,8 @@ MIT
 
 ## 🔗 Links
 
-- Website: [zkrune.com](https://zkrune.com)
-- Twitter: 
+- Website: [zkrune.com](https://zkrune.com) (Coming Soon)
 - GitHub: [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
+- Twitter: [@zkrune](https://twitter.com/zkrune) (Coming Soon)
+- Discord: [Join Community](https://discord.gg/zkrune) (Coming Soon)
 
