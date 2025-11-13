@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "zkRune - Build Privacy Without Code",
     description: "Visual Zero-Knowledge Proof Builder for Zcash",
-    creator: "@zk_rune",
+    creator: "@legelsteinn",
   },
 };
 

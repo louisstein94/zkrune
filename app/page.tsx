@@ -8,6 +8,7 @@ import FAQ from "@/components/FAQ";
 import ComparisonTable from "@/components/ComparisonTable";
 import EducationalBanner from "@/components/EducationalBanner";
 import CTAShowcase from "@/components/CTAShowcase";
+import WhatIsZkRune from "@/components/WhatIsZkRune";
 
 export default function Home() {
 
@@ -103,6 +104,9 @@ export default function Home() {
         </div>
       </div>
 
+      {/* What is zkRune Section */}
+      <WhatIsZkRune />
+
       {/* How It Works Section */}
       <HowItWorks />
 
@@ -138,8 +142,8 @@ export default function Home() {
 
           {/* Social Links */}
           <div className="flex gap-6 text-sm font-medium uppercase tracking-wider">
-            <a href="https://x.com/zk_rune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-              X (Twitter)
+            <a href="https://x.com/legelsteinn" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
+              Developer
             </a>
             <a href="https://github.com/louisstein94/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
               GitHub
