@@ -31,9 +31,6 @@ export default function VerifyProofPage() {
         return;
       }
 
-      // Simulate verification delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
       // Validation checks
       const proof = exported.proof;
       
@@ -51,31 +48,75 @@ export default function VerifyProofPage() {
       const hasPublicSignals = proof.publicSignals && Array.isArray(proof.publicSignals);
       const hasVerificationKey = proof.verificationKey !== undefined;
 
-      const allChecks = hasStatement && hasTimestamp && hasProofHash && isValidFormat && hasVerificationKey;
+      // STRICT validation - all required fields must exist
+      const allRequiredFields = hasStatement && hasTimestamp && hasProofHash && hasVerificationKey;
       const isRealProof = hasGroth16 && hasPublicSignals;
+      
+      // If Groth16 proof exists, validate structure integrity
+      let groth16Valid = true;
+      if (hasGroth16) {
+        const p = proof.groth16Proof;
+        // Check pi_a is array with 3 elements
+        groth16Valid = groth16Valid && Array.isArray(p.pi_a) && p.pi_a.length === 3;
+        // Check pi_b is 2D array [[x,y], [x,y], [x,y]]
+        groth16Valid = groth16Valid && Array.isArray(p.pi_b) && p.pi_b.length === 3;
+        groth16Valid = groth16Valid && Array.isArray(p.pi_b[0]) && p.pi_b[0].length === 2;
+        // Check pi_c is array with 3 elements
+        groth16Valid = groth16Valid && Array.isArray(p.pi_c) && p.pi_c.length === 3;
+        // Check all values are numeric strings or numbers
+        const allNumeric = [...p.pi_a, ...p.pi_b.flat(), ...p.pi_c].every(v => 
+          !isNaN(Number(v))
+        );
+        groth16Valid = groth16Valid && allNumeric;
+      }
+
+      // Call real verification API if it's a Groth16 proof
+      let cryptoVerified = false;
+      if (isRealProof && groth16Valid) {
+        try {
+          const verifyResponse = await fetch("/api/verify-proof", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              proof: proof.groth16Proof,
+              publicSignals: proof.publicSignals,
+              vKey: proof.verificationKey,
+            }),
+          });
+          const verifyData = await verifyResponse.json();
+          cryptoVerified = verifyData.isValid;
+        } catch (verifyError) {
+          console.error("Crypto verification failed:", verifyError);
+        }
+      }
 
       setResult({
         success: true,
-        isValid: allChecks && proof.isValid,
-        message: allChecks && proof.isValid 
+        isValid: allRequiredFields && (isRealProof ? (groth16Valid && cryptoVerified) : proof.isValid),
+        message: allRequiredFields 
           ? (isRealProof 
-              ? "✅ REAL Groth16 zk-SNARK proof verified!" 
-              : "✅ Proof structure is valid!")
-          : "❌ Proof validation failed",
+              ? (groth16Valid && cryptoVerified
+                  ? "✅ REAL Groth16 zk-SNARK proof CRYPTOGRAPHICALLY VERIFIED!" 
+                  : "❌ Groth16 proof structure invalid or verification failed")
+              : (proof.isValid
+                  ? "✅ Proof format is valid!"
+                  : "❌ Proof marked as invalid"))
+          : "❌ Missing required fields",
         details: {
           statement: proof.statement,
           timestamp: proof.timestamp,
           template: exported.metadata.template,
           generatedBy: exported.metadata.generatedBy,
           isRealZK: isRealProof,
+          cryptoVerified: cryptoVerified,
         },
         checks: {
-          hasGroth16Proof: hasGroth16 ? "✅ Real Groth16" : "⚠️ Mock",
+          hasGroth16Proof: hasGroth16 ? (groth16Valid ? "✅ Real Groth16" : "⚠️ Invalid") : "⚠️ Mock",
           hasProofHash: hasProofHash ? "✅" : "❌",
           hasStatement: hasStatement ? "✅" : "❌",
           hasTimestamp: hasTimestamp ? "✅" : "❌",
           hasVerificationKey: hasVerificationKey ? "✅" : "❌",
-          validFormat: isValidFormat ? "✅" : "❌",
+          cryptographicVerification: isRealProof ? (cryptoVerified ? "✅ Verified" : "❌ Failed") : "⚠️ N/A",
         },
         timing: 1000,
       });
