@@ -8,16 +8,6 @@
     "NEXT_PUBLIC_APP_NAME": "zkRune",
     "NEXT_PUBLIC_APP_URL": "https://zkrune.com"
   },
-  "rewrites": [
-    {
-      "source": "/app",
-      "destination": "/templates"
-    },
-    {
-      "source": "/app/:path*",
-      "destination": "/templates/:path*"
-    }
-  ],
   "headers": [
     {
       "source": "/(.*)",
