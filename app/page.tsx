@@ -123,9 +123,9 @@ export default function Home() {
       <CTAShowcase />
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/5 px-16 py-6">
-        <div className="flex items-center justify-between">
-          <div className="flex gap-12 text-sm">
+      <footer className="relative z-10 border-t border-white/5 px-6 md:px-12 lg:px-16 py-6">
+        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          <div className="flex flex-wrap justify-center md:justify-start gap-6 md:gap-12 text-sm">
             <div className="space-y-1">
               <p className="text-xs font-medium text-zk-gray uppercase tracking-wider opacity-60">
                 Version
@@ -141,7 +141,7 @@ export default function Home() {
           </div>
 
           {/* Social Links */}
-          <div className="flex gap-6 text-sm font-medium uppercase tracking-wider">
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-medium uppercase tracking-wider">
             <a href="https://x.com/legelsteinn" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
               Developer
             </a>
@@ -151,7 +151,7 @@ export default function Home() {
           </div>
 
           {/* Scroll Indicator */}
-          <div className="flex items-center gap-3">
+          <div className="hidden md:flex items-center gap-3">
             <div className="w-px h-12 bg-gradient-to-b from-transparent via-zk-primary to-transparent" />
             <span className="text-xs text-zk-gray uppercase tracking-wider">Scroll</span>
           </div>
