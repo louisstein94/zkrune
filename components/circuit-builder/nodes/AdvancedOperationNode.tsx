@@ -2,38 +2,33 @@
 
 import { useState } from 'react';
 import { Handle, Position } from 'reactflow';
+import { getAdvancedIcon } from '../AdvancedIcons';
 
 export default function AdvancedOperationNode({ data }: any) {
-  const [isEditing, setIsEditing] = useState(false);
   const [params, setParams] = useState(data.params || {});
 
   const operationConfigs: { [key: string]: any } = {
     'range-check': {
-      icon: '↔️',
       color: 'zk-primary',
       params: ['min', 'max'],
       description: 'Check if value is in range'
     },
     'hash': {
-      icon: '#️⃣',
       color: 'zk-secondary',
       params: ['inputs'],
       description: 'Poseidon hash function'
     },
     'conditional': {
-      icon: '⚡',
       color: 'zk-accent',
       params: ['condition'],
       description: 'IF condition THEN result'
     },
     'merkle-proof': {
-      icon: '🌳',
       color: 'zk-primary',
       params: ['depth'],
       description: 'Merkle tree membership'
     },
     'modulo': {
-      icon: '%',
       color: 'zk-secondary',
       params: ['modulus'],
       description: 'Modulo operation'
@@ -41,10 +36,11 @@ export default function AdvancedOperationNode({ data }: any) {
   };
 
   const config = operationConfigs[data.operation] || {
-    icon: '?',
     color: 'zk-gray',
     params: [],
   };
+
+  const IconComponent = getAdvancedIcon(data.operation);
 
   return (
     <div className={`bg-zk-dark border-2 border-${config.color}/50 rounded-xl p-4 min-w-[220px] shadow-lg shadow-${config.color}/10`}>
@@ -65,7 +61,7 @@ export default function AdvancedOperationNode({ data }: any) {
       
       <div className="flex items-center gap-2 mb-3">
         <div className={`w-8 h-8 bg-${config.color}/20 rounded-lg flex items-center justify-center`}>
-          <span className="text-lg">{config.icon}</span>
+          <IconComponent className="w-5 h-5 text-zk-primary" />
         </div>
         <div className="flex-1">
           <p className="text-xs text-zk-gray uppercase">Advanced</p>

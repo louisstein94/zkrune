@@ -1,5 +1,7 @@
 "use client";
 
+import { getAdvancedIcon } from './AdvancedIcons';
+
 interface ComponentPaletteProps {
   onAddNode: (type: string, data: any) => void;
 }
@@ -27,11 +29,11 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
     {
       category: "Advanced",
       items: [
-        { type: "advanced", label: "Range Check", icon: "↔️", data: { label: "Range Check", operation: "range-check" } },
-        { type: "advanced", label: "Hash", icon: "#️⃣", data: { label: "Poseidon Hash", operation: "hash" } },
-        { type: "advanced", label: "Conditional", icon: "⚡", data: { label: "IF/THEN", operation: "conditional" } },
-        { type: "advanced", label: "Merkle Proof", icon: "🌳", data: { label: "Merkle Proof", operation: "merkle-proof" } },
-        { type: "advanced", label: "Modulo", icon: "%", data: { label: "Modulo", operation: "modulo" } },
+        { type: "advanced", label: "Range Check", iconType: "range-check", data: { label: "Range Check", operation: "range-check" } },
+        { type: "advanced", label: "Hash", iconType: "hash", data: { label: "Poseidon Hash", operation: "hash" } },
+        { type: "advanced", label: "Conditional", iconType: "conditional", data: { label: "IF/THEN", operation: "conditional" } },
+        { type: "advanced", label: "Merkle Proof", iconType: "merkle-proof", data: { label: "Merkle Proof", operation: "merkle-proof" } },
+        { type: "advanced", label: "Modulo", iconType: "modulo", data: { label: "Modulo", operation: "modulo" } },
       ],
     },
     {
@@ -54,23 +56,34 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
               {category.category}
             </h4>
             <div className="space-y-2">
-              {category.items.map((item) => (
-                <button
-                  key={item.label}
-                  onClick={() => onAddNode(item.type, item.data)}
-                  className="w-full p-3 bg-zk-darker border border-zk-gray/20 rounded-lg hover:border-zk-primary/50 transition-all group text-left"
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="text-2xl group-hover:scale-110 transition-transform">
-                      {item.icon}
-                    </span>
-                    <div>
-                      <p className="text-sm text-white font-medium">{item.label}</p>
-                      <p className="text-xs text-zk-gray">{item.type}</p>
+              {category.items.map((item: any) => {
+                const isAdvanced = item.iconType;
+                const IconComponent = isAdvanced ? getAdvancedIcon(item.iconType) : null;
+                
+                return (
+                  <button
+                    key={item.label}
+                    onClick={() => onAddNode(item.type, item.data)}
+                    className="w-full p-3 bg-zk-darker border border-zk-gray/20 rounded-lg hover:border-zk-primary/50 transition-all group text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      {isAdvanced ? (
+                        <div className="w-8 h-8 bg-zk-primary/10 rounded-lg flex items-center justify-center group-hover:bg-zk-primary/20 transition-colors">
+                          <IconComponent className="w-5 h-5 text-zk-primary" />
+                        </div>
+                      ) : (
+                        <span className="text-2xl group-hover:scale-110 transition-transform">
+                          {item.icon}
+                        </span>
+                      )}
+                      <div>
+                        <p className="text-sm text-white font-medium">{item.label}</p>
+                        <p className="text-xs text-zk-gray">{item.type}</p>
+                      </div>
                     </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           </div>
         ))}
