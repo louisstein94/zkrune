@@ -108,20 +108,6 @@ export default function DocsPage() {
               <p className="text-zk-gray mb-6">
                 Four simple steps to create and verify zero-knowledge proofs.
               </p>
-              <div className="space-y-3">
-                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-4">
-                  <p className="text-white font-medium">1. Choose a template from 5 ZK proof types</p>
-                </div>
-                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-4">
-                  <p className="text-white font-medium">2. Fill simple form with your data</p>
-                </div>
-                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-4">
-                  <p className="text-white font-medium">3. Generate proof in ~1 second</p>
-                </div>
-                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-4">
-                  <p className="text-white font-medium">4. Export, verify independently, or use in apps</p>
-                </div>
-              </div>
             </section>
 
             {/* Quick Start */}
@@ -228,27 +214,24 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* Compiling Circuits */}
+            {/* Compiling */}
             <section id="compiling" className="mb-16">
               <h2 className="font-hatton text-3xl text-white mb-4">Compiling Circuits</h2>
               <p className="text-zk-gray mb-6">
-                All circuits are pre-compiled and ready to use. Advanced users can recompile or create custom circuits.
+                Learn how to compile Circom circuits locally for advanced use.
               </p>
               <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
-                <h3 className="text-white font-medium mb-3">Quick Compile:</h3>
-                <div className="bg-zk-darker rounded-lg p-4">
-                  <pre className="text-xs text-zk-primary font-mono">{`# Install Circom
-cargo install --git https://github.com/iden3/circom.git
-
-# Compile circuit
-circom circuit.circom --r1cs --wasm --sym
-
-# Generate keys
-snarkjs groth16 setup circuit.r1cs ptau.ptau circuit.zkey
-
-# Test
-snarkjs groth16 prove circuit.zkey witness.wtns proof.json`}</pre>
-                </div>
+                <p className="text-sm text-zk-gray mb-4">
+                  For detailed compilation instructions, see the README on GitHub.
+                </p>
+                <a
+                  href="https://github.com/louisstein94/zkrune#real-zk-circuits-optional"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
+                >
+                  View Compile Guide on GitHub
+                </a>
               </div>
             </section>
 
@@ -330,12 +313,6 @@ snarkjs groth16 prove circuit.zkey witness.wtns proof.json`}</pre>
                   className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
                 >
                   View on GitHub →
-                </a>
-                <a
-                  href="/builder"
-                  className="px-6 py-3 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary hover:text-zk-primary transition-all"
-                >
-                  Try Visual Builder
                 </a>
               </div>
             </section>
