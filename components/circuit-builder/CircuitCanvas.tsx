@@ -28,35 +28,43 @@ const nodeTypes: NodeTypes = {
   output: OutputNode,
 };
 
-const initialNodes: Node[] = [
-  {
-    id: 'example-1',
-    type: 'input',
-    position: { x: 100, y: 100 },
-    data: { label: 'Birth Year', fieldType: 'private' },
-  },
-  {
-    id: 'example-2',
-    type: 'operation',
-    position: { x: 400, y: 100 },
-    data: { label: 'Calculate Age', operation: 'subtract' },
-  },
-  {
-    id: 'example-3',
-    type: 'output',
-    position: { x: 700, y: 100 },
-    data: { label: 'Is 18+', outputType: 'boolean' },
-  },
-];
+interface CircuitCanvasProps {
+  initialNodes?: Node[];
+  initialEdges?: Edge[];
+  onNodesChange?: (nodes: Node[]) => void;
+  onEdgesChange?: (edges: Edge[]) => void;
+}
 
-const initialEdges: Edge[] = [
-  { id: 'e1-2', source: 'example-1', target: 'example-2', animated: true },
-  { id: 'e2-3', source: 'example-2', target: 'example-3', animated: true },
-];
-
-export default function CircuitCanvas() {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
+export default function CircuitCanvas({ 
+  initialNodes = [], 
+  initialEdges = [],
+  onNodesChange: externalNodesChange,
+  onEdgesChange: externalEdgesChange,
+}: CircuitCanvasProps) {
+  const [nodes, setNodes] = useState<Node[]>(initialNodes.length > 0 ? initialNodes : [
+    {
+      id: 'example-1',
+      type: 'input',
+      position: { x: 100, y: 100 },
+      data: { label: 'Birth Year', fieldType: 'private' },
+    },
+    {
+      id: 'example-2',
+      type: 'operation',
+      position: { x: 400, y: 100 },
+      data: { label: 'Calculate Age', operation: 'subtract' },
+    },
+    {
+      id: 'example-3',
+      type: 'output',
+      position: { x: 700, y: 100 },
+      data: { label: 'Is 18+', outputType: 'boolean' },
+    },
+  ]);
+  const [edges, setEdges] = useState<Edge[]>(initialEdges.length > 0 ? initialEdges : [
+    { id: 'e1-2', source: 'example-1', target: 'example-2', animated: true },
+    { id: 'e2-3', source: 'example-2', target: 'example-3', animated: true },
+  ]);
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [validation, setValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
 
