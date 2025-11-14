@@ -97,17 +97,17 @@ export default function FAQ() {
         </div>
 
         {/* Bottom CTA */}
-        <div className="mt-12 text-center p-8 bg-zk-dark/30 border border-zk-gray/20 rounded-2xl">
-          <h3 className="font-hatton text-2xl text-white mb-3">
+        <div className="mt-12 text-center p-6 md:p-8 bg-zk-dark/30 border border-zk-gray/20 rounded-2xl">
+          <h3 className="font-hatton text-xl md:text-2xl text-white mb-3">
             Still have questions?
           </h3>
-          <p className="text-zk-gray mb-6">
+          <p className="text-sm md:text-base text-zk-gray mb-6">
             Check out the documentation or contribute on GitHub
           </p>
-          <div className="flex gap-4 justify-center">
+          <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center max-w-md mx-auto">
             <a
               href="/docs"
-              className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
+              className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all text-center"
             >
               Read Documentation
             </a>
@@ -115,7 +115,7 @@ export default function FAQ() {
               href="https://github.com/louisstein94/zkrune"
               target="_blank"
               rel="noopener noreferrer"
-              className="px-6 py-3 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg font-medium hover:bg-zk-secondary/30 transition-all"
+              className="px-6 py-3 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg font-medium hover:bg-zk-secondary/30 transition-all text-center"
             >
               View on GitHub
             </a>
