@@ -56,19 +56,27 @@ export default function BuilderPage() {
               </p>
             </div>
             
-            <div className="flex flex-wrap gap-3">
-              <button
-                onClick={() => setShowTemplates(!showTemplates)}
-                className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
-              >
-                Templates
-              </button>
-              <button
-                onClick={loadRandomCircuit}
-                className="px-4 py-2 bg-zk-accent/20 border border-zk-accent/30 text-zk-accent rounded-lg hover:bg-zk-accent/30 transition-all text-sm font-medium"
-              >
-                Random Example
-              </button>
+            <div className="flex flex-col md:flex-row gap-4">
+              {/* Left Group - Templates */}
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowTemplates(!showTemplates)}
+                  className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
+                >
+                  Templates
+                </button>
+                <button
+                  onClick={loadRandomCircuit}
+                  className="px-4 py-2 bg-zk-accent/20 border border-zk-accent/30 text-zk-accent rounded-lg hover:bg-zk-accent/30 transition-all text-sm font-medium"
+                >
+                  Random Example
+                </button>
+              </div>
+
+              {/* Divider */}
+              <div className="hidden md:block w-px bg-zk-gray/20" />
+
+              {/* Right Group - Actions */}
               <CircuitActions 
                 nodes={nodes} 
                 edges={edges} 

@@ -135,39 +135,49 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
   };
 
   return (
-    <div className="flex gap-3">
-      <button
-        onClick={loadCircuit}
-        className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
-      >
-        Load Circuit
-      </button>
-      <button
-        onClick={saveCircuit}
-        className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
-      >
-        Save Circuit
-      </button>
-      <button
-        onClick={clearCircuit}
-        className="px-4 py-2 border border-red-500/30 text-red-400 rounded-lg hover:border-red-500 transition-all text-sm"
-      >
-        Clear All
-      </button>
-      <button 
-        onClick={testCircuit}
-        disabled={isTesting}
-        className="px-4 py-2 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg hover:bg-zk-secondary/30 transition-all text-sm disabled:opacity-50"
-      >
-        {isTesting ? 'Testing...' : 'Test Circuit'}
-      </button>
-      <button 
-        onClick={compileAndDeploy}
-        disabled={isCompiling}
-        className="px-4 py-2 bg-zk-primary text-zk-darker rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium disabled:opacity-50"
-      >
-        {isCompiling ? 'Compiling...' : 'Compile & Deploy'}
-      </button>
+    <div className="flex flex-col sm:flex-row gap-3">
+      {/* File Actions */}
+      <div className="flex gap-2">
+        <button
+          onClick={loadCircuit}
+          className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
+        >
+          Load
+        </button>
+        <button
+          onClick={saveCircuit}
+          className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
+        >
+          Save
+        </button>
+        <button
+          onClick={clearCircuit}
+          className="px-4 py-2 border border-red-500/30 text-red-400 rounded-lg hover:border-red-500 transition-all text-sm"
+        >
+          Clear
+        </button>
+      </div>
+
+      {/* Divider */}
+      <div className="hidden sm:block w-px bg-zk-gray/20" />
+
+      {/* Action Buttons */}
+      <div className="flex gap-2">
+        <button 
+          onClick={testCircuit}
+          disabled={isTesting}
+          className="px-4 py-2 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg hover:bg-zk-secondary/30 transition-all text-sm disabled:opacity-50"
+        >
+          {isTesting ? 'Testing...' : 'Test'}
+        </button>
+        <button 
+          onClick={compileAndDeploy}
+          disabled={isCompiling}
+          className="px-6 py-2 bg-zk-primary text-zk-darker rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium disabled:opacity-50"
+        >
+          {isCompiling ? 'Compiling...' : 'Compile'}
+        </button>
+      </div>
     </div>
   );
 }
