@@ -20,6 +20,7 @@ import ComponentPalette from './ComponentPalette';
 import InputNode from './nodes/InputNode';
 import OperationNode from './nodes/OperationNode';
 import OutputNode from './nodes/OutputNode';
+import { generateCircomCode, validateCircuit, estimateCircuitComplexity } from '@/lib/circuitGenerator';
 
 const nodeTypes: NodeTypes = {
   input: InputNode,
@@ -56,6 +57,8 @@ const initialEdges: Edge[] = [
 export default function CircuitCanvas() {
   const [nodes, setNodes] = useState<Node[]>(initialNodes);
   const [edges, setEdges] = useState<Edge[]>(initialEdges);
+  const [generatedCode, setGeneratedCode] = useState<string>('');
+  const [validation, setValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -82,6 +85,20 @@ export default function CircuitCanvas() {
     setNodes((nds) => [...nds, newNode]);
   };
 
+  // Update generated code when nodes/edges change
+  const updateCode = useCallback(() => {
+    const code = generateCircomCode(nodes, edges);
+    setGeneratedCode(code);
+    
+    const validationResult = validateCircuit(nodes, edges);
+    setValidation(validationResult);
+  }, [nodes, edges]);
+
+  // Auto-update code
+  useCallback(() => {
+    updateCode();
+  }, [nodes, edges, updateCode]);
+
   return (
     <div className="flex h-[calc(100vh-140px)]">
       {/* Component Palette */}
@@ -106,30 +123,58 @@ export default function CircuitCanvas() {
 
       {/* Code Preview Panel */}
       <div className="w-80 bg-zk-dark border-l border-zk-gray/20 p-6 overflow-auto">
-        <h3 className="font-hatton text-xl text-white mb-4">
-          Generated Circom
-        </h3>
-        <div className="bg-zk-darker border border-zk-gray/20 rounded-lg p-4">
-          <pre className="text-xs text-zk-gray font-mono">
-{`pragma circom 2.0.0;
-
-template CustomCircuit() {
-    signal input birthYear;
-    signal input currentYear;
-    signal output isValid;
-    
-    signal age;
-    age <== currentYear - birthYear;
-    
-    // Auto-generated from visual builder
-    isValid <== 1;
-}
-
-component main = CustomCircuit();`}
-          </pre>
+        <div className="mb-4">
+          <h3 className="font-hatton text-xl text-white mb-2">
+            Circuit Info
+          </h3>
+          <div className="space-y-2 text-sm">
+            <div className="flex justify-between">
+              <span className="text-zk-gray">Nodes:</span>
+              <span className="text-white">{nodes.length}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zk-gray">Connections:</span>
+              <span className="text-white">{edges.length}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zk-gray">Est. Constraints:</span>
+              <span className="text-white">{estimateCircuitComplexity(nodes, edges).constraints}</span>
+            </div>
+            <div className="flex justify-between">
+              <span className="text-zk-gray">Est. Time:</span>
+              <span className="text-white">{estimateCircuitComplexity(nodes, edges).estimatedTime}</span>
+            </div>
+          </div>
         </div>
 
-        <button className="w-full mt-4 py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-sm hover:bg-zk-primary/20 transition-all">
+        {/* Validation */}
+        {!validation.valid && (
+          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+            <p className="text-xs text-red-400 font-medium mb-2">Validation Errors:</p>
+            {validation.errors.map((error, i) => (
+              <p key={i} className="text-xs text-red-300">• {error}</p>
+            ))}
+          </div>
+        )}
+
+        <div className="mb-4">
+          <h3 className="font-hatton text-lg text-white mb-3">
+            Generated Circom
+          </h3>
+          <div className="bg-zk-darker border border-zk-gray/20 rounded-lg p-4 max-h-96 overflow-auto">
+            <pre className="text-xs text-zk-gray font-mono whitespace-pre">
+              {generatedCode || generateCircomCode(nodes, edges)}
+            </pre>
+          </div>
+        </div>
+
+        <button 
+          onClick={() => {
+            navigator.clipboard.writeText(generatedCode || generateCircomCode(nodes, edges));
+            alert('Code copied!');
+          }}
+          className="w-full py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-sm hover:bg-zk-primary/20 transition-all"
+        >
           Copy Code
         </button>
       </div>
