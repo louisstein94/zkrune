@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useEffect } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -43,7 +43,8 @@ export default function CircuitCanvas({
   onNodesChange: externalNodesChange,
   onEdgesChange: externalEdgesChange,
 }: CircuitCanvasProps) {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes.length > 0 ? initialNodes : [
+  // Default example circuit
+  const defaultNodes: Node[] = [
     {
       id: 'example-1',
       type: 'input',
@@ -62,11 +63,29 @@ export default function CircuitCanvas({
       position: { x: 700, y: 100 },
       data: { label: 'Is 18+', outputType: 'boolean' },
     },
-  ]);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges.length > 0 ? initialEdges : [
+  ];
+
+  const defaultEdges: Edge[] = [
     { id: 'e1-2', source: 'example-1', target: 'example-2', animated: true },
     { id: 'e2-3', source: 'example-2', target: 'example-3', animated: true },
-  ]);
+  ];
+
+  const [nodes, setNodes] = useState<Node[]>(defaultNodes);
+  const [edges, setEdges] = useState<Edge[]>(defaultEdges);
+
+  // Update nodes when initialNodes change
+  useEffect(() => {
+    if (initialNodes.length > 0) {
+      setNodes(initialNodes);
+    }
+  }, [initialNodes]);
+
+  // Update edges when initialEdges change
+  useEffect(() => {
+    if (initialEdges.length > 0) {
+      setEdges(initialEdges);
+    }
+  }, [initialEdges]);
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [validation, setValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
 
