@@ -20,12 +20,14 @@ import ComponentPalette from './ComponentPalette';
 import InputNode from './nodes/InputNode';
 import OperationNode from './nodes/OperationNode';
 import OutputNode from './nodes/OutputNode';
+import AdvancedOperationNode from './nodes/AdvancedOperationNode';
 import { generateCircomCode, validateCircuit, estimateCircuitComplexity } from '@/lib/circuitGenerator';
 
 const nodeTypes: NodeTypes = {
   input: InputNode,
   operation: OperationNode,
   output: OutputNode,
+  advanced: AdvancedOperationNode,
 };
 
 interface CircuitCanvasProps {

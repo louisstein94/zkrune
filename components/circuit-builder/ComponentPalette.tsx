@@ -14,7 +14,7 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
       ],
     },
     {
-      category: "Operations",
+      category: "Basic Operations",
       items: [
         { type: "operation", label: "Add", icon: "+", data: { label: "Add", operation: "add" } },
         { type: "operation", label: "Subtract", icon: "-", data: { label: "Subtract", operation: "subtract" } },
@@ -22,6 +22,16 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
         { type: "operation", label: "Compare >", icon: ">", data: { label: "Greater Than", operation: "gt" } },
         { type: "operation", label: "Compare <", icon: "<", data: { label: "Less Than", operation: "lt" } },
         { type: "operation", label: "Equal", icon: "=", data: { label: "Equal", operation: "eq" } },
+      ],
+    },
+    {
+      category: "Advanced",
+      items: [
+        { type: "advanced", label: "Range Check", icon: "↔️", data: { label: "Range Check", operation: "range-check" } },
+        { type: "advanced", label: "Hash", icon: "#️⃣", data: { label: "Poseidon Hash", operation: "hash" } },
+        { type: "advanced", label: "Conditional", icon: "⚡", data: { label: "IF/THEN", operation: "conditional" } },
+        { type: "advanced", label: "Merkle Proof", icon: "🌳", data: { label: "Merkle Proof", operation: "merkle-proof" } },
+        { type: "advanced", label: "Modulo", icon: "%", data: { label: "Modulo", operation: "modulo" } },
       ],
     },
     {
