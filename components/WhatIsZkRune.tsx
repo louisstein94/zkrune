@@ -68,61 +68,53 @@ export default function WhatIsZkRune() {
         </div>
 
         {/* Simple Cards */}
-        <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* Card 1 */}
-          <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
-            <div className="flex items-start gap-6">
-              <div className="p-4 bg-zk-primary/10 rounded-2xl border border-zk-primary/20">
-                <PrivacyIcon className="w-12 h-12" />
+          <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-6 hover:border-zk-primary/30 transition-all">
+            <div className="text-center">
+              <div className="inline-block p-3 bg-zk-primary/10 rounded-xl border border-zk-primary/20 mb-4">
+                <PrivacyIcon className="w-10 h-10" />
               </div>
-              <div>
-                <h3 className="text-2xl font-hatton text-white mb-3">
-                  Prove Things Without Revealing Secrets
-                </h3>
-                <p className="text-lg text-zk-gray leading-relaxed">
-                  Imagine proving you're over 18 <span className="text-white">without showing your ID</span>. 
-                  Or proving you have enough money <span className="text-white">without showing your bank balance</span>.
-                  That's what zkRune does - using advanced math called "zero-knowledge proofs."
-                </p>
-              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">
+                Prove Without Revealing
+              </h3>
+              <p className="text-sm text-zk-gray leading-relaxed">
+                Prove you're 18+ <span className="text-white">without showing ID</span>. 
+                Prove you have funds <span className="text-white">without showing balance</span>.
+              </p>
             </div>
           </div>
 
           {/* Card 2 */}
-          <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
-            <div className="flex items-start gap-6">
-              <div className="p-4 bg-zk-secondary/10 rounded-2xl border border-zk-secondary/20">
-                <TrustIcon className="w-12 h-12" />
+          <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-6 hover:border-zk-secondary/30 transition-all">
+            <div className="text-center">
+              <div className="inline-block p-3 bg-zk-secondary/10 rounded-xl border border-zk-secondary/20 mb-4">
+                <TrustIcon className="w-10 h-10" />
               </div>
-              <div>
-                <h3 className="text-2xl font-hatton text-white mb-3">
-                  Privacy You Can Trust
-                </h3>
-                <p className="text-lg text-zk-gray leading-relaxed">
-                  Your sensitive information <span className="text-white">never leaves your device</span>. 
-                  The proof is mathematical - it can't be faked, and anyone can verify it. 
-                  No need to trust us, <span className="text-zk-primary">trust the math</span>.
-                </p>
-              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">
+                Math-Based Trust
+              </h3>
+              <p className="text-sm text-zk-gray leading-relaxed">
+                Data never leaves your device. 
+                Mathematical proof can't be faked. 
+                <span className="text-zk-primary">Trust the math, not us</span>.
+              </p>
             </div>
           </div>
 
           {/* Card 3 */}
-          <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
-            <div className="flex items-start gap-6">
-              <div className="p-4 bg-zk-accent/10 rounded-2xl border border-zk-accent/20">
-                <SpeedIcon className="w-12 h-12" />
+          <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-6 hover:border-zk-accent/30 transition-all">
+            <div className="text-center">
+              <div className="inline-block p-3 bg-zk-accent/10 rounded-xl border border-zk-accent/20 mb-4">
+                <SpeedIcon className="w-10 h-10" />
               </div>
-              <div>
-                <h3 className="text-2xl font-hatton text-white mb-3">
-                  Simple to Use, Powerful Technology
-                </h3>
-                <p className="text-lg text-zk-gray leading-relaxed">
-                  You don't need to be a cryptography expert. Just pick a template, 
-                  fill in a simple form, and click a button. 
-                  <span className="text-white">Your proof is ready in under 1 second</span>.
-                </p>
-              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">
+                Simple & Fast
+              </h3>
+              <p className="text-sm text-zk-gray leading-relaxed">
+                No crypto knowledge needed. Pick template, fill form, click button.
+                <span className="text-white"> Ready in 1 second</span>.
+              </p>
             </div>
           </div>
 
