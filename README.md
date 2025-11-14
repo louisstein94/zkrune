@@ -1,6 +1,6 @@
-# 🔮 zkRune
+# zkRune
 
-**Visual Zero-Knowledge Proof Builder for Zcash**
+Visual Zero-Knowledge Proof Builder for Zcash
 
 Build privacy-preserving applications without cryptography expertise.
 
