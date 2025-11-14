@@ -1,6 +1,7 @@
 "use client";
 
 import { getAdvancedIcon } from './AdvancedIcons';
+import { getBasicIcon } from './BasicIcons';
 
 interface ComponentPaletteProps {
   onAddNode: (type: string, data: any) => void;
@@ -11,8 +12,8 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
     {
       category: "Inputs",
       items: [
-        { type: "input", label: "Private Input", icon: "🔒", data: { label: "Private Value", fieldType: "private" } },
-        { type: "input", label: "Public Input", icon: "🌐", data: { label: "Public Value", fieldType: "public" } },
+        { type: "input", label: "Private Input", iconType: "private", data: { label: "Private Value", fieldType: "private" } },
+        { type: "input", label: "Public Input", iconType: "public", data: { label: "Public Value", fieldType: "public" } },
       ],
     },
     {
@@ -39,8 +40,8 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
     {
       category: "Outputs",
       items: [
-        { type: "output", label: "Boolean Output", icon: "✓", data: { label: "Result", outputType: "boolean" } },
-        { type: "output", label: "Number Output", icon: "#", data: { label: "Value", outputType: "number" } },
+        { type: "output", label: "Boolean Output", iconType: "boolean", data: { label: "Result", outputType: "boolean" } },
+        { type: "output", label: "Number Output", iconType: "number", data: { label: "Value", outputType: "number" } },
       ],
     },
   ];
@@ -57,8 +58,17 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
             </h4>
             <div className="space-y-2">
               {category.items.map((item: any) => {
-                const isAdvanced = item.iconType;
-                const IconComponent = isAdvanced ? getAdvancedIcon(item.iconType) : null;
+                const hasSVG = item.iconType;
+                let IconComponent = null;
+                
+                if (hasSVG) {
+                  // Check if it's advanced or basic icon
+                  if (['range-check', 'hash', 'conditional', 'merkle-proof', 'modulo'].includes(item.iconType)) {
+                    IconComponent = getAdvancedIcon(item.iconType);
+                  } else {
+                    IconComponent = getBasicIcon(item.iconType);
+                  }
+                }
                 
                 return (
                   <button
@@ -67,7 +77,7 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
                     className="w-full p-3 bg-zk-darker border border-zk-gray/20 rounded-lg hover:border-zk-primary/50 transition-all group text-left"
                   >
                     <div className="flex items-center gap-3">
-                      {isAdvanced ? (
+                      {hasSVG ? (
                         <div className="w-8 h-8 bg-zk-primary/10 rounded-lg flex items-center justify-center group-hover:bg-zk-primary/20 transition-colors">
                           <IconComponent className="w-5 h-5 text-zk-primary" />
                         </div>

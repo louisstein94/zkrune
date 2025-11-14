@@ -1,15 +1,16 @@
 "use client";
 
 import { Handle, Position } from 'reactflow';
+import { getBasicIcon } from '../BasicIcons';
 
 export default function InputNode({ data }: any) {
+  const IconComponent = getBasicIcon(data.fieldType);
+
   return (
     <div className="bg-zk-dark border-2 border-zk-primary/50 rounded-xl p-4 min-w-[180px] shadow-lg shadow-zk-primary/10">
       <div className="flex items-center gap-2 mb-2">
         <div className="w-8 h-8 bg-zk-primary/20 rounded-lg flex items-center justify-center">
-          <span className="text-lg">
-            {data.fieldType === 'private' ? '🔒' : '🌐'}
-          </span>
+          <IconComponent className="w-5 h-5 text-zk-primary" />
         </div>
         <div>
           <p className="text-xs text-zk-gray uppercase">Input</p>
