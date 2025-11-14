@@ -56,38 +56,60 @@ export default function ComparisonTable() {
 
         {/* Comparison Table */}
         <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl overflow-hidden">
-          {/* Header */}
-          <div className="grid grid-cols-3 gap-4 p-6 border-b border-zk-gray/20">
-            <div className="text-sm font-medium text-zk-gray uppercase tracking-wider">
-              Feature
+          {/* Desktop Table */}
+          <div className="hidden md:block">
+            {/* Header */}
+            <div className="grid grid-cols-3 gap-4 p-6 border-b border-zk-gray/20">
+              <div className="text-sm font-medium text-zk-gray uppercase tracking-wider">
+                Feature
+              </div>
+              <div className="text-sm font-medium text-zk-gray uppercase tracking-wider">
+                Traditional
+              </div>
+              <div className="text-sm font-medium text-zk-primary uppercase tracking-wider">
+                zkRune
+              </div>
             </div>
-            <div className="text-sm font-medium text-zk-gray uppercase tracking-wider">
-              Traditional Approach
-            </div>
-            <div className="text-sm font-medium text-zk-primary uppercase tracking-wider">
-              zkRune
-            </div>
+
+            {/* Rows */}
+            {comparisons.map((row, index) => (
+              <div
+                key={index}
+                className={`grid grid-cols-3 gap-4 p-6 ${
+                  index < comparisons.length - 1 ? "border-b border-zk-gray/10" : ""
+                } hover:bg-zk-darker/50 transition-colors`}
+              >
+                <div className="font-medium text-white text-sm">{row.feature}</div>
+                <div className="text-zk-gray flex items-center gap-2 text-sm">
+                  <span className="text-red-400">✕</span>
+                  <span className="line-clamp-2">{row.traditional}</span>
+                </div>
+                <div className="text-white flex items-center gap-2 text-sm">
+                  <span className="text-zk-primary">✓</span>
+                  <span className="line-clamp-2">{row.zkRune}</span>
+                </div>
+              </div>
+            ))}
           </div>
 
-          {/* Rows */}
-          {comparisons.map((row, index) => (
-            <div
-              key={index}
-              className={`grid grid-cols-3 gap-4 p-6 ${
-                index < comparisons.length - 1 ? "border-b border-zk-gray/10" : ""
-              } hover:bg-zk-darker/50 transition-colors`}
-            >
-              <div className="font-medium text-white">{row.feature}</div>
-              <div className="text-zk-gray flex items-center gap-2">
-                <span className="text-red-400">✕</span>
-                {row.traditional}
+          {/* Mobile Cards */}
+          <div className="md:hidden p-4 space-y-4">
+            {comparisons.map((row, index) => (
+              <div key={index} className="bg-zk-darker/50 rounded-xl p-4">
+                <p className="text-white font-medium mb-3 text-sm">{row.feature}</p>
+                <div className="space-y-2 text-xs">
+                  <div className="flex gap-2">
+                    <span className="text-red-400 flex-shrink-0">✕</span>
+                    <span className="text-zk-gray">{row.traditional}</span>
+                  </div>
+                  <div className="flex gap-2">
+                    <span className="text-zk-primary flex-shrink-0">✓</span>
+                    <span className="text-white">{row.zkRune}</span>
+                  </div>
+                </div>
               </div>
-              <div className="text-white flex items-center gap-2">
-                <span className="text-zk-primary">✓</span>
-                {row.zkRune}
-              </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
 
         {/* Bottom Note */}
