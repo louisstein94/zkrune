@@ -1,4 +1,5 @@
 // Premium SVG Icons for Advanced Operations
+import React from 'react';
 
 export function RangeCheckIcon({ className = "w-6 h-6" }: { className?: string }) {
   return (
