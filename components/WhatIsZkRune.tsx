@@ -68,7 +68,7 @@ export default function WhatIsZkRune() {
         </div>
 
         {/* Simple Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {/* Card 1 */}
           <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-6 hover:border-zk-primary/30 transition-all">
             <div className="text-center">
@@ -119,7 +119,7 @@ export default function WhatIsZkRune() {
           </div>
 
           {/* Real-World Example */}
-          <div className="mt-8 p-8 bg-gradient-to-br from-zk-primary/10 to-zk-secondary/10 border border-zk-primary/30 rounded-2xl">
+          <div className="md:col-span-2 lg:col-span-3 mt-2 p-6 md:p-8 bg-gradient-to-br from-zk-primary/10 to-zk-secondary/10 border border-zk-primary/30 rounded-2xl">
             <h3 className="text-xl font-hatton text-white mb-4">
               💡 Real-World Example:
             </h3>
