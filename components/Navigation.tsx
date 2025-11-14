@@ -9,9 +9,9 @@ export default function Navigation() {
   const navItems = [
     { name: "Home", href: "/" },
     { name: "Templates", href: "/templates" },
+    { name: "Builder", href: "/builder" },
     { name: "Docs", href: "/docs" },
     { name: "Verify", href: "/verify-proof" },
-    { name: "Dashboard", href: "/dashboard" },
   ];
 
   return (
