@@ -150,7 +150,7 @@ Built for **ZypherPunk Hackathon** - Deadline: December 2, 2024
 Generate → Export → Verify - full cycle functional with actual Groth16 cryptography.  
 **Total circuit files: 15** (5 templates × 3 files each)
 
-**👉 Try it now: [zkrune.com](https://zkrune.com)**
+**👉 Try it now: [zkrune.com/templates](https://zkrune.com/templates)**
 
 ## 📄 License
 
