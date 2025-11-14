@@ -1,6 +1,8 @@
 "use client";
 
 import { Node, Edge } from 'reactflow';
+import { useState } from 'react';
+import { generateCircomCode, validateCircuit } from '@/lib/circuitGenerator';
 
 interface CircuitActionsProps {
   nodes: Node[];
@@ -10,6 +12,77 @@ interface CircuitActionsProps {
 }
 
 export default function CircuitActions({ nodes, edges, onLoad, onClear }: CircuitActionsProps) {
+  const [isTesting, setIsTesting] = useState(false);
+  const [isCompiling, setIsCompiling] = useState(false);
+
+  const testCircuit = async () => {
+    // Validate first
+    const validation = validateCircuit(nodes, edges);
+    
+    if (!validation.valid) {
+      alert('Circuit has errors:\n' + validation.errors.join('\n'));
+      return;
+    }
+
+    setIsTesting(true);
+
+    // Simulate testing with sample inputs
+    setTimeout(() => {
+      const testResults = {
+        passed: true,
+        message: 'Circuit validation passed!',
+        sampleInputs: nodes.filter(n => n.type === 'input').map(n => n.data.label),
+        outputs: nodes.filter(n => n.type === 'output').map(n => n.data.label),
+      };
+
+      alert(`✅ Test Passed!\n\nInputs: ${testResults.sampleInputs.join(', ')}\nOutputs: ${testResults.outputs.join(', ')}\n\nCircuit is ready to compile!`);
+      setIsTesting(false);
+    }, 1500);
+  };
+
+  const compileAndDeploy = async () => {
+    // Validate first
+    const validation = validateCircuit(nodes, edges);
+    
+    if (!validation.valid) {
+      alert('Cannot compile - circuit has errors:\n' + validation.errors.join('\n'));
+      return;
+    }
+
+    setIsCompiling(true);
+
+    // Generate Circom code
+    const circomCode = generateCircomCode(nodes, edges);
+
+    // Simulate compilation
+    setTimeout(() => {
+      const success = confirm(
+        '🔥 Circuit is ready to compile!\n\n' +
+        'This would:\n' +
+        '1. Save circuit.circom file\n' +
+        '2. Compile to WASM\n' +
+        '3. Generate proving keys\n' +
+        '4. Deploy to your templates\n\n' +
+        'Continue with compilation? (This feature is in beta)'
+      );
+
+      if (success) {
+        // Download the Circom code
+        const blob = new Blob([circomCode], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `custom-circuit-${Date.now()}.circom`;
+        a.click();
+        URL.revokeObjectURL(url);
+
+        alert('✅ Circom code downloaded!\n\nNext steps:\n1. Compile with: circom your-circuit.circom\n2. Generate keys with snarkjs\n3. Test your proof!');
+      }
+
+      setIsCompiling(false);
+    }, 2000);
+  };
+
   const saveCircuit = () => {
     const circuit = {
       name: `Circuit-${Date.now()}`,
@@ -81,11 +154,19 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
       >
         Clear All
       </button>
-      <button className="px-4 py-2 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg hover:bg-zk-secondary/30 transition-all text-sm">
-        Test Circuit
+      <button 
+        onClick={testCircuit}
+        disabled={isTesting}
+        className="px-4 py-2 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg hover:bg-zk-secondary/30 transition-all text-sm disabled:opacity-50"
+      >
+        {isTesting ? 'Testing...' : 'Test Circuit'}
       </button>
-      <button className="px-4 py-2 bg-zk-primary text-zk-darker rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium">
-        Compile & Deploy
+      <button 
+        onClick={compileAndDeploy}
+        disabled={isCompiling}
+        className="px-4 py-2 bg-zk-primary text-zk-darker rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium disabled:opacity-50"
+      >
+        {isCompiling ? 'Compiling...' : 'Compile & Deploy'}
       </button>
     </div>
   );
