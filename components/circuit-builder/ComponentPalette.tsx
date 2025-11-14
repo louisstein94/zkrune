@@ -59,7 +59,7 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
             <div className="space-y-2">
               {category.items.map((item: any) => {
                 const hasSVG = item.iconType;
-                let IconComponent = null;
+                let IconComponent: React.ComponentType<{ className?: string }> | null = null;
                 
                 if (hasSVG) {
                   // Check if it's advanced or basic icon
@@ -77,7 +77,7 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
                     className="w-full p-3 bg-zk-darker border border-zk-gray/20 rounded-lg hover:border-zk-primary/50 transition-all group text-left"
                   >
                     <div className="flex items-center gap-3">
-                      {hasSVG ? (
+                      {hasSVG && IconComponent ? (
                         <div className="w-8 h-8 bg-zk-primary/10 rounded-lg flex items-center justify-center group-hover:bg-zk-primary/20 transition-colors">
                           <IconComponent className="w-5 h-5 text-zk-primary" />
                         </div>
