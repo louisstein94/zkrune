@@ -18,16 +18,25 @@ Build privacy-preserving applications without cryptography expertise.
 - **Blockchain**: Zcash (via Lightwalletd)
 - **ZK System**: Circom + snarkjs
 
-## 💻 Development
+## 🚀 Quick Start
 
-### Quick Start
+### Try Live Demo
+
+Visit **[zkrune.com](https://zkrune.com)** to try it now!
+
+### Local Development
 
 ```bash
+# Clone repository
+git clone https://github.com/louisstein94/zkrune.git
+cd zkrune
+
 # Install dependencies
 npm install
 
 # Run development server
 npm run dev
+# Visit http://localhost:3000
 
 # Build for production
 npm run build
@@ -104,10 +113,12 @@ zkrune/
 - [x] Error Handling + 404 Page
 - [x] Performance Optimized
 
-### 🚧 Ready for Production
-- [ ] GitHub Repository (ready to push)
-- [ ] Vercel Deployment (ready to deploy)
-- [ ] Domain Setup (zkrune.com)
+### ✅ LIVE & DEPLOYED
+- [x] GitHub Repository (https://github.com/louisstein94/zkrune)
+- [x] Vercel Deployment (Production)
+- [x] Domain Setup (zkrune.com - LIVE!)
+- [x] All 5 circuits operational
+- [x] Real ZK proofs working
 
 ### 📋 Future Enhancements
 - [ ] Visual Circuit Builder
@@ -121,23 +132,25 @@ zkrune/
 
 Built for **ZypherPunk Hackathon** - Deadline: December 2, 2024
 
-### Status: 🔥 PRODUCTION READY!
+### Status: 🎊 LIVE IN PRODUCTION!
 
-- ✅ Full production-quality platform (5,500+ lines)
+- ✅ **DEPLOYED**: [zkrune.com](https://zkrune.com) is LIVE! 🌐
+- ✅ Full production-quality platform (6,000+ lines)
 - ✅ **ALL 5 Real Circom circuits compiled!** 🎊
   - Age Verification, Balance, Membership, Range, Voting
 - ✅ **CLI Proof Generation: 0.44 seconds** ⚡
 - ✅ **Real Groth16 zk-SNARKs verified** (mathematically proven)
-- ✅ Subdomain ready (zkrune.com + app.zkrune.com)
 - ✅ Trust & Verification system (independent verification)
-- ✅ 58 clean commits, professional git history
-- ✅ Ready for GitHub & Vercel deployment
+- ✅ 87+ clean commits, professional git history
+- ✅ Domain configured & live
 - 🎯 **18 days ahead of deadline!**
 
 ### Key Achievement:
-**5/5 REAL zero-knowledge circuits working end-to-end.**  
+**🏆 First no-code ZK proof builder with REAL circuits deployed!**  
 Generate → Export → Verify - full cycle functional with actual Groth16 cryptography.  
 **Total circuit files: 15** (5 templates × 3 files each)
+
+**👉 Try it now: [zkrune.com](https://zkrune.com)**
 
 ## 📄 License
 
@@ -145,7 +158,8 @@ MIT
 
 ## 🔗 Links
 
-- Website: [zkrune.com](https://zkrune.com) (Coming Soon)
-- GitHub: [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
-- Developer: [@legelsteinn](https://x.com/legelsteinn)
+- 🌐 **Live Site**: [zkrune.com](https://zkrune.com) ✨
+- 💻 **GitHub**: [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
+- 👨‍💻 **Developer**: [@legelsteinn](https://x.com/legelsteinn)
+- 📚 **Documentation**: [zkrune.com/docs](https://zkrune.com/docs)
 
