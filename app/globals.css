@@ -21,6 +21,36 @@
   }
 }
 
+/* React Flow Custom Styles */
+.react-flow__node {
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+}
+
+.react-flow__node-input,
+.react-flow__node-operation,
+.react-flow__node-output {
+  background: transparent !important;
+  border: none !important;
+}
+
+.react-flow__edge-path {
+  stroke: #00FFA3 !important;
+  stroke-width: 2 !important;
+}
+
+.react-flow__edge.animated path {
+  stroke-dasharray: 5;
+  animation: dashdraw 0.5s linear infinite;
+}
+
+@keyframes dashdraw {
+  to {
+    stroke-dashoffset: -10;
+  }
+}
+
 /* Custom animations for zkRune */
 @keyframes float {
   0%, 100% {
