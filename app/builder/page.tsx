@@ -61,13 +61,13 @@ export default function BuilderPage() {
                 onClick={() => setShowTemplates(!showTemplates)}
                 className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
               >
-                📚 Templates
+                Templates
               </button>
               <button
                 onClick={loadRandomCircuit}
                 className="px-4 py-2 bg-zk-accent/20 border border-zk-accent/30 text-zk-accent rounded-lg hover:bg-zk-accent/30 transition-all text-sm font-medium"
               >
-                🎲 Random Example
+                Random Example
               </button>
               <CircuitActions 
                 nodes={nodes} 
