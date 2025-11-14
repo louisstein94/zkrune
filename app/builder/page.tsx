@@ -2,8 +2,24 @@
 
 import Navigation from "@/components/Navigation";
 import CircuitCanvas from "@/components/circuit-builder/CircuitCanvas";
+import { useState } from "react";
+import { Node, Edge } from "reactflow";
+import CircuitActions from "@/components/circuit-builder/CircuitActions";
 
 export default function BuilderPage() {
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+
+  const handleLoad = (loadedNodes: Node[], loadedEdges: Edge[]) => {
+    setNodes(loadedNodes);
+    setEdges(loadedEdges);
+  };
+
+  const handleClear = () => {
+    setNodes([]);
+    setEdges([]);
+  };
+
   return (
     <main className="min-h-screen bg-zk-darker">
       <Navigation />
@@ -11,7 +27,7 @@ export default function BuilderPage() {
       <div className="pt-20">
         {/* Header */}
         <div className="px-8 py-6 border-b border-zk-gray/20">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <h1 className="font-hatton text-3xl text-white mb-1">
                 Visual Circuit Builder
@@ -21,22 +37,17 @@ export default function BuilderPage() {
               </p>
             </div>
             
-            <div className="flex gap-3">
-              <button className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm">
-                Save Circuit
-              </button>
-              <button className="px-4 py-2 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg hover:bg-zk-secondary/30 transition-all text-sm">
-                Test Circuit
-              </button>
-              <button className="px-4 py-2 bg-zk-primary text-zk-darker rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium">
-                Compile & Deploy
-              </button>
-            </div>
+            <CircuitActions 
+              nodes={nodes} 
+              edges={edges} 
+              onLoad={handleLoad}
+              onClear={handleClear}
+            />
           </div>
         </div>
 
         {/* Circuit Builder */}
-        <CircuitCanvas />
+        <CircuitCanvas initialNodes={nodes} initialEdges={edges} onNodesChange={setNodes} onEdgesChange={setEdges} />
       </div>
     </main>
   );
