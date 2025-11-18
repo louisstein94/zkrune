@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs";
-import { exec } from "child_process";
-import { promisify } from "util";
 
-const execAsync = promisify(exec);
+// Use Edge Runtime to avoid Node.js GC issues
+export const runtime = 'nodejs'; // Keep nodejs but with optimizations
+export const maxDuration = 60; // Allow up to 60 seconds for proof generation
 
 export async function POST(request: NextRequest) {
   try {
@@ -50,15 +50,26 @@ export async function POST(request: NextRequest) {
         const wasmPath = path.join(publicDir, `${templateId}.wasm`);
         const zkeyPath = path.join(publicDir, `${templateId}.zkey`);
         
-        // Use snarkjs directly (no witness.js needed)
+        // Use snarkjs with specific options for serverless
         // @ts-ignore
         const snarkjs = await import("snarkjs");
+        
+        // fullProve with logger to track progress and prevent GC issues
+        console.log(`[zkRune] Starting proof generation for ${templateId}`);
+        const logger = {
+          info: (msg: string) => console.log(`[snarkjs] ${msg}`),
+          debug: () => {}, // Suppress debug
+          error: (msg: string) => console.error(`[snarkjs ERROR] ${msg}`),
+        };
         
         const { proof: groth16Proof, publicSignals } = await snarkjs.groth16.fullProve(
           inputs,
           wasmPath,
-          zkeyPath
+          zkeyPath,
+          logger
         );
+        
+        console.log(`[zkRune] Proof generated successfully`);
 
         const proofTime = Date.now() - startTime;
         
