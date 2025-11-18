@@ -130,7 +130,7 @@ export default function Home() {
               <p className="text-xs font-medium text-zk-gray uppercase tracking-wider opacity-60">
                 Version
               </p>
-              <p className="text-white">Beta 0.1</p>
+              <p className="text-white">v1.2</p>
             </div>
             <div className="space-y-1">
               <p className="text-xs font-medium text-zk-gray uppercase tracking-wider opacity-60">
@@ -138,12 +138,18 @@ export default function Home() {
               </p>
               <p className="text-zk-primary">● All Systems Operational</p>
             </div>
+            <div className="space-y-1">
+              <p className="text-xs font-medium text-zk-gray uppercase tracking-wider opacity-60">
+                Contract
+              </p>
+              <p className="text-zk-accent">Announcement Soon</p>
+            </div>
           </div>
 
           {/* Social Links */}
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-medium uppercase tracking-wider">
-            <a href="https://x.com/legelsteinn" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-              Developer
+            <a href="https://x.com/rune_zk" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
+              Twitter
             </a>
             <a href="https://github.com/louisstein94/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
               GitHub
