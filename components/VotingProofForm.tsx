@@ -40,26 +40,26 @@ export default function VotingProofForm({ onProofGenerated }: VotingProofFormPro
         pollId: pollTitle.length.toString(),
       });
 
-      if (data.success) {
+      if (data.success && data.proof) {
         const resultProof = {
           statement: isValidVoter
             ? "Vote successfully cast and verified"
             : "Invalid voter credentials",
           isValid: isValidVoter,
-          timestamp: data.proof?.timestamp || new Date().toISOString(),
-          proofHash: data.proof?.proofHash || "0x...",
-          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          timestamp: data.proof.timestamp,
+          proofHash: data.proof.proofHash,
+          verificationKey: data.proof.verificationKey,
           voterId: voterId,
           choice: choice,
           poll: pollTitle,
-          realProof: data.metadata?.realProof || false,
-          note: data.proof?.note || "Proof generated",
-          groth16Proof: data.proof?.groth16Proof,
-          publicSignals: data.proof?.publicSignals,
+          realProof: true,
+          note: data.proof.note,
+          groth16Proof: data.proof.groth16Proof,
+          publicSignals: data.proof.publicSignals,
         };
         onProofGenerated(resultProof);
       } else {
-        alert("Proof generation failed");
+        alert(`Proof generation failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Voting proof error:", error);

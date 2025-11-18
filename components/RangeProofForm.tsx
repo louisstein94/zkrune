@@ -34,25 +34,25 @@ export default function RangeProofForm({ onProofGenerated }: RangeProofFormProps
         maxRange: Math.floor(maxNum).toString(),
       });
 
-      if (data.success) {
+      if (data.success && data.proof) {
         const resultProof = {
           statement: isInRange
             ? `Value is between ${minNum} and ${maxNum}`
             : `Value is outside range ${minNum}-${maxNum}`,
           isValid: isInRange,
-          timestamp: data.proof?.timestamp || new Date().toISOString(),
-          proofHash: data.proof?.proofHash || "0x...",
-          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          timestamp: data.proof.timestamp,
+          proofHash: data.proof.proofHash,
+          verificationKey: data.proof.verificationKey,
           actualValue: valueNum,
           range: { min: minNum, max: maxNum },
-          realProof: data.metadata?.realProof || false,
-          note: data.proof?.note || "Proof generated",
-          groth16Proof: data.proof?.groth16Proof,
-          publicSignals: data.proof?.publicSignals,
+          realProof: true,
+          note: data.proof.note,
+          groth16Proof: data.proof.groth16Proof,
+          publicSignals: data.proof.publicSignals,
         };
         onProofGenerated(resultProof);
       } else {
-        alert("Proof generation failed");
+        alert(`Proof generation failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Range proof error:", error);

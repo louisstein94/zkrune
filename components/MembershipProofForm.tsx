@@ -37,25 +37,25 @@ export default function MembershipProofForm({ onProofGenerated }: MembershipProo
         groupHash: groupName.length.toString(),
       });
 
-      if (data.success) {
+      if (data.success && data.proof) {
         const resultProof = {
           statement: isMember
             ? `Verified member of ${groupInfo?.name}`
             : `Not a member of ${groupInfo?.name}`,
           isValid: isMember,
-          timestamp: data.proof?.timestamp || new Date().toISOString(),
-          proofHash: data.proof?.proofHash || "0x...",
-          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          timestamp: data.proof.timestamp,
+          proofHash: data.proof.proofHash,
+          verificationKey: data.proof.verificationKey,
           memberId: memberId,
           group: groupName,
-          realProof: data.metadata?.realProof || false,
-          note: data.proof?.note || "Proof generated",
-          groth16Proof: data.proof?.groth16Proof,
-          publicSignals: data.proof?.publicSignals,
+          realProof: true,
+          note: data.proof.note,
+          groth16Proof: data.proof.groth16Proof,
+          publicSignals: data.proof.publicSignals,
         };
         onProofGenerated(resultProof);
       } else {
-        alert("Proof generation failed");
+        alert(`Proof generation failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Membership proof error:", error);
