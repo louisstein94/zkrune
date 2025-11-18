@@ -1,5 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 
+// Disable caching for this endpoint
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export async function POST(request: NextRequest) {
   try {
     const { proof, publicSignals, vKey } = await request.json();
@@ -22,14 +26,23 @@ export async function POST(request: NextRequest) {
       const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       const timing = Date.now() - startTime;
 
-      return NextResponse.json({
-        success: true,
-        isValid,
-        message: isValid
-          ? "Proof cryptographically verified!"
-          : "Proof verification failed",
-        timing,
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          isValid,
+          message: isValid
+            ? "Proof cryptographically verified!"
+            : "Proof verification failed",
+          timing,
+        },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        }
+      );
     } catch (error: any) {
       return NextResponse.json({
         success: false,
