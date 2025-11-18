@@ -42,9 +42,9 @@ npm run dev
 npm run build
 ```
 
-### Real ZK Circuits (Optional)
+### Local Circuit Compilation (Optional)
 
-zkRune comes with mock proofs by default. To use real Circom circuits:
+zkRune uses client-side real ZK proofs by default. For local development and circuit customization:
 
 ```bash
 # 1. Install Circom compiler (requires Rust)
@@ -113,13 +113,19 @@ zkrune/
 - [x] Error Handling + 404 Page
 - [x] Performance Optimized
 
+### Completed
+- [x] Visual Circuit Builder (drag-drop, live)
+- [x] Client-side ZK proofs (browser-based)
+- [x] All 5 templates with real circuits
+- [x] Independent verification
+
 ### Roadmap
-- [x] Visual Circuit Builder
-- [ ] User Authentication
-- [ ] Database Integration
-- [ ] Template Marketplace
-- [ ] More Real Circuits (3 more)
-- [ ] Mobile App
+- [ ] Template Marketplace (Q1 2025)
+- [ ] API Access for developers
+- [ ] Mobile app
+- [ ] Advanced circuit templates (20+)
+- [ ] User authentication (optional)
+- [ ] Database integration
 
 ## Production Deployment
 
@@ -166,6 +172,8 @@ Zero server calls for proof generation or verification. All cryptographic operat
 - **Live Site:** [zkrune.com](https://zkrune.com)
 - **GitHub:** [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
 - **Documentation:** [zkrune.com/docs](https://zkrune.com/docs)
+- **Twitter:** [@rune_zk](https://x.com/rune_zk)
+- **Contract:** `51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump`
 - **Developer:** [@legelsteinn](https://x.com/legelsteinn)
 
 ## License
