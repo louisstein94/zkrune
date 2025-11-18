@@ -1,19 +1,19 @@
-# @zkrune/sdk
+# zkrune-sdk
 
 JavaScript SDK for zkRune - Generate zero-knowledge proofs in your app.
 
 ## Installation
 
 ```bash
-npm install @zkrune/sdk
+npm install zkrune-sdk
 # or
-yarn add @zkrune/sdk
+yarn add zkrune-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { generateProof, templates } from '@zkrune/sdk';
+import { generateProof, templates } from 'zkrune-sdk';
 
 // Generate an age verification proof
 const result = await generateProof({

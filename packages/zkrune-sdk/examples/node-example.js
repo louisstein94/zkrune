@@ -1,5 +1,5 @@
 // Node.js example for zkRune SDK
-const { generateProof, templates } = require('@zkrune/sdk');
+const { generateProof, templates } = require('zkrune-sdk');
 
 async function main() {
   console.log('zkRune SDK - Node.js Example\n');
