@@ -90,7 +90,7 @@ export default function VerifyProofPage() {
         groth16Valid = groth16Valid && allNumeric;
       }
 
-      // Verify Groth16 proof in browser (no API call!)
+      // Verify Groth16 proof in browser 
       let cryptoVerified = false;
       if (isRealProof && groth16Valid) {
         try {
