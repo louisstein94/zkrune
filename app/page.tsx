@@ -142,7 +142,9 @@ export default function Home() {
               <p className="text-xs font-medium text-zk-gray uppercase tracking-wider opacity-60">
                 Contract
               </p>
-              <p className="text-zk-accent">Announcement Soon</p>
+              <code className="text-xs text-zk-accent font-mono">
+                51mxznNW...kpump
+              </code>
             </div>
           </div>
 
