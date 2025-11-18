@@ -122,9 +122,13 @@ export default function RuneAnimation() {
             style={{ animationDelay: '0.5s' }}
           />
           
-          {/* Central rune */}
-          <div className="relative text-9xl font-bold text-transparent bg-clip-text bg-gradient-to-br from-zk-primary via-zk-secondary to-zk-primary animate-glow">
-            ᚱ
+          {/* Central logo */}
+          <div className="relative">
+            <img
+              src="/zkrune-log.png"
+              alt="zkRune Logo"
+              className="w-40 h-40 object-contain opacity-40 animate-glow select-none"
+            />
           </div>
 
           {/* Orbiting particles */}

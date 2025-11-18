@@ -1,10 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { exec } from "child_process";
-import { promisify } from "util";
-import fs from "fs";
-import path from "path";
 
-const execAsync = promisify(exec);
+// Disable caching for this endpoint
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,48 +17,33 @@ export async function POST(request: NextRequest) {
 
     const startTime = Date.now();
 
-    // Write temp files
-    const tempDir = path.join(process.cwd(), "temp");
-    if (!fs.existsSync(tempDir)) {
-      fs.mkdirSync(tempDir, { recursive: true });
-    }
-
-    const proofPath = path.join(tempDir, `proof_${Date.now()}.json`);
-    const publicPath = path.join(tempDir, `public_${Date.now()}.json`);
-    const vKeyPath = path.join(tempDir, `vkey_${Date.now()}.json`);
-
-    fs.writeFileSync(proofPath, JSON.stringify(proof));
-    fs.writeFileSync(publicPath, JSON.stringify(publicSignals));
-    fs.writeFileSync(vKeyPath, JSON.stringify(vKey));
-
     try {
-      // Verify with snarkjs CLI
-      const verifyCmd = `snarkjs groth16 verify ${vKeyPath} ${publicPath} ${proofPath}`;
-      const { stdout, stderr } = await execAsync(verifyCmd);
+      // Use snarkjs library directly (no file writes!)
+      // @ts-ignore
+      const snarkjs = await import("snarkjs");
 
-      const isValid = stdout.includes("OK");
+      // Verify proof using snarkjs
+      const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       const timing = Date.now() - startTime;
 
-      // Cleanup
-      fs.unlinkSync(proofPath);
-      fs.unlinkSync(publicPath);
-      fs.unlinkSync(vKeyPath);
-
-      return NextResponse.json({
-        success: true,
-        isValid,
-        message: isValid
-          ? "Proof cryptographically verified!"
-          : "Proof verification failed",
-        timing,
-        output: stdout,
-      });
+      return NextResponse.json(
+        {
+          success: true,
+          isValid,
+          message: isValid
+            ? "Proof cryptographically verified!"
+            : "Proof verification failed",
+          timing,
+        },
+        {
+          headers: {
+            'Cache-Control': 'no-store, no-cache, must-revalidate',
+            'Pragma': 'no-cache',
+            'Expires': '0',
+          },
+        }
+      );
     } catch (error: any) {
-      // Cleanup on error
-      [proofPath, publicPath, vKeyPath].forEach((p) => {
-        if (fs.existsSync(p)) fs.unlinkSync(p);
-      });
-
       return NextResponse.json({
         success: false,
         isValid: false,

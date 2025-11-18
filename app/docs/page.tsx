@@ -85,19 +85,61 @@ export default function DocsPage() {
             <section id="introduction" className="mb-16">
               <h2 className="font-hatton text-3xl text-white mb-4">Introduction</h2>
               <div className="prose prose-invert max-w-none">
-                <p className="text-zk-gray leading-relaxed mb-4">
-                  zkRune is a visual zero-knowledge proof builder for Zcash. It allows anyone to create 
-                  privacy-preserving cryptographic proofs without requiring cryptography expertise.
-                </p>
-                <div className="p-4 bg-zk-primary/10 border border-zk-primary/20 rounded-lg mb-4">
-                  <p className="text-sm text-white font-medium mb-2">🔥 Key Features:</p>
-                  <ul className="text-sm text-zk-gray space-y-1 list-disc list-inside">
-                    <li>5 Real Groth16 zk-SNARK circuits (compiled and tested)</li>
-                    <li>0.44 second proof generation via optimized CLI</li>
-                    <li>100% open source - verify everything yourself</li>
-                    <li>Independent verification tools included</li>
-                    <li>Export proofs in JSON, Code, or shareable links</li>
-                  </ul>
+            <p className="text-zk-gray leading-relaxed mb-4">
+              zkRune is the first browser-based zero-knowledge proof builder. Generate and verify 
+              real Groth16 zk-SNARKs entirely in your browser - no server calls, complete privacy.
+            </p>
+            <div className="p-4 bg-zk-primary/10 border border-zk-primary/20 rounded-lg mb-4">
+              <p className="text-sm text-white font-medium mb-2">Key Features:</p>
+              <ul className="text-sm text-zk-gray space-y-1 list-disc list-inside">
+                <li>Client-side ZK proof generation (browser-based, 100% private)</li>
+                <li>5 Real Groth16 zk-SNARK circuits (compiled Circom)</li>
+                <li>Visual circuit builder (drag-drop, no code)</li>
+                <li>Cryptographic verification in browser</li>
+                <li>Zero server dependency - your data never leaves your device</li>
+                <li>100% open source</li>
+              </ul>
+            </div>
+              </div>
+            </section>
+
+            {/* How It Works */}
+            <section id="how-it-works" className="mb-16">
+              <h2 className="font-hatton text-3xl text-white mb-4">How It Works</h2>
+              <p className="text-zk-gray mb-6">
+                zkRune generates real zero-knowledge proofs entirely in your browser using snarkjs and compiled Circom circuits.
+              </p>
+              
+              <div className="space-y-4">
+                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
+                  <h3 className="text-white font-medium mb-3">1. Choose Template or Build Custom</h3>
+                  <p className="text-sm text-zk-gray">
+                    Select from 5 pre-built templates or use the Visual Circuit Builder to design your own ZK circuit.
+                  </p>
+                </div>
+
+                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
+                  <h3 className="text-white font-medium mb-3">2. Browser Downloads Circuit Files</h3>
+                  <p className="text-sm text-zk-gray">
+                    Your browser automatically loads the compiled WASM circuit (~35KB) and proving key (~4-40KB). These files are cached for future use.
+                  </p>
+                </div>
+
+                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
+                  <h3 className="text-white font-medium mb-3">3. Generate Proof (Client-Side)</h3>
+                  <p className="text-sm text-zk-gray mb-2">
+                    snarkjs runs in your browser to generate a real Groth16 zk-SNARK proof. Your input data never leaves your device.
+                  </p>
+                  <p className="text-xs text-zk-gray bg-zk-darker/50 p-2 rounded">
+                    First time: 15-30 seconds • Cached: 2-5 seconds
+                  </p>
+                </div>
+
+                <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
+                  <h3 className="text-white font-medium mb-3">4. Verify Independently (Client-Side)</h3>
+                  <p className="text-sm text-zk-gray">
+                    Cryptographic verification also runs in browser. Anyone can verify your proof using our tool or external snarkjs verifiers.
+                  </p>
                 </div>
               </div>
             </section>
@@ -206,6 +248,27 @@ export default function DocsPage() {
               </div>
             </section>
 
+            {/* Compiling */}
+            <section id="compiling" className="mb-16">
+              <h2 className="font-hatton text-3xl text-white mb-4">Compiling Circuits</h2>
+              <p className="text-zk-gray mb-6">
+                Learn how to compile Circom circuits locally for advanced use.
+              </p>
+              <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
+                <p className="text-sm text-zk-gray mb-4">
+                  For detailed compilation instructions, see the README on GitHub.
+                </p>
+                <a
+                  href="https://github.com/louisstein94/zkrune#real-zk-circuits-optional"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
+                >
+                  View Compile Guide on GitHub
+                </a>
+              </div>
+            </section>
+
             {/* Circuits */}
             <section id="circuits" className="mb-16">
               <h2 className="font-hatton text-3xl text-white mb-4">ZK Circuit Architecture</h2>
@@ -284,14 +347,6 @@ export default function DocsPage() {
                   className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
                 >
                   View on GitHub →
-                </a>
-                <a
-                  href="https://github.com/louisstein94/zkrune/blob/main/COMPILE_GUIDE.md"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-6 py-3 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary hover:text-zk-primary transition-all"
-                >
-                  Compile Guide
                 </a>
               </div>
             </section>
