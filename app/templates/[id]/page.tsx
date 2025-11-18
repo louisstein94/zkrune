@@ -188,24 +188,24 @@ export default function TemplatePage() {
         minimumAge: "18",
       });
 
-      if (data.success) {
+      if (data.success && data.proof) {
         const resultProof = {
           statement: isOver18 ? "User is 18 or older" : "User is under 18",
           isValid: isOver18,
-          timestamp: data.proof?.timestamp || new Date().toISOString(),
-          proofHash: data.proof?.proofHash || "0x...",
-          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          timestamp: data.proof.timestamp,
+          proofHash: data.proof.proofHash,
+          verificationKey: data.proof.verificationKey,
           actualAge: age,
           birthDate: birthDate,
-          realProof: data.metadata?.realProof || false,
-          note: data.proof?.note || data.note || "Proof generated",
+          realProof: true, // Client-side always real
+          note: data.proof.note,
           // Store full proof for export
-          groth16Proof: data.proof?.groth16Proof,
-          publicSignals: data.proof?.publicSignals,
+          groth16Proof: data.proof.groth16Proof,
+          publicSignals: data.proof.publicSignals,
         };
         setProof(resultProof);
       } else {
-        alert("Proof generation failed");
+        alert(`Proof generation failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Proof generation error:", error);
