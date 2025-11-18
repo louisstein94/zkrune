@@ -90,23 +90,25 @@ export default function VerifyProofPage() {
         groth16Valid = groth16Valid && allNumeric;
       }
 
-      // Call real verification API if it's a Groth16 proof
+      // Verify Groth16 proof in browser 
       let cryptoVerified = false;
       if (isRealProof && groth16Valid) {
         try {
-          const verifyResponse = await fetch("/api/verify-proof", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              proof: proof.groth16Proof,
-              publicSignals: proof.publicSignals,
-              vKey: proof.verificationKey,
-            }),
-          });
-          const verifyData = await verifyResponse.json();
-          cryptoVerified = verifyData.isValid;
+          console.log('[Verify] Starting cryptographic verification in browser...');
+          
+          // @ts-ignore
+          const snarkjs = await import("snarkjs");
+          
+          cryptoVerified = await snarkjs.groth16.verify(
+            proof.verificationKey,
+            proof.publicSignals,
+            proof.groth16Proof
+          );
+          
+          console.log('[Verify] Result:', cryptoVerified);
         } catch (verifyError) {
           console.error("Crypto verification failed:", verifyError);
+          cryptoVerified = false;
         }
       }
 

@@ -18,6 +18,10 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   title: "zkRune - Build Privacy Without Code",
   description: "Visual Zero-Knowledge Proof Builder for Zcash. Create privacy-preserving applications without cryptography expertise.",
+  icons: {
+    icon: '/zkrune-log.png',
+    apple: '/zkrune-log.png',
+  },
   keywords: ["zkRune", "Zero-Knowledge", "ZK Proofs", "Zcash", "Privacy", "Blockchain", "Cryptography"],
   authors: [{ name: "zkRune Team" }],
   openGraph: {
@@ -32,7 +36,8 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "zkRune - Build Privacy Without Code",
     description: "Visual Zero-Knowledge Proof Builder for Zcash",
-    creator: "@legelsteinn",
+    creator: "@rune_zk",
+    site: "@rune_zk",
   },
 };
 
