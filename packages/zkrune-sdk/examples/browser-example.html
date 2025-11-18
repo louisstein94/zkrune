@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>zkRune SDK - Browser Example</title>
+  <style>
+    body {
+      font-family: system-ui;
+      max-width: 800px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #0A0E27;
+      color: white;
+    }
+    button {
+      background: #00FFA3;
+      color: #0A0E27;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+    button:hover {
+      background: #6B4CFF;
+    }
+    pre {
+      background: #1a1f3a;
+      padding: 16px;
+      border-radius: 8px;
+      overflow-x: auto;
+    }
+  </style>
+</head>
+<body>
+  <h1>zkRune SDK - Browser Example</h1>
+  <p>Generate a zero-knowledge proof right in your browser!</p>
+
+  <button onclick="generateAgeProof()">Generate Age Proof</button>
+  
+  <h3>Result:</h3>
+  <pre id="result">Click the button to generate a proof...</pre>
+
+  <!-- Include zkRune SDK -->
+  <script type="module">
+    import { generateProof, templates } from 'https://unpkg.com/@zkrune/sdk';
+    
+    window.generateAgeProof = async function() {
+      document.getElementById('result').textContent = 'Generating proof... (this may take 15-30 seconds)';
+      
+      try {
+        const result = await generateProof({
+          templateId: templates.AGE_VERIFICATION,
+          inputs: {
+            birthYear: '1995',
+            currentYear: '2024',
+            minimumAge: '18'
+          }
+        });
+        
+        if (result.success) {
+          document.getElementById('result').textContent = 
+            `Success!\n\n` +
+            `Generated in: ${result.timing}ms\n` +
+            `Valid: ${result.proof.isValid}\n` +
+            `Proof Hash: ${result.proof.proofHash}\n\n` +
+            `Full proof object:\n${JSON.stringify(result.proof, null, 2)}`;
+        } else {
+          document.getElementById('result').textContent = `Error: ${result.error}`;
+        }
+      } catch (error) {
+        document.getElementById('result').textContent = `Error: ${error.message}`;
+      }
+    }
+  </script>
+</body>
+</html>
+
