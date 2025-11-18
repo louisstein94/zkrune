@@ -4,13 +4,13 @@ Visual Zero-Knowledge Proof Builder for Zcash
 
 Build privacy-preserving applications without cryptography expertise.
 
-## 🎨 Brand Identity
+## Brand Identity
 
 - **Colors**: Cyber Rune palette (#00FFA3 neon green + #6B4CFF mystic purple)
 - **Typography**: PP Hatton (display) + DM Sans (body)
 - **Theme**: Dark, mystical, tech-forward
 
-## 🚀 Tech Stack
+## Tech Stack
 
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
@@ -18,7 +18,7 @@ Build privacy-preserving applications without cryptography expertise.
 - **Blockchain**: Zcash (via Lightwalletd)
 - **ZK System**: Circom + snarkjs
 
-## 🚀 Quick Start
+## Quick Start
 
 ### Try Live Demo
 
@@ -99,11 +99,11 @@ zkrune/
 - [x] Template Gallery (5 templates) with Search
 - [x] Dashboard with Analytics
 - [x] **REAL ZK-SNARK Proofs** (All 5 circuits compiled!)
-  - Age Verification (✅ Real Groth16 circuit)
-  - Balance Proof (✅ Real Groth16 circuit)
-  - Membership Proof (✅ Real Groth16 circuit)
-  - Range Proof (✅ Real Groth16 circuit)
-  - Private Voting (✅ Real Groth16 circuit)
+  - Age Verification (Real Groth16 circuit)
+  - Balance Proof (Real Groth16 circuit)
+  - Membership Proof (Real Groth16 circuit)
+  - Range Proof (Real Groth16 circuit)
+  - Private Voting (Real Groth16 circuit)
 - [x] Proof Export (JSON, Code, Share)
 - [x] Circuit Code Viewer (Circom)
 - [x] Mock Zcash Testnet Deployment
@@ -129,22 +129,27 @@ Built for ZypherPunk Hackathon 2025
 
 ### Key Metrics
 
-- **Proof Generation Time:** 0.44 seconds (CLI optimized)
+- **Proof Generation:** Client-side (browser-based, 100% private)
+- **Generation Time:** 2-30 seconds (first load), < 5s (cached)
 - **Circuit Coverage:** 5/5 templates with real Groth16 implementations
+- **Verification:** Client-side cryptographic verification (no API)
+- **Architecture:** Next.js 14, React Flow, snarkjs browser, Circom circuits
+- **Privacy:** Zero server calls - all crypto operations client-side
 - **Code Quality:** Type-safe TypeScript, zero linter errors
-- **Architecture:** Next.js 14, React Flow, Circom circuits
-- **Lines of Code:** 7,800+ across 100+ files
 
 ### Technical Achievements
 
-**Real Cryptography:**
-All 5 templates use compiled Circom circuits with Groth16 zk-SNARKs. Not mocks or simulations - actual zero-knowledge proofs verified by snarkjs.
+**Client-Side Zero-Knowledge Proofs:**
+Industry-first browser-based ZK proof generation. All cryptographic operations run in the user's browser using snarkjs and compiled Circom circuits. No server-side computation, complete privacy - user data never leaves their device.
+
+**Real Groth16 zk-SNARKs:**
+All 5 templates use actual Groth16 proving system with compiled Circom circuits. Not simulations - mathematically verifiable zero-knowledge proofs generated and verified entirely in the browser.
 
 **Visual Circuit Builder:**
-Industry-first drag-drop interface for designing custom ZK circuits. Generates valid Circom code from visual graphs.
+Drag-drop interface for designing custom ZK circuits. Build complex zero-knowledge proofs visually, export as Circom code, and deploy instantly.
 
-**Independent Verification:**
-Users can export and verify proofs using external tools. Mathematical guarantees, not trust-based.
+**100% Privacy Guaranteed:**
+Zero server calls for proof generation or verification. All cryptographic operations execute client-side. Your sensitive data never transmitted or stored.
 
 ### Circuits
 
