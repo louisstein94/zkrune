@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { generateClientProof } from "@/lib/clientZkProof";
 
 interface BalanceProofFormProps {
   onProofGenerated: (proof: any) => void;
@@ -24,20 +25,11 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
       const minBalanceNum = parseFloat(minBalance);
       const hasSufficientBalance = balanceNum >= minBalanceNum;
 
-      // Call API for REAL ZK proof
-      const response = await fetch("/api/generate-proof", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          templateId: "balance-proof",
-          inputs: {
-            balance: Math.floor(balanceNum * 100).toString(), // Convert to integer (cents)
-            minimumBalance: Math.floor(minBalanceNum * 100).toString(),
-          },
-        }),
+      // Generate REAL ZK proof in browser
+      const data = await generateClientProof("balance-proof", {
+        balance: Math.floor(balanceNum * 100).toString(),
+        minimumBalance: Math.floor(minBalanceNum * 100).toString(),
       });
-
-      const data = await response.json();
 
       if (data.success) {
         const resultProof = {
