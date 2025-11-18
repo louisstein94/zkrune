@@ -30,49 +30,45 @@ export async function POST(request: NextRequest) {
     
     if (realCircuits.includes(templateId)) {
       try {
-        const circuitDir = path.join(process.cwd(), "circuits", templateId);
+        // Use /tmp for Vercel compatibility (writable in serverless)
         const publicDir = path.join(process.cwd(), "public", "circuits");
+        const timestamp = Date.now();
         
-        // Write input to temp file
-        const inputPath = path.join(circuitDir, "temp_input.json");
-        const witnessPath = path.join(circuitDir, "temp_witness.wtns");
-        const proofPath = path.join(circuitDir, "temp_proof.json");
-        const publicPath = path.join(circuitDir, "temp_public.json");
+        // Temp files in /tmp (Vercel allows this)
+        const inputPath = `/tmp/input_${timestamp}.json`;
+        const witnessPath = `/tmp/witness_${timestamp}.wtns`;
+        const proofPath = `/tmp/proof_${timestamp}.json`;
+        const publicPath = `/tmp/public_${timestamp}.json`;
         
         fs.writeFileSync(inputPath, JSON.stringify(inputs));
         
         const startTime = Date.now();
         
-        // Step 1: Generate witness  
-        const witnessCmd = `node ${circuitDir}/circuit_js/generate_witness.js ${publicDir}/${templateId}.wasm ${inputPath} ${witnessPath} 2>&1`;
-        await execAsync(witnessCmd);
+        // Step 1: Generate witness
+        // Note: witness generation needs circuit_js but we only have compiled WASM in production
+        // For production, we'll use a different approach - direct snarkjs
+        const wasmPath = path.join(publicDir, `${templateId}.wasm`);
+        const zkeyPath = path.join(publicDir, `${templateId}.zkey`);
         
-        // Step 2: Generate proof
-        const proveCmd = `snarkjs groth16 prove ${publicDir}/${templateId}.zkey ${witnessPath} ${proofPath} ${publicPath} 2>&1`;
-        await execAsync(proveCmd);
+        // Use snarkjs directly (no witness.js needed)
+        // @ts-ignore
+        const snarkjs = await import("snarkjs");
+        
+        const { proof: groth16Proof, publicSignals } = await snarkjs.groth16.fullProve(
+          inputs,
+          wasmPath,
+          zkeyPath
+        );
+
         const proofTime = Date.now() - startTime;
         
-        // Step 3: Verify
+        // Step 2: Verify the proof
+        const vKeyPath = path.join(publicDir, `${templateId}_vkey.json`);
+        const vKey = JSON.parse(fs.readFileSync(vKeyPath, "utf8"));
+        
         const verifyStart = Date.now();
-        const verifyCmd = `snarkjs groth16 verify ${publicDir}/${templateId}_vkey.json ${publicPath} ${proofPath} 2>&1`;
-        const { stdout } = await execAsync(verifyCmd);
+        const isValid = await snarkjs.groth16.verify(vKey, publicSignals, groth16Proof);
         const verifyTime = Date.now() - verifyStart;
-        const isValid = stdout.includes("OK");
-        
-        // Read generated files
-        const groth16Proof = JSON.parse(fs.readFileSync(proofPath, "utf8"));
-        const publicSignals = JSON.parse(fs.readFileSync(publicPath, "utf8"));
-        const vKey = JSON.parse(fs.readFileSync(`${publicDir}/${templateId}_vkey.json`, "utf8"));
-        
-        // Cleanup temp files
-        try {
-          fs.unlinkSync(inputPath);
-          fs.unlinkSync(witnessPath);
-          fs.unlinkSync(proofPath);
-          fs.unlinkSync(publicPath);
-        } catch (cleanupError) {
-          // Silent cleanup
-        }
 
         return NextResponse.json({
           success: true,
