@@ -125,7 +125,7 @@ zkrune/
 
 **Live Site:** [zkrune.com](https://zkrune.com)
 
-Built for ZypherPunk Hackathon 2024
+Built for ZypherPunk Hackathon 2025
 
 ### Key Metrics
 
