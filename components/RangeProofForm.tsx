@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { generateClientProof } from "@/lib/clientZkProof";
 
 interface RangeProofFormProps {
   onProofGenerated: (proof: any) => void;
@@ -26,21 +27,12 @@ export default function RangeProofForm({ onProofGenerated }: RangeProofFormProps
       const maxNum = parseFloat(maxRange);
       const isInRange = valueNum >= minNum && valueNum <= maxNum;
 
-      // Call REAL ZK proof API
-      const response = await fetch("/api/generate-proof", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          templateId: "range-proof",
-          inputs: {
-            value: Math.floor(valueNum).toString(),
-            minRange: Math.floor(minNum).toString(),
-            maxRange: Math.floor(maxNum).toString(),
-          },
-        }),
+      // Generate REAL ZK proof in browser
+      const data = await generateClientProof("range-proof", {
+        value: Math.floor(valueNum).toString(),
+        minRange: Math.floor(minNum).toString(),
+        maxRange: Math.floor(maxNum).toString(),
       });
-
-      const data = await response.json();
 
       if (data.success) {
         const resultProof = {

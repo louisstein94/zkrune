@@ -18,6 +18,7 @@ import {
   RangeIcon, 
   VotingIcon 
 } from "@/components/TemplateIcons";
+import { generateClientProof } from "@/lib/clientZkProof";
 
 // Template data
 const templates: { [key: string]: any } = {
@@ -180,21 +181,12 @@ export default function TemplatePage() {
       const age = calculateAge(birthDate);
       const isOver18 = age >= 18;
 
-      // Call API to generate REAL ZK proof
-      const response = await fetch("/api/generate-proof", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          templateId: "age-verification",
-          inputs: {
-            birthYear: birthYear.toString(),
-            currentYear: currentYear.toString(),
-            minimumAge: "18",
-          },
-        }),
+      // Generate REAL ZK proof in browser (no server!)
+      const data = await generateClientProof("age-verification", {
+        birthYear: birthYear.toString(),
+        currentYear: currentYear.toString(),
+        minimumAge: "18",
       });
-
-      const data = await response.json();
 
       if (data.success) {
         const resultProof = {
