@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { generateClientProof } from "@/lib/clientZkProof";
 
 interface BalanceProofFormProps {
   onProofGenerated: (proof: any) => void;
