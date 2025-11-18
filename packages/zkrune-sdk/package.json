@@ -1,5 +1,5 @@
 {
-  "name": "@zkrune/sdk",
+  "name": "zkrune-sdk",
   "version": "1.0.0",
   "description": "JavaScript SDK for zkRune - Generate zero-knowledge proofs in your app",
   "main": "dist/index.js",
