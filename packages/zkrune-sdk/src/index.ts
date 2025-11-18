@@ -56,8 +56,8 @@ export async function generateProof(options: ZKProofOptions): Promise<ZKProofRes
     // @ts-ignore
     const snarkjs = await import('snarkjs');
 
-    // Determine circuit paths
-    const basePath = circuitPath || `https://zkrune.com/circuits`;
+    // Determine circuit paths (files are in /circuits/ on zkrune.com)
+    const basePath = circuitPath || (typeof window !== 'undefined' ? '/circuits' : 'https://zkrune.com/circuits');
     const wasmPath = `${basePath}/${templateId}.wasm`;
     const zkeyPath = `${basePath}/${templateId}.zkey`;
     const vkeyPath = `${basePath}/${templateId}_vkey.json`;
