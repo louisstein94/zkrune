@@ -100,8 +100,9 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
       </div>
 
       <div className="mt-6 p-3 bg-zk-secondary/10 border border-zk-secondary/20 rounded-lg">
+        <p className="text-xs text-white font-medium mb-1">How to Use:</p>
         <p className="text-xs text-zk-gray leading-relaxed">
-          💡 Drag components onto canvas and connect them to build your circuit
+          Drag components onto canvas and connect them to build your circuit
         </p>
       </div>
     </div>
