@@ -188,24 +188,24 @@ export default function TemplatePage() {
         minimumAge: "18",
       });
 
-      if (data.success) {
+      if (data.success && data.proof) {
         const resultProof = {
           statement: isOver18 ? "User is 18 or older" : "User is under 18",
           isValid: isOver18,
-          timestamp: data.proof?.timestamp || new Date().toISOString(),
-          proofHash: data.proof?.proofHash || "0x...",
-          verificationKey: data.proof?.verificationKey || 'vk_circuit',
+          timestamp: data.proof.timestamp,
+          proofHash: data.proof.proofHash,
+          verificationKey: data.proof.verificationKey,
           actualAge: age,
           birthDate: birthDate,
-          realProof: data.metadata?.realProof || false,
-          note: data.proof?.note || data.note || "Proof generated",
+          realProof: true, // Client-side always real
+          note: data.proof.note,
           // Store full proof for export
-          groth16Proof: data.proof?.groth16Proof,
-          publicSignals: data.proof?.publicSignals,
+          groth16Proof: data.proof.groth16Proof,
+          publicSignals: data.proof.publicSignals,
         };
         setProof(resultProof);
       } else {
-        alert("Proof generation failed");
+        alert(`Proof generation failed: ${data.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error("Proof generation error:", error);
@@ -232,7 +232,7 @@ export default function TemplatePage() {
           <Link href="/" className="flex items-center gap-3 group">
             <span className="text-2xl">←</span>
             <div className="flex items-center gap-2">
-              <div className="text-2xl text-zk-primary">ᚱ</div>
+              <img src="/zkrune-log.png" alt="zkRune" className="h-6 w-auto" />
               <span className="text-xl font-hatton text-white">zkRune</span>
             </div>
           </Link>
@@ -333,7 +333,7 @@ export default function TemplatePage() {
                             Generating Proof...
                           </>
                         ) : (
-                          <>⚡ Generate ZK Proof</>
+                          <>Generate ZK Proof</>
                         )}
                       </button>
                     </div>
@@ -417,7 +417,7 @@ export default function TemplatePage() {
                   {/* Privacy Notice */}
                   <div className="p-4 bg-zk-secondary/10 border border-zk-secondary/30 rounded-lg">
                     <h4 className="text-sm font-medium text-zk-secondary mb-2">
-                      🔒 Privacy Protected
+                      Privacy Protected
                     </h4>
                     <p className="text-xs text-zk-gray">
                       {templateId === "age-verification" && proof.actualAge && (

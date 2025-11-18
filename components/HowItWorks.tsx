@@ -100,10 +100,10 @@ export default function HowItWorks() {
       {/* Bottom CTA */}
       <div className="max-w-7xl mx-auto mt-16 text-center">
         <a
-          href="#templates"
+          href="/templates"
           className="inline-block px-8 py-4 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20"
         >
-          Try It Now - It's Free
+          Try Templates - Free
         </a>
       </div>
     </section>
