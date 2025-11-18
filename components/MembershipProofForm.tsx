@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { generateClientProof } from "@/lib/clientZkProof";
 
 interface MembershipProofFormProps {
   onProofGenerated: (proof: any) => void;
@@ -30,20 +31,11 @@ export default function MembershipProofForm({ onProofGenerated }: MembershipProo
       const isMember = memberId.length >= 6;
       const groupInfo = groups.find(g => g.id === groupName);
 
-      // Call REAL ZK proof API
-      const response = await fetch("/api/generate-proof", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          templateId: "membership-proof",
-          inputs: {
-            memberId: memberId.length.toString(),
-            groupHash: groupName.length.toString(),
-          },
-        }),
+      // Generate REAL ZK proof in browser
+      const data = await generateClientProof("membership-proof", {
+        memberId: memberId.length.toString(),
+        groupHash: groupName.length.toString(),
       });
-
-      const data = await response.json();
 
       if (data.success) {
         const resultProof = {
