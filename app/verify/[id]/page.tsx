@@ -8,16 +8,14 @@ export default function VerifyPage() {
   const params = useParams();
   const proofId = params.id as string;
 
-  // In production, this would be fetched from database/IPFS
-  // For now, we display the proof ID and indicate it's shareable
-  const proofData = {
+  // Mock proof data - would be fetched from database/IPFS
+  const mockProof = {
     statement: "User is 18 or older",
     isValid: true,
     timestamp: new Date().toISOString(),
-    proofHash: `0x${proofId}`,
+    proofHash: `0x${proofId}...`,
     template: "Age Verification",
     verificationKey: `vk_${proofId.substring(0, 10)}`,
-    note: "This is a shareable proof verification link"
   };
 
   return (
@@ -64,7 +62,7 @@ export default function VerifyPage() {
                 Proven Statement
               </h3>
               <p className="text-2xl font-hatton text-white">
-                "{proofData.statement}"
+                "{mockProof.statement}"
               </p>
             </div>
 
@@ -72,24 +70,24 @@ export default function VerifyPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Template</p>
-                <p className="text-white font-medium">{proofData.template}</p>
+                <p className="text-white font-medium">{mockProof.template}</p>
               </div>
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Generated</p>
                 <p className="text-white font-medium">
-                  {new Date(proofData.timestamp).toLocaleString('en-US')}
+                  {new Date(mockProof.timestamp).toLocaleString('en-US')}
                 </p>
               </div>
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Proof Hash</p>
-                <p className="text-white font-mono text-xs break-all">
-                  {proofData.proofHash}
+                <p className="text-white font-mono text-xs">
+                  {mockProof.proofHash}
                 </p>
               </div>
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Verification Key</p>
                 <p className="text-white font-mono text-xs">
-                  {proofData.verificationKey}
+                  {mockProof.verificationKey}
                 </p>
               </div>
             </div>
