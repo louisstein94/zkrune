@@ -11,6 +11,7 @@ export default function Navigation() {
     { name: "Templates", href: "/templates" },
     { name: "Builder", href: "/builder" },
     { name: "Docs", href: "/docs" },
+    { name: "API", href: "/api-docs" },
     { name: "Verify", href: "/verify-proof" },
   ];
 
