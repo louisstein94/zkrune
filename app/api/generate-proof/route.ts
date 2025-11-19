@@ -62,12 +62,25 @@ export async function POST(request: NextRequest) {
           error: (msg: string) => console.error(`[snarkjs ERROR] ${msg}`),
         };
         
+        // Optimization: Read files into buffers instead of passing paths
+        // This is faster and prevents file handle leaks
+        const wasmBuffer = fs.readFileSync(wasmPath);
+        // For zkey, we keep it as path if possible, or read as buffer if small enough
+        // But snarkjs handles paths better for large zkeys. 
+        // The leak issue often comes from logger holding references.
+        
         const { proof: groth16Proof, publicSignals } = await snarkjs.groth16.fullProve(
           inputs,
-          wasmPath,
-          zkeyPath,
+          new Uint8Array(wasmBuffer),
+          zkeyPath, // Keeping path for zkey is usually better for memory unless it's small
           logger
         );
+        
+        // Explicitly clear large objects if needed (though GC handles it)
+        // Clean up temp files
+        try {
+            if (fs.existsSync(inputPath)) fs.unlinkSync(inputPath);
+        } catch (e) { /* ignore cleanup errors */ }
         
         console.log(`[zkRune] Proof generated successfully`);
 
@@ -124,8 +137,10 @@ export async function POST(request: NextRequest) {
       timestamp: new Date().toISOString(),
     };
 
-    // Simulate proof generation time
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Simulate proof generation time (only for mock)
+    if (templateId === "mock-test") {
+      await new Promise((resolve) => setTimeout(resolve, 1500));
+    }
 
     const note = ["age-verification", "balance-proof"].includes(templateId)
       ? "⚡ Demo proof (Real circuits compiled & verified! See COMPILE_GUIDE.md to enable)"
