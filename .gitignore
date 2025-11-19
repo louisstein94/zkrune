@@ -52,3 +52,5 @@ circuits/**/input.json
 # .zkey files are needed for proof generation
 # Keeping them in git for now (small enough at ~10-40KB)
 
+packages/zkrune-sdk/node_modules/
+packages/zkrune-sdk/dist/
