@@ -1,8 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
+// @ts-ignore - Import snarkjs at module level for better caching
+import * as snarkjs from "snarkjs";
 
 // Disable caching for this endpoint
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const maxDuration = 30; // Allow up to 30 seconds
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,8 +22,6 @@ export async function POST(request: NextRequest) {
 
     try {
       // Use snarkjs library directly (no file writes!)
-      // @ts-ignore
-      const snarkjs = await import("snarkjs");
 
       // Verify proof using snarkjs
       const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
