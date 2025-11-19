@@ -10,8 +10,8 @@ export default function Navigation() {
     { name: "Home", href: "/" },
     { name: "Templates", href: "/templates" },
     { name: "Builder", href: "/builder" },
-    { name: "API", href: "/api-docs" },
     { name: "Docs", href: "/docs" },
+    { name: "Verify", href: "/verify-proof" },
   ];
 
   return (

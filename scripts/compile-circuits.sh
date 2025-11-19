@@ -33,6 +33,7 @@ mkdir -p public/circuits
 echo ""
 echo "${BLUE}📝 Compiling Age Verification circuit...${NC}"
 circom circuits/age-verification/circuit.circom \
+    -l node_modules \
     --r1cs --wasm --sym \
     --output circuits/age-verification/
 
@@ -42,6 +43,7 @@ echo "${GREEN}✓ Age Verification compiled${NC}"
 echo ""
 echo "${BLUE}📝 Compiling Balance Proof circuit...${NC}"
 circom circuits/balance-proof/circuit.circom \
+    -l node_modules \
     --r1cs --wasm --sym \
     --output circuits/balance-proof/
 
@@ -67,7 +69,7 @@ snarkjs groth16 setup \
 snarkjs zkey contribute \
     circuits/age-verification/circuit_0000.zkey \
     circuits/age-verification/circuit_final.zkey \
-    --name="zkRune" -v
+    --name="zkRune" -v -e="random_entropy_text_for_age_verification_$(date)"
 
 snarkjs zkey export verificationkey \
     circuits/age-verification/circuit_final.zkey \
@@ -84,7 +86,7 @@ snarkjs groth16 setup \
 snarkjs zkey contribute \
     circuits/balance-proof/circuit_0000.zkey \
     circuits/balance-proof/circuit_final.zkey \
-    --name="zkRune" -v
+    --name="zkRune" -v -e="random_entropy_text_for_balance_proof_$(date)"
 
 snarkjs zkey export verificationkey \
     circuits/balance-proof/circuit_final.zkey \
