@@ -55,7 +55,7 @@ export default function InstallPrompt() {
                   Install zkRune App
                 </h3>
                 <p className="text-sm text-zk-gray mb-4">
-                  Generate ZK proofs offline. Works even without internet! 🚀
+                  Generate ZK proofs offline. Works even without internet.
                 </p>
                 
                 <div className="flex gap-3">
@@ -149,7 +149,7 @@ export default function InstallPrompt() {
 
             <div className="mt-4 p-3 bg-zk-primary/10 border border-zk-primary/20 rounded-lg">
               <p className="text-xs text-zk-gray">
-                💡 <span className="text-white">Pro tip:</span> Works 100% offline after installation!
+                <span className="text-white">Pro tip:</span> Works 100% offline after installation!
               </p>
             </div>
           </div>
@@ -222,7 +222,7 @@ export default function InstallPrompt() {
 
             <div className="p-4 bg-zk-primary/10 border border-zk-primary/20 rounded-xl mb-6">
               <p className="text-sm text-zk-gray text-center">
-                ✨ After installation, zkRune will work <span className="text-zk-primary font-medium">completely offline</span>!
+                After installation, zkRune will work <span className="text-zk-primary font-medium">completely offline</span>!
               </p>
             </div>
 

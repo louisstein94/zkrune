@@ -67,7 +67,7 @@ export default function FirstTimeSetupPrompt() {
           
           <div className="flex-1">
             <h2 className="font-hatton text-2xl text-white mb-2">
-              Welcome to zkRune! 🎉
+              Welcome to zkRune
             </h2>
             <p className="text-sm text-amber-200/90">
               One more step to enable offline functionality
