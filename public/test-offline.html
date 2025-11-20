@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PWA Offline Test</title>
+    <style>
+        body {
+            font-family: system-ui;
+            padding: 20px;
+            background: #0A0E27;
+            color: white;
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            border: 1px solid #333;
+        }
+        .success { background: rgba(0, 255, 163, 0.1); border-color: #00FFA3; }
+        .error { background: rgba(255, 0, 0, 0.1); border-color: #ff4444; }
+        .warning { background: rgba(255, 165, 0, 0.1); border-color: #ffa500; }
+        button {
+            padding: 12px 24px;
+            background: #00FFA3;
+            color: #0A0E27;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+        pre {
+            background: #1a1e3a;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔧 PWA Offline Test</h1>
+    
+    <div id="status"></div>
+    
+    <button onclick="checkServiceWorker()">1. Check Service Worker</button>
+    <button onclick="checkCache()">2. Check Cache</button>
+    <button onclick="testOffline()">3. Test Offline</button>
+    <button onclick="clearCache()">❌ Clear Cache</button>
+    
+    <script>
+        const log = (msg, type = 'info') => {
+            const div = document.createElement('div');
+            div.className = `status ${type}`;
+            div.innerHTML = msg;
+            document.getElementById('status').appendChild(div);
+        };
+        
+        async function checkServiceWorker() {
+            log('🔍 Checking Service Worker...', 'warning');
+            
+            if (!('serviceWorker' in navigator)) {
+                log('❌ Service Worker NOT supported', 'error');
+                return;
+            }
+            
+            const registration = await navigator.serviceWorker.getRegistration();
+            
+            if (registration) {
+                log(`✅ Service Worker registered!<br>
+                     Scope: ${registration.scope}<br>
+                     State: ${registration.active?.state}`, 'success');
+            } else {
+                log('❌ Service Worker NOT registered', 'error');
+            }
+        }
+        
+        async function checkCache() {
+            log('🔍 Checking Cache Storage...', 'warning');
+            
+            if (!('caches' in window)) {
+                log('❌ Cache API NOT supported', 'error');
+                return;
+            }
+            
+            const cacheNames = await caches.keys();
+            log(`📦 Found ${cacheNames.length} caches:`, 'success');
+            
+            for (const cacheName of cacheNames) {
+                const cache = await caches.open(cacheName);
+                const keys = await cache.keys();
+                
+                const wasmFiles = keys.filter(k => k.url.includes('.wasm'));
+                const zkeyFiles = keys.filter(k => k.url.includes('.zkey'));
+                
+                log(`<strong>${cacheName}</strong>:<br>
+                     - Total files: ${keys.length}<br>
+                     - WASM files: ${wasmFiles.length}<br>
+                     - zkey files: ${zkeyFiles.length}`, 'success');
+                
+                if (cacheName.includes('zk') || cacheName.includes('circuit')) {
+                    log(`<pre>${wasmFiles.map(k => k.url.split('/').pop()).join('\\n')}</pre>`, 'info');
+                }
+            }
+        }
+        
+        async function testOffline() {
+            log('🧪 Testing Offline Functionality...', 'warning');
+            
+            const testUrls = [
+                '/circuits/age-verification.wasm',
+                '/circuits/age-verification.zkey',
+                '/circuits/age-verification_vkey.json',
+            ];
+            
+            for (const url of testUrls) {
+                try {
+                    const cache = await caches.match(url);
+                    if (cache) {
+                        log(`✅ ${url.split('/').pop()} - CACHED`, 'success');
+                    } else {
+                        log(`❌ ${url.split('/').pop()} - NOT CACHED`, 'error');
+                    }
+                } catch (e) {
+                    log(`❌ Error checking ${url}: ${e.message}`, 'error');
+                }
+            }
+            
+            // Test online status
+            log(`📡 Online Status: ${navigator.onLine ? '✅ Online' : '❌ Offline'}`, 
+                navigator.onLine ? 'success' : 'warning');
+        }
+        
+        async function clearCache() {
+            if (confirm('Clear all caches? You will need to reload.')) {
+                const cacheNames = await caches.keys();
+                await Promise.all(cacheNames.map(name => caches.delete(name)));
+                log('✅ All caches cleared! Please reload.', 'success');
+            }
+        }
+        
+        // Auto-check on load
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                checkServiceWorker();
+                checkCache();
+            }, 1000);
+        });
+    </script>
+</body>
+</html>
+
