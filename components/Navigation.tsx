@@ -13,7 +13,7 @@ export default function Navigation() {
     { name: "Docs", href: "/docs" },
     { name: "API", href: "/api-docs" },
     { name: "Verify", href: "/verify-proof" },
-    { name: "📱 Install", href: "/install" },
+    { name: "Install", href: "/install" },
   ];
 
   return (

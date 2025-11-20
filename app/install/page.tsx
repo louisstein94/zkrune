@@ -34,27 +34,27 @@ export default function InstallPage() {
           <h2 className="font-hatton text-2xl text-white mb-4">Why Progressive Web App?</h2>
           <div className="grid md:grid-cols-2 gap-4 text-sm">
             <div className="flex gap-3">
-              <span className="text-zk-primary">✓</span>
+              <span className="text-zk-primary">•</span>
               <span className="text-zk-gray">No app store approval needed</span>
             </div>
             <div className="flex gap-3">
-              <span className="text-zk-primary">✓</span>
+              <span className="text-zk-primary">•</span>
               <span className="text-zk-gray">Works 100% offline</span>
             </div>
             <div className="flex gap-3">
-              <span className="text-zk-primary">✓</span>
+              <span className="text-zk-primary">•</span>
               <span className="text-zk-gray">Instant updates</span>
             </div>
             <div className="flex gap-3">
-              <span className="text-zk-primary">✓</span>
+              <span className="text-zk-primary">•</span>
               <span className="text-zk-gray">Native app experience</span>
             </div>
             <div className="flex gap-3">
-              <span className="text-zk-primary">✓</span>
+              <span className="text-zk-primary">•</span>
               <span className="text-zk-gray">Zero data collection</span>
             </div>
             <div className="flex gap-3">
-              <span className="text-zk-primary">✓</span>
+              <span className="text-zk-primary">•</span>
               <span className="text-zk-gray">Cross-platform support</span>
             </div>
           </div>
@@ -182,7 +182,7 @@ export default function InstallPage() {
         <div className="mb-12 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 rounded-2xl p-8">
           <div className="flex items-start gap-4 mb-4">
             <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
-              <span className="text-xl">⚠️</span>
+              <span className="text-xl font-bold text-amber-400">!</span>
             </div>
             <div>
               <h2 className="font-hatton text-2xl text-white mb-2">Important: First Time Setup</h2>
@@ -226,7 +226,7 @@ export default function InstallPage() {
                   <li>Private Voting (~3MB WASM + ~2MB zkey)</li>
                 </ul>
                 <p className="text-amber-300 text-xs mt-2 font-medium">
-                  ⚡ This caches the circuit files (WASM, zkey, vkey) needed for proof generation.
+                  This caches the circuit files (WASM, zkey, vkey) needed for proof generation.
                 </p>
               </div>
             </div>
@@ -240,14 +240,14 @@ export default function InstallPage() {
                 <p className="text-zk-gray text-sm">
                   Visit <a href="/test-offline.html" className="text-amber-400 underline">/test-offline.html</a> and 
                   click "Test Offline Resources" to verify all circuit files are cached.
-                  You should see ✅ for all files.
+                  All files should show as cached.
                 </p>
               </div>
             </div>
 
             <div className="flex gap-4 p-4 bg-zk-darker/50 rounded-lg border border-green-500/20">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30">
-                <span className="text-sm font-bold text-green-400">✓</span>
+                <span className="text-sm font-bold text-green-400">OK</span>
               </div>
               <div>
                 <h3 className="text-white font-medium mb-1">Ready for Offline Use!</h3>
