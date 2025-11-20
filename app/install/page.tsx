@@ -178,6 +178,96 @@ export default function InstallPage() {
           </div>
         </div>
 
+        {/* IMPORTANT: First Time Setup */}
+        <div className="mb-12 bg-gradient-to-br from-amber-500/10 to-orange-500/10 border-2 border-amber-500/30 rounded-2xl p-8">
+          <div className="flex items-start gap-4 mb-4">
+            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+              <span className="text-xl">⚠️</span>
+            </div>
+            <div>
+              <h2 className="font-hatton text-2xl text-white mb-2">Important: First Time Setup</h2>
+              <p className="text-amber-200/90 text-sm">
+                After installation, you MUST complete these steps while online to enable offline functionality.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4 mt-6">
+            <div className="flex gap-4 p-4 bg-zk-darker/50 rounded-lg border border-amber-500/20">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                <span className="text-sm font-bold text-amber-400">1</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium mb-1">Visit All Pages</h3>
+                <p className="text-zk-gray text-sm">
+                  Navigate to <span className="text-amber-400 font-medium">Templates</span>, 
+                  <span className="text-amber-400 font-medium"> Builder</span>, and 
+                  <span className="text-amber-400 font-medium"> Docs</span> pages.
+                  This caches the UI and assets.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4 p-4 bg-zk-darker/50 rounded-lg border border-amber-500/20">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                <span className="text-sm font-bold text-amber-400">2</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium mb-1">Generate Test Proofs</h3>
+                <p className="text-zk-gray text-sm mb-2">
+                  Go to <span className="text-amber-400 font-medium">Templates</span> page and generate at least one proof 
+                  from EACH template you want to use offline:
+                </p>
+                <ul className="list-disc list-inside text-xs text-zk-gray space-y-1 ml-4">
+                  <li>Age Verification (~3MB WASM + ~2MB zkey)</li>
+                  <li>Balance Proof (~3MB WASM + ~2MB zkey)</li>
+                  <li>Membership Proof (~3MB WASM + ~2MB zkey)</li>
+                  <li>Range Proof (~3MB WASM + ~2MB zkey)</li>
+                  <li>Private Voting (~3MB WASM + ~2MB zkey)</li>
+                </ul>
+                <p className="text-amber-300 text-xs mt-2 font-medium">
+                  ⚡ This caches the circuit files (WASM, zkey, vkey) needed for proof generation.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4 p-4 bg-zk-darker/50 rounded-lg border border-amber-500/20">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-amber-500/20 flex items-center justify-center border border-amber-500/30">
+                <span className="text-sm font-bold text-amber-400">3</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium mb-1">Verify Cache Status</h3>
+                <p className="text-zk-gray text-sm">
+                  Visit <a href="/test-offline.html" className="text-amber-400 underline">/test-offline.html</a> and 
+                  click "Test Offline Resources" to verify all circuit files are cached.
+                  You should see ✅ for all files.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex gap-4 p-4 bg-zk-darker/50 rounded-lg border border-green-500/20">
+              <div className="flex-shrink-0 w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center border border-green-500/30">
+                <span className="text-sm font-bold text-green-400">✓</span>
+              </div>
+              <div>
+                <h3 className="text-white font-medium mb-1">Ready for Offline Use!</h3>
+                <p className="text-zk-gray text-sm">
+                  Turn on airplane mode or disconnect from internet. zkRune will work perfectly!
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-6 p-4 bg-zk-darker/80 border border-amber-500/30 rounded-lg">
+            <p className="text-xs text-zk-gray">
+              <span className="text-amber-400 font-medium">Why is this needed?</span> zkRune uses 
+              <span className="text-white font-medium"> on-demand caching</span> to keep the initial download small. 
+              Circuit files (WASM, zkey) are large (~5MB each) and only cached when you first use them. 
+              After the first use, they're permanently stored on your device.
+            </p>
+          </div>
+        </div>
+
         {/* How Offline Works */}
         <div className="mb-12 bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
           <h2 className="font-hatton text-2xl text-white mb-6">How Offline Mode Works</h2>
@@ -189,15 +279,15 @@ export default function InstallPage() {
             </p>
             
             <div className="pl-4 border-l-2 border-zk-primary/30">
-              <p className="mb-2 text-white font-medium">First Visit (Online Required):</p>
+              <p className="mb-2 text-white font-medium">Initial Setup (Online Required):</p>
               <p>
-                When you first visit zkRune, all necessary files are downloaded and cached locally on your device.
-                This includes circuit files (WASM, zkey), verification keys, and the user interface.
+                When you first visit zkRune and generate proofs, circuit files are downloaded and cached locally. 
+                This is a one-time process for each template.
               </p>
             </div>
             
             <div className="pl-4 border-l-2 border-zk-primary/30">
-              <p className="mb-2 text-white font-medium">After Installation:</p>
+              <p className="mb-2 text-white font-medium">After Setup:</p>
               <p>
                 Once cached, zkRune works completely offline. You can:
               </p>
@@ -240,7 +330,24 @@ export default function InstallPage() {
             <div>
               <h3 className="text-white font-medium mb-2">Can I use it on airplane mode?</h3>
               <p className="text-zk-gray text-sm">
-                Absolutely! Once installed, zkRune works perfectly on airplane mode or with no internet connection.
+                Yes! But you must complete the first-time setup (visit pages + generate test proofs) while online. 
+                After that, airplane mode works perfectly.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-medium mb-2">Why do I need to generate test proofs?</h3>
+              <p className="text-zk-gray text-sm">
+                Circuit files (WASM, zkey) are large and cached on-demand. When you generate a proof for the first time, 
+                those files are downloaded and permanently stored. After that, no internet is needed for that template.
+              </p>
+            </div>
+            
+            <div>
+              <h3 className="text-white font-medium mb-2">What if I skip a template during setup?</h3>
+              <p className="text-zk-gray text-sm">
+                That template won't work offline until you generate a proof with it while online. 
+                You can always go back online later and cache the missing templates.
               </p>
             </div>
             
