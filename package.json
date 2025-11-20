@@ -11,6 +11,7 @@
     "setup:circom": "echo 'Install Circom: cargo install --git https://github.com/iden3/circom.git'"
   },
   "dependencies": {
+    "@ducanh2912/next-pwa": "^10.2.9",
     "circomlib": "^2.0.5",
     "next": "14.2.15",
     "react": "^18.3.1",
