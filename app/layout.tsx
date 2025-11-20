@@ -20,8 +20,8 @@ export const metadata: Metadata = {
   title: "zkRune - Build Privacy Without Code",
   description: "Visual Zero-Knowledge Proof Builder for Zcash. Create privacy-preserving applications without cryptography expertise.",
   icons: {
-    icon: '/zkrune-log.png',
-    apple: '/zkrune-log.png',
+    icon: '/mobile-logo.png',
+    apple: '/mobile-logo.png',
   },
   keywords: ["zkRune", "Zero-Knowledge", "ZK Proofs", "Zcash", "Privacy", "Blockchain", "Cryptography"],
   authors: [{ name: "zkRune Team" }],
