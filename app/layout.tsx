@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
+import InstallPrompt from "@/components/InstallPrompt";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -39,6 +40,20 @@ export const metadata: Metadata = {
     creator: "@rune_zk",
     site: "@rune_zk",
   },
+  // PWA Configuration
+  manifest: '/manifest.json',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'zkRune',
+  },
+  applicationName: 'zkRune',
+  viewport: {
+    width: 'device-width',
+    initialScale: 1,
+    maximumScale: 5,
+    userScalable: true,
+  },
 };
 
 export default function RootLayout({
@@ -48,7 +63,10 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={`${dmSans.variable} ${playfairDisplay.variable}`}>
-      <body className="font-dm-sans antialiased">{children}</body>
+      <body className="font-dm-sans antialiased">
+        {children}
+        <InstallPrompt />
+      </body>
     </html>
   );
 }
