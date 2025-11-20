@@ -159,6 +159,9 @@ export default function Home() {
 
           {/* Social Links */}
           <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-medium uppercase tracking-wider">
+            <a href="/install" className="text-zk-primary hover:text-zk-primary/80 transition-colors">
+              📱 Install App
+            </a>
             <a href="https://x.com/rune_zk" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
               Twitter
             </a>
