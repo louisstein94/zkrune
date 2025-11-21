@@ -69,9 +69,9 @@ export default function HowItWorks() {
         {steps.map((step, index) => (
           <div
             key={step.number}
-            className="relative group"
+            className="relative group h-full"
           >
-            <div className="relative bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8 hover:border-zk-primary/50 transition-all duration-300 hover:scale-105">
+            <div className="relative h-full bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8 hover:border-zk-primary/50 transition-all duration-300 hover:scale-105 flex flex-col">
               {/* Number */}
               <div className="text-6xl font-hatton text-zk-primary/20 mb-4">
                 {step.number}
@@ -90,12 +90,12 @@ export default function HowItWorks() {
               </h3>
 
               {/* Description */}
-              <p className="text-zk-gray leading-relaxed mb-4">
+              <p className="text-zk-gray leading-relaxed mb-4 flex-1">
                 {step.description}
               </p>
 
               {/* Analogy */}
-              <div className="p-3 bg-zk-primary/5 border border-zk-primary/10 rounded-lg">
+              <div className="p-3 bg-zk-primary/5 border border-zk-primary/10 rounded-lg mt-auto">
                 <p className="text-xs text-zk-primary italic">
                   {step.analogy}
                 </p>

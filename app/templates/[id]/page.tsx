@@ -51,10 +51,10 @@ const templates: { [key: string]: any } = {
     category: "Financial",
     difficulty: "Easy",
     howItWorks: [
-      "Connect your wallet",
+      "Enter your actual balance",
       "Set minimum balance threshold",
-      "System checks balance privately",
-      "Generate proof of sufficient funds",
+      "Click generate to create proof",
+      "Proof shows you meet the threshold",
       "Actual balance stays hidden",
     ],
     useCases: [
