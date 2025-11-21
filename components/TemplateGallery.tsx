@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
   AgeVerificationIcon, 
@@ -22,6 +22,10 @@ interface Template {
   generationTime: string;
   isPopular?: boolean;
   useCase: string;
+}
+
+interface TemplateGalleryProps {
+  highlightTemplateId?: string;
 }
 
 const templates: Template[] = [
@@ -100,11 +104,24 @@ const getIconComponent = (iconName: string) => {
   }
 };
 
-export default function TemplateGallery() {
+export default function TemplateGallery({ highlightTemplateId }: TemplateGalleryProps = {}) {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
   const categories = ["All", "Identity", "Financial", "Access", "Data", "Governance"];
+
+  // Scroll to highlighted template when component mounts
+  useEffect(() => {
+    if (highlightTemplateId) {
+      const timer = setTimeout(() => {
+        const element = document.getElementById(`template-${highlightTemplateId}`);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [highlightTemplateId]);
 
   const filteredTemplates = templates.filter((t) => {
     const matchesCategory = selectedCategory === "All" || t.category === selectedCategory;
@@ -193,10 +210,17 @@ export default function TemplateGallery() {
 
       {/* Template Grid */}
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredTemplates.map((template, index) => (
+        {filteredTemplates.map((template, index) => {
+          const isHighlighted = highlightTemplateId === template.id;
+          return (
           <div
             key={template.id}
-            className="group relative bg-gradient-to-br from-zk-dark/50 to-zk-darker/50 border border-zk-gray/20 rounded-2xl p-6 hover:border-zk-primary/50 transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden"
+            id={`template-${template.id}`}
+            className={`group relative bg-gradient-to-br from-zk-dark/50 to-zk-darker/50 border rounded-2xl p-6 hover:border-zk-primary/50 transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden ${
+              isHighlighted 
+                ? 'border-zk-primary/70 animate-pulse shadow-2xl shadow-zk-primary/50 ring-4 ring-zk-primary/30' 
+                : 'border-zk-gray/20'
+            }`}
             style={{ animationDelay: `${index * 100}ms` }}
           >
             {/* Hover Gradient Effect */}
@@ -299,7 +323,8 @@ export default function TemplateGallery() {
               ᚱ
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
 
       {/* Bottom CTA */}
