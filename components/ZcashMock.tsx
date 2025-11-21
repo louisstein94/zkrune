@@ -103,15 +103,21 @@ export default function ZcashMock({ proofHash }: ZcashMockProps) {
       {/* Info */}
       <div className="space-y-2 mb-6">
         <div className="flex items-center gap-2 text-sm text-zk-gray">
-          <span>✓</span>
+          <svg className="w-4 h-4 flex-shrink-0 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
           <span>Shielded transaction (private)</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-zk-gray">
-          <span>✓</span>
+          <svg className="w-4 h-4 flex-shrink-0 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
           <span>Proof hash: {proofHash.substring(0, 20)}...</span>
         </div>
         <div className="flex items-center gap-2 text-sm text-zk-gray">
-          <span>✓</span>
+          <svg className="w-4 h-4 flex-shrink-0 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+          </svg>
           <span>No gas fees (testnet)</span>
         </div>
       </div>

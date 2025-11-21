@@ -103,7 +103,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
             Generating Proof...
           </>
         ) : (
-          <>⚡ Generate ZK Proof</>
+          <>Generate ZK Proof</>
         )}
       </button>
     </div>

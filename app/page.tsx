@@ -11,6 +11,8 @@ import ComparisonTable from "@/components/ComparisonTable";
 import EducationalBanner from "@/components/EducationalBanner";
 import CTAShowcase from "@/components/CTAShowcase";
 import WhatIsZkRune from "@/components/WhatIsZkRune";
+import InteractiveHeroDemo from "@/components/InteractiveHeroDemo";
+import FirstProofSection from "@/components/FirstProofSection";
 
 export default function Home() {
 
@@ -37,7 +39,7 @@ export default function Home() {
           <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/50 rounded-full">
             <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
             <span className="text-xs font-medium text-zk-gray uppercase tracking-wider">
-              ⚡ Zcash Powered
+              Zcash Powered
             </span>
           </div>
 
@@ -100,14 +102,20 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Right Side - Rune Animation */}
-        <div className="relative w-full lg:w-1/2 h-[400px] lg:h-[600px] flex items-center justify-center">
-          <RuneAnimation />
+        {/* Right Side - Interactive Demo + Rune Animation */}
+        <div className="relative w-full lg:w-1/2 h-[400px] lg:h-[600px] flex flex-col items-center justify-center gap-8">
+          <InteractiveHeroDemo />
+          <p className="text-xs text-center text-zk-gray max-w-sm">
+            Live demo: Watch how Zero-Knowledge Proofs protect your privacy
+          </p>
         </div>
       </div>
 
       {/* What is zkRune Section */}
       <WhatIsZkRune />
+
+      {/* First Proof in 60 Seconds */}
+      <FirstProofSection />
 
       {/* How It Works Section */}
       <HowItWorks />

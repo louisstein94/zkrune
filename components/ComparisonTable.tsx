@@ -81,11 +81,15 @@ export default function ComparisonTable() {
               >
                 <div className="font-medium text-white text-sm">{row.feature}</div>
                 <div className="text-zk-gray flex items-center gap-2 text-sm">
-                  <span className="text-red-400">✕</span>
+                  <svg className="w-4 h-4 flex-shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                   <span className="line-clamp-2">{row.traditional}</span>
                 </div>
                 <div className="text-white flex items-center gap-2 text-sm">
-                  <span className="text-zk-primary">✓</span>
+                  <svg className="w-4 h-4 flex-shrink-0 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
                   <span className="line-clamp-2">{row.zkRune}</span>
                 </div>
               </div>
@@ -99,11 +103,15 @@ export default function ComparisonTable() {
                 <p className="text-white font-medium mb-3 text-sm">{row.feature}</p>
                 <div className="space-y-2 text-xs">
                   <div className="flex gap-2">
-                    <span className="text-red-400 flex-shrink-0">✕</span>
+                    <svg className="w-4 h-4 flex-shrink-0 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     <span className="text-zk-gray">{row.traditional}</span>
                   </div>
                   <div className="flex gap-2">
-                    <span className="text-zk-primary flex-shrink-0">✓</span>
+                    <svg className="w-4 h-4 flex-shrink-0 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <span className="text-white">{row.zkRune}</span>
                   </div>
                 </div>

@@ -144,7 +144,7 @@ export default function VotingProofForm({ onProofGenerated }: VotingProofFormPro
             Casting Vote...
           </>
         ) : (
-          <>⚡ Cast Vote & Generate Proof</>
+          <>Cast Vote & Generate Proof</>
         )}
       </button>
     </div>

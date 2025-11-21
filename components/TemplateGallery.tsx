@@ -19,6 +19,9 @@ interface Template {
   usageCount: number;
   difficulty: "Easy" | "Medium" | "Advanced";
   estimatedTime: string;
+  generationTime: string;
+  isPopular?: boolean;
+  useCase: string;
 }
 
 const templates: Template[] = [
@@ -31,6 +34,9 @@ const templates: Template[] = [
     usageCount: 1234,
     difficulty: "Easy",
     estimatedTime: "30 sec",
+    generationTime: "0.44s",
+    isPopular: true,
+    useCase: "KYC, Age-gated content",
   },
   {
     id: "balance-proof",
@@ -38,9 +44,12 @@ const templates: Template[] = [
     description: "Prove minimum balance without showing amount",
     icon: "balance",
     category: "Financial",
-    usageCount: 567,
+    usageCount: 892,
     difficulty: "Easy",
     estimatedTime: "45 sec",
+    generationTime: "0.41s",
+    isPopular: true,
+    useCase: "Lending, Financial verification",
   },
   {
     id: "membership-proof",
@@ -48,9 +57,11 @@ const templates: Template[] = [
     description: "Prove group membership without revealing identity",
     icon: "membership",
     category: "Access",
-    usageCount: 890,
+    usageCount: 756,
     difficulty: "Medium",
     estimatedTime: "1 min",
+    generationTime: "0.38s",
+    useCase: "Private communities, Access control",
   },
   {
     id: "range-proof",
@@ -58,9 +69,11 @@ const templates: Template[] = [
     description: "Prove value is within range without exact number",
     icon: "range",
     category: "Data",
-    usageCount: 432,
+    usageCount: 567,
     difficulty: "Medium",
     estimatedTime: "1 min",
+    generationTime: "0.42s",
+    useCase: "Credit scores, Salary verification",
   },
   {
     id: "private-voting",
@@ -68,9 +81,11 @@ const templates: Template[] = [
     description: "Vote anonymously with cryptographic proof",
     icon: "voting",
     category: "Governance",
-    usageCount: 756,
+    usageCount: 432,
     difficulty: "Advanced",
     estimatedTime: "2 min",
+    generationTime: "0.40s",
+    useCase: "DAO voting, Elections",
   },
 ];
 
@@ -132,14 +147,18 @@ export default function TemplateGallery() {
               className="w-full px-4 py-3 pl-12 bg-zk-dark/30 border border-zk-gray/30 rounded-full text-white placeholder:text-zk-gray focus:border-zk-primary focus:outline-none transition-colors"
             />
             <div className="absolute left-4 top-1/2 -translate-y-1/2 text-zk-gray">
-              🔍
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
             </div>
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery("")}
                 className="absolute right-4 top-1/2 -translate-y-1/2 text-zk-gray hover:text-white"
               >
-                ✕
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
               </button>
             )}
           </div>
@@ -183,6 +202,16 @@ export default function TemplateGallery() {
             {/* Hover Gradient Effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-zk-primary/5 to-zk-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
+            {/* Popular Badge */}
+            {template.isPopular && (
+              <div className="absolute top-4 right-4 z-20 px-3 py-1 bg-zk-primary/20 border border-zk-primary/30 rounded-full flex items-center gap-1">
+                <svg className="w-3 h-3 text-zk-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                </svg>
+                <span className="text-xs font-medium text-zk-primary">Popular</span>
+              </div>
+            )}
+
             {/* Content */}
             <div className="relative z-10">
               {/* Icon & Category */}
@@ -202,21 +231,41 @@ export default function TemplateGallery() {
               <h3 className="font-hatton text-2xl text-white mb-2 group-hover:text-zk-primary transition-colors">
                 {template.name}
               </h3>
-              <p className="text-zk-gray text-sm mb-6 leading-relaxed">
+              <p className="text-zk-gray text-sm mb-3 leading-relaxed">
                 {template.description}
               </p>
+              
+              {/* Use Case */}
+              <p className="text-xs text-zk-gray/70 italic mb-6">
+                Use case: {template.useCase}
+              </p>
 
-              {/* Stats */}
-              <div className="flex items-center justify-between text-sm mb-6">
-                <div className="flex items-center gap-2">
-                  <span className="text-zk-gray">Type:</span>
-                  <span className="font-medium text-white">
-                    Groth16
-                  </span>
+              {/* Enhanced Stats */}
+              <div className="space-y-3 mb-6">
+                {/* Usage & Generation Time */}
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-zk-gray">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                    <span>{template.usageCount.toLocaleString()} proofs generated</span>
+                  </div>
+                  <div className="flex items-center gap-1.5 text-zk-primary font-medium">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span>{template.generationTime}</span>
+                  </div>
                 </div>
-                <div className="flex items-center gap-2">
+
+                {/* Type & Difficulty */}
+                <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-1.5 text-zk-gray">
+                    <span>Type:</span>
+                    <span className="font-medium text-white">Groth16</span>
+                  </div>
                   <span
-                    className={`px-2 py-1 rounded text-xs font-medium ${
+                    className={`px-2 py-1 rounded font-medium ${
                       template.difficulty === "Easy"
                         ? "bg-zk-primary/20 text-zk-primary"
                         : template.difficulty === "Medium"
@@ -237,10 +286,11 @@ export default function TemplateGallery() {
               </Link>
 
               {/* Estimated Time */}
-              <div className="mt-3 text-center">
-                <span className="text-xs text-zk-gray">
-                  ⚡ {template.estimatedTime} to complete
-                </span>
+              <div className="mt-3 flex items-center justify-center gap-1 text-xs text-zk-gray">
+                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                </svg>
+                <span>{template.estimatedTime} to complete</span>
               </div>
             </div>
 
