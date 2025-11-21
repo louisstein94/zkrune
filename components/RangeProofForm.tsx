@@ -121,7 +121,7 @@ export default function RangeProofForm({ onProofGenerated }: RangeProofFormProps
             Generating Proof...
           </>
         ) : (
-          <>⚡ Generate ZK Proof</>
+          <>Generate ZK Proof</>
         )}
       </button>
     </div>

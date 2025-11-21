@@ -120,7 +120,7 @@ zkrune/
 - [x] Independent verification
 
 ### Roadmap
-- [ ] Template Marketplace (Q1 2025)
+- [ ] Template Marketplace
 - [ ] API Access for developers
 - [ ] Mobile app
 - [ ] Advanced circuit templates (20+)

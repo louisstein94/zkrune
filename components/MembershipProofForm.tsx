@@ -116,7 +116,7 @@ export default function MembershipProofForm({ onProofGenerated }: MembershipProo
             Verifying Membership...
           </>
         ) : (
-          <>⚡ Generate ZK Proof</>
+          <>Generate ZK Proof</>
         )}
       </button>
     </div>

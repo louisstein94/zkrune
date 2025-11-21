@@ -117,7 +117,7 @@ export default function FirstTimeSetupPrompt() {
 
           <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-lg">
             <p className="text-xs text-amber-200/90">
-              ⚡ <span className="font-medium">Why?</span> Circuit files are large and cached on-demand. 
+              <span className="font-medium">Why?</span> Circuit files are large and cached on-demand. 
               After the first use, they're stored permanently for offline access.
             </p>
           </div>

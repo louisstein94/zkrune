@@ -142,9 +142,16 @@ if (isValid) {
       <div className="flex gap-2">
         <button
           onClick={copyToClipboard}
-          className="flex-1 py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-sm font-medium hover:bg-zk-primary/20 transition-all"
+          className="flex-1 py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-sm font-medium hover:bg-zk-primary/20 transition-all flex items-center justify-center gap-2"
         >
-          {copied ? "✓ Copied!" : "Copy to Clipboard"}
+          {copied ? (
+            <>
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+              Copied!
+            </>
+          ) : "Copy to Clipboard"}
         </button>
         <button
           onClick={downloadFile}
@@ -157,7 +164,9 @@ if (isValid) {
       {/* Simple Verification Info */}
       <div className="mt-4 p-4 bg-zk-secondary/10 border border-zk-secondary/20 rounded-lg">
         <div className="flex items-start gap-3">
-          <span className="text-2xl">✓</span>
+          <svg className="w-6 h-6 flex-shrink-0 text-zk-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
           <div className="text-sm">
             <p className="font-medium text-white mb-2">Want to Double-Check?</p>
             <p className="text-zk-gray mb-3 leading-relaxed">
