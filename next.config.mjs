@@ -13,6 +13,34 @@ const nextConfig = {
   reactStrictMode: true,
   // Optimize fonts
   optimizeFonts: true,
+  // Webpack configuration for snarkjs
+  webpack: (config, { isServer }) => {
+    if (!isServer) {
+      config.resolve.fallback = {
+        ...config.resolve.fallback,
+        fs: false,
+        readline: false,
+      };
+      
+      // Prevent snarkjs from being split into separate chunks
+      config.optimization = {
+        ...config.optimization,
+        splitChunks: {
+          ...config.optimization.splitChunks,
+          cacheGroups: {
+            ...config.optimization.splitChunks?.cacheGroups,
+            snarkjs: {
+              test: /[\\/]node_modules[\\/]snarkjs[\\/]/,
+              name: 'snarkjs',
+              chunks: 'all',
+              priority: 10,
+            },
+          },
+        },
+      };
+    }
+    return config;
+  },
 };
 
 /**

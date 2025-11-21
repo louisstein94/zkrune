@@ -238,6 +238,52 @@ export default function TutorialOverlay() {
   const isFirstStep = currentStep === 0;
   const isLastStep = currentStep === tutorialSteps.length - 1;
 
+  // Calculate dialog position based on spotlight
+  const getDialogPosition = () => {
+    if (!spotlightRect) {
+      return { top: '50%', left: '50%', transform: 'translate(-50%, -50%)' };
+    }
+
+    const viewportHeight = window.innerHeight;
+    const viewportWidth = window.innerWidth;
+    const dialogWidth = 512; // max-w-lg
+    const dialogHeight = 400; // approximate
+
+    // Try to position dialog to the right of spotlight
+    if (spotlightRect.right + dialogWidth + 32 < viewportWidth) {
+      return {
+        top: Math.max(16, Math.min(viewportHeight - dialogHeight - 16, spotlightRect.top)),
+        left: spotlightRect.right + 24,
+      };
+    }
+    
+    // Try to position dialog to the left of spotlight
+    if (spotlightRect.left - dialogWidth - 32 > 0) {
+      return {
+        top: Math.max(16, Math.min(viewportHeight - dialogHeight - 16, spotlightRect.top)),
+        right: viewportWidth - spotlightRect.left + 24,
+      };
+    }
+
+    // Position dialog below spotlight
+    if (spotlightRect.bottom + dialogHeight + 32 < viewportHeight) {
+      return {
+        top: spotlightRect.bottom + 24,
+        left: '50%',
+        transform: 'translateX(-50%)',
+      };
+    }
+
+    // Position dialog above spotlight
+    return {
+      bottom: viewportHeight - spotlightRect.top + 24,
+      left: '50%',
+      transform: 'translateX(-50%)',
+    };
+  };
+
+  const dialogPosition = getDialogPosition();
+
   return (
     <div className="tutorial-overlay-container">
       {/* Spotlight Overlay - Dark background with cutout */}
@@ -263,8 +309,10 @@ export default function TutorialOverlay() {
       )}
 
       {/* Tutorial Dialog */}
-      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div className="pointer-events-auto relative max-w-lg w-full bg-gradient-to-br from-zk-darker to-zk-dark border-2 border-zk-primary/30 rounded-2xl p-8 shadow-2xl">
+      <div 
+        className="fixed z-50 pointer-events-auto max-w-lg w-full bg-gradient-to-br from-zk-darker to-zk-dark border-2 border-zk-primary/30 rounded-2xl p-8 shadow-2xl"
+        style={dialogPosition}
+      >
         {/* Progress Indicators */}
         <div className="flex justify-center gap-2 mb-6">
           {tutorialSteps.map((_, index) => (
@@ -350,7 +398,6 @@ export default function TutorialOverlay() {
             </p>
           </div>
         )}
-      </div>
       </div>
     </div>
   );
