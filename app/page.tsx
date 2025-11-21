@@ -13,6 +13,7 @@ import CTAShowcase from "@/components/CTAShowcase";
 import WhatIsZkRune from "@/components/WhatIsZkRune";
 import InteractiveHeroDemo from "@/components/InteractiveHeroDemo";
 import FirstProofSection from "@/components/FirstProofSection";
+import TutorialOverlay from "@/components/TutorialOverlay";
 
 export default function Home() {
 
@@ -131,6 +132,9 @@ export default function Home() {
 
       {/* Final CTA */}
       <CTAShowcase />
+
+      {/* Tutorial Overlay */}
+      <TutorialOverlay />
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 px-6 md:px-12 lg:px-16 py-6">
