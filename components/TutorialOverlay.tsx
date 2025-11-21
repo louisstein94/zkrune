@@ -2,85 +2,133 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 /**
  * Tutorial Overlay Component
  * Shows first-time users a step-by-step guide
  * Educational and non-intrusive
+ * Persists across page navigation using localStorage
  */
 export default function TutorialOverlay() {
   const [showTutorial, setShowTutorial] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
+  const pathname = usePathname();
 
   const tutorialSteps = [
     {
       title: "Welcome to zkRune",
-      description: "Your journey to privacy-preserving proofs starts here. Let's show you around.",
+      description: "Your journey to privacy-preserving proofs starts here. Let's show you around in 5 simple steps.",
       icon: (
         <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
         </svg>
-      )
+      ),
+      page: "home"
     },
     {
-      title: "Choose a Template",
-      description: "We have 5 ready-to-use privacy proofs. Start with Age Verification - it's the easiest!",
+      title: "Visit Templates Page",
+      description: "Let's go to the Templates page where you can see all available privacy proofs.",
       icon: (
         <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
         </svg>
       ),
       action: "Go to Templates",
-      actionHref: "/templates"
+      actionHref: "/templates",
+      page: "home"
+    },
+    {
+      title: "Select Age Verification",
+      description: "Age Verification is the easiest template. Click on it to open the proof generator.",
+      icon: (
+        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5.121 17.804A13.937 13.937 0 0112 16c2.5 0 4.847.655 6.879 1.804M15 10a3 3 0 11-6 0 3 3 0 016 0zm6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+      ),
+      action: "Open Age Verification",
+      actionHref: "/templates/age-verification",
+      page: "templates"
     },
     {
       title: "Fill the Form",
-      description: "Enter your private data. Don't worry - it never leaves your browser!",
+      description: "Enter your birth year (try 1995). Your data stays private in your browser - it never gets sent anywhere!",
       icon: (
         <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
         </svg>
-      )
+      ),
+      page: "template-detail"
     },
     {
       title: "Generate Your Proof",
-      description: "Click the button and watch the magic happen. Takes about 5 seconds.",
+      description: "Click 'Generate ZK Proof' button and watch the magic happen. Takes about 5 seconds. That's it!",
       icon: (
         <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
-      )
-    },
-    {
-      title: "You're All Set",
-      description: "That's it! You now know how to generate Zero-Knowledge Proofs. Try it yourself!",
-      icon: (
-        <svg className="w-12 h-12" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-        </svg>
       ),
-      action: "Start Generating",
-      actionHref: "/templates"
+      action: "I'm Ready!",
+      page: "template-detail"
     }
   ];
 
+  // Initialize tutorial state from localStorage
   useEffect(() => {
-    // Check if user has seen tutorial
     const hasSeenTutorial = localStorage.getItem('zkrune_tutorial_completed');
+    const tutorialActive = localStorage.getItem('zkrune_tutorial_active');
+    const savedStep = localStorage.getItem('zkrune_tutorial_step');
     
-    if (!hasSeenTutorial) {
-      // Show tutorial after a short delay
+    if (!hasSeenTutorial && tutorialActive === 'true') {
+      setShowTutorial(true);
+      setCurrentStep(parseInt(savedStep || '0', 10));
+    } else if (!hasSeenTutorial && !tutorialActive) {
+      // First time - start tutorial after delay
       const timer = setTimeout(() => {
         setShowTutorial(true);
+        localStorage.setItem('zkrune_tutorial_active', 'true');
+        localStorage.setItem('zkrune_tutorial_step', '0');
       }, 1500);
       
       return () => clearTimeout(timer);
     }
   }, []);
 
+  // Update step based on current page
+  useEffect(() => {
+    if (!showTutorial) return;
+
+    const tutorialActive = localStorage.getItem('zkrune_tutorial_active');
+    if (tutorialActive !== 'true') return;
+
+    // Determine which step to show based on current page
+    if (pathname === '/') {
+      // Home page: show step 0 or 1
+      const savedStep = parseInt(localStorage.getItem('zkrune_tutorial_step') || '0', 10);
+      if (savedStep <= 1) {
+        setCurrentStep(savedStep);
+      }
+    } else if (pathname === '/templates') {
+      // Templates page: show step 2
+      setCurrentStep(2);
+      localStorage.setItem('zkrune_tutorial_step', '2');
+    } else if (pathname.startsWith('/templates/age-verification')) {
+      // Age verification page: show step 3 or 4
+      const savedStep = parseInt(localStorage.getItem('zkrune_tutorial_step') || '3', 10);
+      if (savedStep >= 3) {
+        setCurrentStep(savedStep);
+      } else {
+        setCurrentStep(3);
+        localStorage.setItem('zkrune_tutorial_step', '3');
+      }
+    }
+  }, [pathname, showTutorial]);
+
   const handleNext = () => {
-    if (currentStep < tutorialSteps.length - 1) {
-      setCurrentStep(currentStep + 1);
+    const nextStep = currentStep + 1;
+    if (nextStep < tutorialSteps.length) {
+      setCurrentStep(nextStep);
+      localStorage.setItem('zkrune_tutorial_step', nextStep.toString());
     } else {
       completeTutorial();
     }
@@ -88,18 +136,30 @@ export default function TutorialOverlay() {
 
   const handlePrevious = () => {
     if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
+      const prevStep = currentStep - 1;
+      setCurrentStep(prevStep);
+      localStorage.setItem('zkrune_tutorial_step', prevStep.toString());
     }
   };
 
   const handleSkip = () => {
-    localStorage.setItem('zkrune_tutorial_skipped', 'true');
+    localStorage.setItem('zkrune_tutorial_completed', 'true');
+    localStorage.removeItem('zkrune_tutorial_active');
+    localStorage.removeItem('zkrune_tutorial_step');
     setShowTutorial(false);
   };
 
   const completeTutorial = () => {
     localStorage.setItem('zkrune_tutorial_completed', 'true');
+    localStorage.removeItem('zkrune_tutorial_active');
+    localStorage.removeItem('zkrune_tutorial_step');
     setShowTutorial(false);
+  };
+
+  const handleActionClick = () => {
+    // Save current step before navigation
+    const nextStep = currentStep + 1;
+    localStorage.setItem('zkrune_tutorial_step', nextStep.toString());
   };
 
   if (!showTutorial) return null;
@@ -173,7 +233,7 @@ export default function TutorialOverlay() {
           {step.action && step.actionHref ? (
             <Link
               href={step.actionHref}
-              onClick={completeTutorial}
+              onClick={handleActionClick}
               className="flex-1 px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105 text-center"
             >
               {step.action}
@@ -183,7 +243,7 @@ export default function TutorialOverlay() {
               onClick={handleNext}
               className={`${isFirstStep ? 'w-full' : 'flex-1'} px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105`}
             >
-              {isLastStep ? 'Get Started' : 'Next'}
+              {isLastStep ? "I'm Ready!" : 'Next'}
             </button>
           )}
         </div>

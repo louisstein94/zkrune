@@ -1,9 +1,23 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import Navigation from "@/components/Navigation";
 import TemplateGallery from "@/components/TemplateGallery";
 
 export default function TemplatesPage() {
+  const [highlightTemplateId, setHighlightTemplateId] = useState<string | undefined>();
+
+  useEffect(() => {
+    // Check if tutorial is active
+    const tutorialActive = localStorage.getItem('zkrune_tutorial_active');
+    const tutorialStep = localStorage.getItem('zkrune_tutorial_step');
+    
+    // If tutorial is active and on step 2 (templates page), highlight age-verification
+    if (tutorialActive === 'true' && tutorialStep === '2') {
+      setHighlightTemplateId('age-verification');
+    }
+  }, []);
+
   return (
     <main className="min-h-screen bg-zk-darker">
       <Navigation />
@@ -31,7 +45,7 @@ export default function TemplatesPage() {
       </div>
 
       {/* Template Gallery */}
-      <TemplateGallery />
+      <TemplateGallery highlightTemplateId={highlightTemplateId} />
     </main>
   );
 }
