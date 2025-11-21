@@ -17,26 +17,30 @@ export default function HowItWorks() {
   const steps = [
     {
       number: "01",
-      title: "Choose Template",
-      description: "Browse our collection of 5 zero-knowledge proof templates. Select the one that fits your privacy needs.",
+      title: "Pick What You Want to Prove",
+      description: "Think of templates like different types of IDs. Need to prove you're old enough? Use Age Verification. Prove you have enough money? Use Balance Proof. Just pick what fits.",
+      analogy: "Like choosing which ID to show",
       IconComponent: ChooseIcon,
     },
     {
       number: "02",
-      title: "Generate Proof",
-      description: "Fill in the simple form with your data. Click generate and watch as your ZK proof is created in seconds.",
+      title: "Fill a Simple Form",
+      description: "Enter your private information - like your birth year or balance. Don't worry, this never leaves your browser. It's like writing on paper that only you can see.",
+      analogy: "As easy as filling out a Google form",
       IconComponent: GenerateIcon,
     },
     {
       number: "03",
-      title: "Export & Share",
-      description: "Download your proof as JSON or code. Share it, integrate into apps, or deploy to Zcash testnet.",
+      title: "Click Generate",
+      description: "Our app does the complex math (zk-SNARKs) behind the scenes. Takes about 5 seconds. You get a proof that says 'Yes, I proved this' without revealing what 'this' actually is.",
+      analogy: "Like a receipt that proves you paid, without showing your bank account",
       IconComponent: DeployIcon,
     },
     {
       number: "04",
-      title: "Verify Independently",
-      description: "Anyone can verify your proof using our tool or CLI. Math guarantees it's real - no trust needed!",
+      title: "Share Your Proof",
+      description: "Now you have a proof you can share with anyone. They can verify it's real using math. They'll know you proved what you claimed, but they'll never see your private data.",
+      analogy: "Like a diploma that proves you graduated, without showing your grades",
       IconComponent: VerifyIcon,
     },
   ];
@@ -55,8 +59,8 @@ export default function HowItWorks() {
           <h2 className="font-hatton text-5xl text-white mb-4">
             How It <span className="text-zk-primary">Works</span>
           </h2>
-          <p className="text-xl text-zk-gray max-w-2xl mx-auto">
-            Four simple steps to create and verify zero-knowledge proofs. No cryptography knowledge required.
+          <p className="text-xl text-zk-gray max-w-3xl mx-auto">
+            Imagine proving you're 18+ without showing your ID. Or proving you have enough money without showing your bank account. That's Zero-Knowledge. Here's how zkRune makes it simple:
           </p>
       </div>
 
@@ -86,9 +90,16 @@ export default function HowItWorks() {
               </h3>
 
               {/* Description */}
-              <p className="text-zk-gray leading-relaxed">
+              <p className="text-zk-gray leading-relaxed mb-4">
                 {step.description}
               </p>
+
+              {/* Analogy */}
+              <div className="p-3 bg-zk-primary/5 border border-zk-primary/10 rounded-lg">
+                <p className="text-xs text-zk-primary italic">
+                  {step.analogy}
+                </p>
+              </div>
 
               {/* Hover Effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-zk-primary/5 to-zk-secondary/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none" />
