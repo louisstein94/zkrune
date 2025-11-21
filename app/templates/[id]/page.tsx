@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import BalanceProofForm from "@/components/BalanceProofForm";
@@ -138,6 +138,21 @@ export default function TemplatePage() {
   const [birthDate, setBirthDate] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [proof, setProof] = useState<any>(null);
+
+  // Auto-advance tutorial when form is filled
+  useEffect(() => {
+    const tutorialActive = localStorage.getItem('zkrune_tutorial_active');
+    const tutorialStep = localStorage.getItem('zkrune_tutorial_step');
+    
+    if (tutorialActive === 'true' && tutorialStep === '3' && birthDate && templateId === 'age-verification') {
+      // User filled the form, advance to step 4 (generate proof)
+      localStorage.setItem('zkrune_tutorial_step', '4');
+      // Trigger a small delay to let the user see the change
+      setTimeout(() => {
+        window.dispatchEvent(new Event('storage'));
+      }, 500);
+    }
+  }, [birthDate, templateId]);
 
   if (!template) {
     return (
@@ -305,7 +320,7 @@ export default function TemplatePage() {
               {!proof ? (
                 <>
                   {templateId === "age-verification" && (
-                    <div className="space-y-6">
+                    <div id="tutorial-form-container" className="space-y-6">
                       <div>
                         <label className="block text-sm font-medium text-zk-gray mb-2">
                           Date of Birth
@@ -323,6 +338,7 @@ export default function TemplatePage() {
                       </div>
 
                       <button
+                        id="tutorial-generate-button"
                         onClick={generateAgeProof}
                         disabled={isGenerating || !birthDate}
                         className="w-full py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
