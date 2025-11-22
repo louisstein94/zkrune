@@ -49,6 +49,36 @@ circom circuits/balance-proof/circuit.circom \
 
 echo "${GREEN}✓ Balance Proof compiled${NC}"
 
+# Compile Credential Proof
+echo ""
+echo "${BLUE}📝 Compiling Credential Proof circuit...${NC}"
+circom circuits/credential-proof/circuit.circom \
+    -l node_modules \
+    --r1cs --wasm --sym \
+    --output circuits/credential-proof/
+
+echo "${GREEN}✓ Credential Proof compiled${NC}"
+
+# Compile Token Swap
+echo ""
+echo "${BLUE}📝 Compiling Token Swap circuit...${NC}"
+circom circuits/token-swap/circuit.circom \
+    -l node_modules \
+    --r1cs --wasm --sym \
+    --output circuits/token-swap/
+
+echo "${GREEN}✓ Token Swap compiled${NC}"
+
+# Compile Signature Verification
+echo ""
+echo "${BLUE}📝 Compiling Signature Verification circuit...${NC}"
+circom circuits/signature-verification/circuit.circom \
+    -l node_modules \
+    --r1cs --wasm --sym \
+    --output circuits/signature-verification/
+
+echo "${GREEN}✓ Signature Verification compiled${NC}"
+
 # Generate proving and verification keys (using powers of tau)
 echo ""
 echo "${BLUE}🔑 Generating proving keys...${NC}"
@@ -94,6 +124,57 @@ snarkjs zkey export verificationkey \
 
 echo "${GREEN}✓ Balance Proof keys generated${NC}"
 
+# Credential Proof Keys
+snarkjs groth16 setup \
+    circuits/credential-proof/circuit.r1cs \
+    circuits/powersOfTau28_hez_final_10.ptau \
+    circuits/credential-proof/circuit_0000.zkey
+
+snarkjs zkey contribute \
+    circuits/credential-proof/circuit_0000.zkey \
+    circuits/credential-proof/circuit_final.zkey \
+    --name="zkRune" -v -e="random_entropy_text_for_credential_proof_$(date)"
+
+snarkjs zkey export verificationkey \
+    circuits/credential-proof/circuit_final.zkey \
+    circuits/credential-proof/verification_key.json
+
+echo "${GREEN}✓ Credential Proof keys generated${NC}"
+
+# Token Swap Keys
+snarkjs groth16 setup \
+    circuits/token-swap/circuit.r1cs \
+    circuits/powersOfTau28_hez_final_10.ptau \
+    circuits/token-swap/circuit_0000.zkey
+
+snarkjs zkey contribute \
+    circuits/token-swap/circuit_0000.zkey \
+    circuits/token-swap/circuit_final.zkey \
+    --name="zkRune" -v -e="random_entropy_text_for_token_swap_$(date)"
+
+snarkjs zkey export verificationkey \
+    circuits/token-swap/circuit_final.zkey \
+    circuits/token-swap/verification_key.json
+
+echo "${GREEN}✓ Token Swap keys generated${NC}"
+
+# Signature Verification Keys
+snarkjs groth16 setup \
+    circuits/signature-verification/circuit.r1cs \
+    circuits/powersOfTau28_hez_final_10.ptau \
+    circuits/signature-verification/circuit_0000.zkey
+
+snarkjs zkey contribute \
+    circuits/signature-verification/circuit_0000.zkey \
+    circuits/signature-verification/circuit_final.zkey \
+    --name="zkRune" -v -e="random_entropy_text_for_signature_verification_$(date)"
+
+snarkjs zkey export verificationkey \
+    circuits/signature-verification/circuit_final.zkey \
+    circuits/signature-verification/verification_key.json
+
+echo "${GREEN}✓ Signature Verification keys generated${NC}"
+
 # Copy WASM files to public directory
 echo ""
 echo "${BLUE}📦 Copying WASM files to public...${NC}"
@@ -104,6 +185,18 @@ cp circuits/age-verification/verification_key.json public/circuits/age-verificat
 cp circuits/balance-proof/circuit_js/circuit.wasm public/circuits/balance-proof.wasm
 cp circuits/balance-proof/circuit_final.zkey public/circuits/balance-proof.zkey
 cp circuits/balance-proof/verification_key.json public/circuits/balance-proof_vkey.json
+
+cp circuits/credential-proof/circuit_js/circuit.wasm public/circuits/credential-proof.wasm
+cp circuits/credential-proof/circuit_final.zkey public/circuits/credential-proof.zkey
+cp circuits/credential-proof/verification_key.json public/circuits/credential-proof_vkey.json
+
+cp circuits/token-swap/circuit_js/circuit.wasm public/circuits/token-swap.wasm
+cp circuits/token-swap/circuit_final.zkey public/circuits/token-swap.zkey
+cp circuits/token-swap/verification_key.json public/circuits/token-swap_vkey.json
+
+cp circuits/signature-verification/circuit_js/circuit.wasm public/circuits/signature-verification.wasm
+cp circuits/signature-verification/circuit_final.zkey public/circuits/signature-verification.zkey
+cp circuits/signature-verification/verification_key.json public/circuits/signature-verification_vkey.json
 
 echo "${GREEN}✓ Files copied to public/circuits${NC}"
 

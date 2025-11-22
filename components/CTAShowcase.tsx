@@ -52,7 +52,7 @@ export default function CTAShowcase() {
             <div className="hidden sm:block w-px bg-zk-gray/20" />
             <div className="text-center">
               <p className="text-2xl md:text-3xl font-hatton text-white">
-                5<span className="text-zk-primary">/5</span>
+                8<span className="text-zk-primary">/8</span>
               </p>
               <p className="text-xs md:text-sm text-zk-gray">Real Circuits</p>
             </div>

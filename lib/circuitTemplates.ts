@@ -173,6 +173,207 @@ export const circuitTemplates = {
       { id: 'e2-3', source: '2', target: '3', animated: true },
     ],
   },
+
+  'credential-proof': {
+    name: 'Credential Verification',
+    description: 'Prove valid credentials without revealing actual data',
+    nodes: [
+      {
+        id: '1',
+        type: 'input',
+        position: { x: 100, y: 80 },
+        data: { label: 'Credential Hash', fieldType: 'private' },
+      },
+      {
+        id: '2',
+        type: 'input',
+        position: { x: 100, y: 160 },
+        data: { label: 'Credential Secret', fieldType: 'private' },
+      },
+      {
+        id: '3',
+        type: 'input',
+        position: { x: 100, y: 240 },
+        data: { label: 'Valid Until', fieldType: 'private' },
+      },
+      {
+        id: '4',
+        type: 'input',
+        position: { x: 100, y: 320 },
+        data: { label: 'Current Time', fieldType: 'public' },
+      },
+      {
+        id: '5',
+        type: 'input',
+        position: { x: 100, y: 400 },
+        data: { label: 'Expected Hash', fieldType: 'public' },
+      },
+      {
+        id: '6',
+        type: 'operation',
+        position: { x: 400, y: 200 },
+        data: { label: 'Verify Hash', operation: 'equals' },
+      },
+      {
+        id: '7',
+        type: 'operation',
+        position: { x: 400, y: 300 },
+        data: { label: 'Check Expiry', operation: 'gt' },
+      },
+      {
+        id: '8',
+        type: 'output',
+        position: { x: 700, y: 250 },
+        data: { label: 'Is Valid', outputType: 'boolean' },
+      },
+    ],
+    edges: [
+      { id: 'e1-6', source: '1', target: '6', animated: true },
+      { id: 'e5-6', source: '5', target: '6', animated: true },
+      { id: 'e3-7', source: '3', target: '7', animated: true },
+      { id: 'e4-7', source: '4', target: '7', animated: true },
+      { id: 'e6-8', source: '6', target: '8', animated: true },
+      { id: 'e7-8', source: '7', target: '8', animated: true },
+    ],
+  },
+
+  'token-swap': {
+    name: 'Token Swap Verification',
+    description: 'Prove sufficient balance for token swap without revealing exact amount',
+    nodes: [
+      {
+        id: '1',
+        type: 'input',
+        position: { x: 100, y: 100 },
+        data: { label: 'Token A Balance', fieldType: 'private' },
+      },
+      {
+        id: '2',
+        type: 'input',
+        position: { x: 100, y: 200 },
+        data: { label: 'Token B Balance', fieldType: 'private' },
+      },
+      {
+        id: '3',
+        type: 'input',
+        position: { x: 100, y: 300 },
+        data: { label: 'Swap Secret', fieldType: 'private' },
+      },
+      {
+        id: '4',
+        type: 'input',
+        position: { x: 100, y: 400 },
+        data: { label: 'Required Token A', fieldType: 'public' },
+      },
+      {
+        id: '5',
+        type: 'input',
+        position: { x: 100, y: 500 },
+        data: { label: 'Swap Rate', fieldType: 'public' },
+      },
+      {
+        id: '6',
+        type: 'operation',
+        position: { x: 400, y: 250 },
+        data: { label: 'Balance Check', operation: 'gt' },
+      },
+      {
+        id: '7',
+        type: 'advanced',
+        position: { x: 400, y: 400 },
+        data: { label: 'Commitment Hash', operation: 'hash' },
+      },
+      {
+        id: '8',
+        type: 'output',
+        position: { x: 700, y: 250 },
+        data: { label: 'Can Swap', outputType: 'boolean' },
+      },
+      {
+        id: '9',
+        type: 'output',
+        position: { x: 700, y: 400 },
+        data: { label: 'Commitment', outputType: 'number' },
+      },
+    ],
+    edges: [
+      { id: 'e1-6', source: '1', target: '6', animated: true },
+      { id: 'e4-6', source: '4', target: '6', animated: true },
+      { id: 'e6-8', source: '6', target: '8', animated: true },
+      { id: 'e1-7', source: '1', target: '7', animated: true },
+      { id: 'e3-7', source: '3', target: '7', animated: true },
+      { id: 'e7-9', source: '7', target: '9', animated: true },
+    ],
+  },
+
+  'signature-verification': {
+    name: 'Digital Signature Verification',
+    description: 'Verify signature without revealing private key',
+    nodes: [
+      {
+        id: '1',
+        type: 'input',
+        position: { x: 100, y: 100 },
+        data: { label: 'Private Key', fieldType: 'private' },
+      },
+      {
+        id: '2',
+        type: 'input',
+        position: { x: 100, y: 200 },
+        data: { label: 'Message', fieldType: 'private' },
+      },
+      {
+        id: '3',
+        type: 'input',
+        position: { x: 100, y: 300 },
+        data: { label: 'Nonce', fieldType: 'private' },
+      },
+      {
+        id: '4',
+        type: 'input',
+        position: { x: 100, y: 400 },
+        data: { label: 'Public Key X', fieldType: 'public' },
+      },
+      {
+        id: '5',
+        type: 'input',
+        position: { x: 100, y: 500 },
+        data: { label: 'Expected Message', fieldType: 'public' },
+      },
+      {
+        id: '6',
+        type: 'advanced',
+        position: { x: 400, y: 200 },
+        data: { label: 'Message Hash', operation: 'hash' },
+      },
+      {
+        id: '7',
+        type: 'advanced',
+        position: { x: 400, y: 350 },
+        data: { label: 'Derive Public Key', operation: 'hash' },
+      },
+      {
+        id: '8',
+        type: 'operation',
+        position: { x: 650, y: 275 },
+        data: { label: 'Verify All', operation: 'and' },
+      },
+      {
+        id: '9',
+        type: 'output',
+        position: { x: 900, y: 275 },
+        data: { label: 'Is Valid Signature', outputType: 'boolean' },
+      },
+    ],
+    edges: [
+      { id: 'e2-6', source: '2', target: '6', animated: true },
+      { id: 'e3-6', source: '3', target: '6', animated: true },
+      { id: 'e1-7', source: '1', target: '7', animated: true },
+      { id: 'e6-8', source: '6', target: '8', animated: true },
+      { id: 'e7-8', source: '7', target: '8', animated: true },
+      { id: 'e8-9', source: '8', target: '9', animated: true },
+    ],
+  },
 };
 
 export function getRandomTemplate(): { name: string; description: string; nodes: Node[]; edges: Edge[] } {

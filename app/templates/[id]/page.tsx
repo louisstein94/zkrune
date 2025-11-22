@@ -7,7 +7,9 @@ import BalanceProofForm from "@/components/BalanceProofForm";
 import MembershipProofForm from "@/components/MembershipProofForm";
 import RangeProofForm from "@/components/RangeProofForm";
 import VotingProofForm from "@/components/VotingProofForm";
-import ZcashMock from "@/components/ZcashMock";
+import CredentialProofForm from "@/components/CredentialProofForm";
+import TokenSwapForm from "@/components/TokenSwapForm";
+import SignatureVerificationForm from "@/components/SignatureVerificationForm";
 import ProofExport from "@/components/ProofExport";
 import CodePreview from "@/components/CodePreview";
 import TrustExplainer from "@/components/TrustExplainer";
@@ -125,6 +127,69 @@ const templates: { [key: string]: any } = {
       "Anonymous polls",
       "Board elections",
       "Community decisions",
+    ],
+  },
+  "credential-proof": {
+    id: "credential-proof",
+    name: "Credential Verification",
+    description: "Prove valid credentials without revealing data",
+    icon: "membership",
+    category: "Identity",
+    difficulty: "Medium",
+    howItWorks: [
+      "Provide credential hash",
+      "Enter credential secret",
+      "Set expiration timestamp",
+      "System verifies validity",
+      "Generate privacy-preserving proof",
+    ],
+    useCases: [
+      "License verification",
+      "Certificate validation",
+      "KYC compliance",
+      "Access authorization",
+    ],
+  },
+  "token-swap": {
+    id: "token-swap",
+    name: "Token Swap Proof",
+    description: "Prove sufficient balance for swap anonymously",
+    icon: "balance",
+    category: "Financial",
+    difficulty: "Medium",
+    howItWorks: [
+      "Enter token balances (private)",
+      "Set swap amount and rate",
+      "Provide swap authorization secret",
+      "System validates swap feasibility",
+      "Generate commitment proof",
+    ],
+    useCases: [
+      "DEX token swaps",
+      "P2P trading",
+      "Liquidity proofs",
+      "Cross-chain swaps",
+    ],
+  },
+  "signature-verification": {
+    id: "signature-verification",
+    name: "Signature Verification",
+    description: "Verify signatures without revealing private key",
+    icon: "voting",
+    category: "Cryptography",
+    difficulty: "Advanced",
+    howItWorks: [
+      "Provide private key (kept secret)",
+      "Enter message to sign",
+      "Add random nonce",
+      "System generates signature proof",
+      "Verify without exposing key",
+    ],
+    useCases: [
+      "Message authentication",
+      "Digital signatures",
+      "Transaction signing",
+      "Identity verification",
     ],
   },
 };
@@ -367,6 +432,18 @@ export default function TemplatePage() {
                     <RangeProofForm onProofGenerated={handleProofGenerated} />
                   )}
 
+                  {templateId === "credential-proof" && (
+                    <CredentialProofForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "token-swap" && (
+                    <TokenSwapForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "signature-verification" && (
+                    <SignatureVerificationForm onProofGenerated={handleProofGenerated} />
+                  )}
+
                   {templateId === "private-voting" && (
                     <VotingProofForm onProofGenerated={handleProofGenerated} />
                   )}
@@ -537,10 +614,9 @@ export default function TemplatePage() {
             {/* Code Preview (always visible) */}
             <CodePreview templateId={templateId} />
 
-            {/* Zcash Deploy (only show when proof exists in left column) */}
+            {/* Proof Export and Trust Explainer */}
             {proof && (
               <>
-                <ZcashMock proofHash={proof.proofHash} />
                 <ProofExport proof={proof} templateId={templateId} />
                 <TrustExplainer />
               </>

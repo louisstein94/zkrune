@@ -91,6 +91,43 @@ const templates: Template[] = [
     generationTime: "0.40s",
     useCase: "DAO voting, Elections",
   },
+  {
+    id: "credential-proof",
+    name: "Credential Verification",
+    description: "Prove valid credentials without revealing data",
+    icon: "credential",
+    category: "Identity",
+    usageCount: 289,
+    difficulty: "Medium",
+    estimatedTime: "1 min",
+    generationTime: "0.52s",
+    isPopular: true,
+    useCase: "KYC, License verification",
+  },
+  {
+    id: "token-swap",
+    name: "Token Swap Proof",
+    description: "Prove sufficient balance for swap anonymously",
+    icon: "swap",
+    category: "Financial",
+    usageCount: 356,
+    difficulty: "Medium",
+    estimatedTime: "1.5 min",
+    generationTime: "0.58s",
+    useCase: "DEX trading, P2P swaps",
+  },
+  {
+    id: "signature-verification",
+    name: "Signature Verification",
+    description: "Verify signatures without revealing private key",
+    icon: "signature",
+    category: "Cryptography",
+    usageCount: 198,
+    difficulty: "Advanced",
+    estimatedTime: "2 min",
+    generationTime: "0.61s",
+    useCase: "Message signing, Authentication",
+  },
 ];
 
 const getIconComponent = (iconName: string) => {
@@ -100,6 +137,9 @@ const getIconComponent = (iconName: string) => {
     case "membership": return MembershipIcon;
     case "range": return RangeIcon;
     case "voting": return VotingIcon;
+    case "credential": return MembershipIcon; // Reuse similar icon
+    case "swap": return BalanceIcon; // Reuse similar icon
+    case "signature": return VotingIcon; // Reuse similar icon
     default: return AgeVerificationIcon;
   }
 };
@@ -108,7 +148,7 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchQuery, setSearchQuery] = useState<string>("");
 
-  const categories = ["All", "Identity", "Financial", "Access", "Data", "Governance"];
+  const categories = ["All", "Identity", "Financial", "Access", "Data", "Governance", "Cryptography"];
 
   // Scroll to highlighted template when component mounts
   useEffect(() => {
