@@ -12,7 +12,7 @@ export default function FirstProofSection() {
     {
       number: "1",
       title: "Choose a Template",
-      description: "Pick from 5 ready-made privacy proofs",
+      description: "Pick from 8 ready-made privacy proofs",
       example: "Age Verification, Balance Proof, etc.",
       icon: (
         <svg className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
