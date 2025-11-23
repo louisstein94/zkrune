@@ -23,7 +23,7 @@ export default function FAQ() {
     },
     {
       question: "Are the proofs really zero-knowledge?",
-      answer: "Yes! We use real Groth16 zk-SNARKs - the same cryptography securing billions in blockchain transactions. All 8 templates use compiled Circom circuits. These aren't simulations or demos. They're mathematically verifiable zero-knowledge proofs that anyone can verify.",
+      answer: "Yes! We use real Groth16 zk-SNARKs - the same cryptography securing billions in blockchain transactions. All 10 templates use compiled Circom circuits. These aren't simulations or demos. They're mathematically verifiable zero-knowledge proofs that anyone can verify.",
       category: "technical"
     },
     {

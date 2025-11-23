@@ -10,6 +10,8 @@ import VotingProofForm from "@/components/VotingProofForm";
 import CredentialProofForm from "@/components/CredentialProofForm";
 import TokenSwapForm from "@/components/TokenSwapForm";
 import SignatureVerificationForm from "@/components/SignatureVerificationForm";
+import PatienceProofForm from "@/components/PatienceProofForm";
+import HashPreimageForm from "@/components/HashPreimageForm";
 import ProofExport from "@/components/ProofExport";
 import CodePreview from "@/components/CodePreview";
 import TrustExplainer from "@/components/TrustExplainer";
@@ -190,6 +192,48 @@ const templates: { [key: string]: any } = {
       "Digital signatures",
       "Transaction signing",
       "Identity verification",
+    ],
+  },
+  "patience-proof": {
+    id: "patience-proof",
+    name: "Patience Privacy Proof",
+    description: "Prove you waited a time period without revealing exact timing",
+    icon: "range",
+    category: "Cryptography",
+    difficulty: "Medium",
+    howItWorks: [
+      "Create commitment when you start waiting",
+      "Wait the required time period",
+      "Provide start/end times (private)",
+      "System validates wait duration",
+      "Generate proof without revealing exact times",
+    ],
+    useCases: [
+      "Time-locked rewards",
+      "Patience contests",
+      "Commitment schemes",
+      "Fair launch mechanisms",
+    ],
+  },
+  "hash-preimage": {
+    id: "hash-preimage",
+    name: "Hash Preimage Proof",
+    description: "Prove you know secret X where hash(X) = Y without revealing X",
+    icon: "voting",
+    category: "Cryptography",
+    difficulty: "Easy",
+    howItWorks: [
+      "Choose a secret value (preimage)",
+      "Add salt for security",
+      "Generate hash commitment",
+      "Share hash publicly",
+      "Prove you know preimage without revealing it",
+    ],
+    useCases: [
+      "Voting commitments",
+      "Secret reveals",
+      "Hash-locked contracts",
+      "Prediction markets",
     ],
   },
 };
@@ -444,6 +488,14 @@ export default function TemplatePage() {
                     <SignatureVerificationForm onProofGenerated={handleProofGenerated} />
                   )}
 
+                  {templateId === "patience-proof" && (
+                    <PatienceProofForm />
+                  )}
+
+                  {templateId === "hash-preimage" && (
+                    <HashPreimageForm />
+                  )}
+
                   {templateId === "private-voting" && (
                     <VotingProofForm onProofGenerated={handleProofGenerated} />
                   )}
@@ -527,6 +579,21 @@ export default function TemplatePage() {
                       )}
                       {templateId === "private-voting" && proof.choice && (
                         <>Your vote choice ({proof.choice}) and voter ID are encrypted. </>
+                      )}
+                      {templateId === "credential-proof" && (
+                        <>Your credential secret and exact expiration date are NOT included in the proof. </>
+                      )}
+                      {templateId === "token-swap" && (
+                        <>Your exact token balances and swap secret are NOT included in the proof. </>
+                      )}
+                      {templateId === "signature-verification" && (
+                        <>Your private key and message details are NOT included in the proof. </>
+                      )}
+                      {templateId === "patience-proof" && (
+                        <>Your exact start/end times and secret are NOT included in the proof. </>
+                      )}
+                      {templateId === "hash-preimage" && (
+                        <>Your secret preimage and salt are NOT included in the proof. </>
                       )}
                       Only the statement "{proof.statement}" is verifiable.
                     </p>

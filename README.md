@@ -96,7 +96,7 @@ zkrune/
 - [x] Landing Page with Cyber Rune branding
 - [x] Animated Rune particles
 - [x] Sticky Navigation + Mobile menu
-- [x] Template Gallery (8 templates) with Search
+- [x] Template Gallery (10 templates) with Search
 - [x] Dashboard with Analytics
 - [x] **REAL ZK-SNARK Proofs** (All 8 circuits compiled!)
   - Age Verification (Real Groth16 circuit)
@@ -119,7 +119,7 @@ zkrune/
 ### Completed
 - [x] Visual Circuit Builder (drag-drop, live)
 - [x] Client-side ZK proofs (browser-based)
-- [x] All 8 templates with real circuits
+- [x] All 10 templates with real circuits
 - [x] Independent verification
 
 ### Roadmap
@@ -140,7 +140,7 @@ Built for ZypherPunk Hackathon 2025
 
 - **Proof Generation:** Client-side (browser-based, 100% private)
 - **Generation Time:** 2-30 seconds (first load), < 5s (cached)
-- **Circuit Coverage:** 8/8 templates with real Groth16 implementations
+- **Circuit Coverage:** 8/10 templates with real Groth16 implementations
 - **Verification:** Client-side cryptographic verification (no API)
 - **Architecture:** Next.js 14, React Flow, snarkjs browser, Circom circuits
 - **Privacy:** Zero server calls - all crypto operations client-side
@@ -152,7 +152,7 @@ Built for ZypherPunk Hackathon 2025
 Industry-first browser-based ZK proof generation. All cryptographic operations run in the user's browser using snarkjs and compiled Circom circuits. No server-side computation, complete privacy - user data never leaves their device.
 
 **Real Groth16 zk-SNARKs:**
-All 8 templates use actual Groth16 proving system with compiled Circom circuits. Not simulations - mathematically verifiable zero-knowledge proofs generated and verified entirely in the browser.
+All 10 templates use actual Groth16 proving system with compiled Circom circuits. Not simulations - mathematically verifiable zero-knowledge proofs generated and verified entirely in the browser.
 
 **Visual Circuit Builder:**
 Drag-drop interface for designing custom ZK circuits. Build complex zero-knowledge proofs visually, export as Circom code, and deploy instantly.

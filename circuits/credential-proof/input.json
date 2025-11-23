@@ -1,0 +1,7 @@
+{
+  "credentialHash": "12345678901234567890",
+  "credentialSecret": "9876543210",
+  "validUntil": "1735689600",
+  "currentTime": "1700000000",
+  "expectedHash": "12345678901234567890"
+}

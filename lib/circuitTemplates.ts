@@ -374,6 +374,120 @@ export const circuitTemplates = {
       { id: 'e8-9', source: '8', target: '9', animated: true },
     ],
   },
+
+  'patience-proof': {
+    name: 'Patience Privacy Proof',
+    description: 'Prove you waited a time period without revealing exact timing',
+    nodes: [
+      {
+        id: '1',
+        type: 'input',
+        position: { x: 100, y: 100 },
+        data: { label: 'Start Time', fieldType: 'private' },
+      },
+      {
+        id: '2',
+        type: 'input',
+        position: { x: 100, y: 200 },
+        data: { label: 'End Time', fieldType: 'private' },
+      },
+      {
+        id: '3',
+        type: 'input',
+        position: { x: 100, y: 300 },
+        data: { label: 'Secret', fieldType: 'private' },
+      },
+      {
+        id: '4',
+        type: 'input',
+        position: { x: 100, y: 400 },
+        data: { label: 'Min Wait Time', fieldType: 'public' },
+      },
+      {
+        id: '5',
+        type: 'operation',
+        position: { x: 400, y: 150 },
+        data: { label: 'Calculate Duration', operation: 'subtract' },
+      },
+      {
+        id: '6',
+        type: 'operation',
+        position: { x: 400, y: 300 },
+        data: { label: 'Check Duration', operation: 'gt' },
+      },
+      {
+        id: '7',
+        type: 'advanced',
+        position: { x: 650, y: 200 },
+        data: { label: 'Commitment Hash', operation: 'hash' },
+      },
+      {
+        id: '8',
+        type: 'output',
+        position: { x: 900, y: 200 },
+        data: { label: 'Is Valid', outputType: 'boolean' },
+      },
+    ],
+    edges: [
+      { id: 'e1-5', source: '1', target: '5', animated: true },
+      { id: 'e2-5', source: '2', target: '5', animated: true },
+      { id: 'e5-6', source: '5', target: '6', animated: true },
+      { id: 'e4-6', source: '4', target: '6', animated: true },
+      { id: 'e6-7', source: '6', target: '7', animated: true },
+      { id: 'e3-7', source: '3', target: '7', animated: true },
+      { id: 'e7-8', source: '7', target: '8', animated: true },
+    ],
+  },
+
+  'hash-preimage': {
+    name: 'Hash Preimage Proof',
+    description: 'Prove you know secret X where hash(X) = Y without revealing X',
+    nodes: [
+      {
+        id: '1',
+        type: 'input',
+        position: { x: 100, y: 100 },
+        data: { label: 'Preimage (Secret)', fieldType: 'private' },
+      },
+      {
+        id: '2',
+        type: 'input',
+        position: { x: 100, y: 200 },
+        data: { label: 'Salt', fieldType: 'private' },
+      },
+      {
+        id: '3',
+        type: 'input',
+        position: { x: 100, y: 300 },
+        data: { label: 'Expected Hash', fieldType: 'public' },
+      },
+      {
+        id: '4',
+        type: 'advanced',
+        position: { x: 400, y: 150 },
+        data: { label: 'Poseidon Hash', operation: 'hash' },
+      },
+      {
+        id: '5',
+        type: 'operation',
+        position: { x: 650, y: 200 },
+        data: { label: 'Verify Match', operation: 'equals' },
+      },
+      {
+        id: '6',
+        type: 'output',
+        position: { x: 900, y: 200 },
+        data: { label: 'Is Valid', outputType: 'boolean' },
+      },
+    ],
+    edges: [
+      { id: 'e1-4', source: '1', target: '4', animated: true },
+      { id: 'e2-4', source: '2', target: '4', animated: true },
+      { id: 'e4-5', source: '4', target: '5', animated: true },
+      { id: 'e3-5', source: '3', target: '5', animated: true },
+      { id: 'e5-6', source: '5', target: '6', animated: true },
+    ],
+  },
 };
 
 export function getRandomTemplate(): { name: string; description: string; nodes: Node[]; edges: Edge[] } {

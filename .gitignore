@@ -36,21 +36,33 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# Circom compilation outputs (large files)
+# Circom build artifacts (intermediate files)
 circuits/**/*.r1cs
 circuits/**/*.sym
-circuits/**/*.zkey
+circuits/**/circuit_0000.zkey
 circuits/**/*.wtns
-circuits/**/*.ptau
-circuits/**/circuit_js/
+circuits/**/test_*.json
+circuits/**/test_*.wtns
+circuits/**/example_*.json
 circuits/**/proof.json
 circuits/**/public.json
 circuits/**/witness.wtns
-circuits/**/input.json
+circuits/**/pot_*.ptau
 
-# Generated circuit files (will be in public/)
-# .zkey files are needed for proof generation
-# Keeping them in git for now (small enough at ~10-40KB)
+# Keep these important files:
+!circuits/**/circuit.circom
+!circuits/**/input.json
+!circuits/**/circuit_final.zkey
+!circuits/**/verification_key.json
+!circuits/**/circuit_js/
+
+# Powers of Tau files (large, keep only needed ones)
+circuits/powersOfTau28_hez_final_10.ptau
+circuits/powersOfTau28_hez_final_12.ptau
+
+# Temp and build info
+temp/
+*.tsbuildinfo
 
 packages/zkrune-sdk/node_modules/
 packages/zkrune-sdk/dist/

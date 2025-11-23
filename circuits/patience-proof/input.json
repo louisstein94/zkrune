@@ -1,0 +1,8 @@
+{
+  "startTime": "1700000000",
+  "endTime": "1700003600",
+  "secret": "123456789",
+  "minimumWaitTime": "3600",
+  "commitmentHash": "12345678901234567890"
+}
+

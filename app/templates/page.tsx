@@ -37,7 +37,7 @@ export default function TemplatesPage() {
               Choose Your <span className="text-zk-primary">Template</span>
             </h1>
             <p className="text-xl text-zk-gray max-w-2xl mx-auto">
-              All 8 templates powered by real Groth16 zk-SNARK circuits. 
+              All 10 templates powered by real Groth16 zk-SNARK circuits. 
               Generate cryptographic proofs in under 1 second.
             </p>
           </div>

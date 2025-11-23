@@ -128,6 +128,31 @@ const templates: Template[] = [
     generationTime: "0.61s",
     useCase: "Message signing, Authentication",
   },
+  {
+    id: "patience-proof",
+    name: "Patience Privacy Proof",
+    description: "Prove you waited a time period without revealing exact timing",
+    icon: "patience",
+    category: "Cryptography",
+    usageCount: 412,
+    difficulty: "Medium",
+    estimatedTime: "1 min",
+    generationTime: "0.48s",
+    isPopular: true,
+    useCase: "Time-locked rewards, Contest verification",
+  },
+  {
+    id: "hash-preimage",
+    name: "Hash Preimage Proof",
+    description: "Prove you know secret X where hash(X) = Y without revealing X",
+    icon: "hash",
+    category: "Cryptography",
+    usageCount: 567,
+    difficulty: "Easy",
+    estimatedTime: "30 sec",
+    generationTime: "0.35s",
+    useCase: "Commitments, Secret reveals, Voting",
+  },
 ];
 
 const getIconComponent = (iconName: string) => {
@@ -140,6 +165,8 @@ const getIconComponent = (iconName: string) => {
     case "credential": return MembershipIcon; // Reuse similar icon
     case "swap": return BalanceIcon; // Reuse similar icon
     case "signature": return VotingIcon; // Reuse similar icon
+    case "patience": return RangeIcon; // Time-based, similar to range
+    case "hash": return VotingIcon; // Cryptographic, similar to voting
     default: return AgeVerificationIcon;
   }
 };
