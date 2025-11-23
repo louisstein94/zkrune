@@ -1,0 +1,8 @@
+{
+  "tokenABalance": "1000000",
+  "tokenBBalance": "500000",
+  "swapSecret": "123456789",
+  "requiredTokenA": "100000",
+  "swapRate": "1500",
+  "minReceive": "140"
+}
