@@ -170,7 +170,7 @@ zkrune/
 
 ## 🏆 ZypherPunk Hackathon 2025 Submission
 
-**Live Site:** [zkrune.vercel.app](https://zkrune.vercel.app)  
+**Live Site:** [zkrune.com](https://zkrune.com)  
 **Version:** 1.2.0  
 **Status:** Production-Ready ✅
 
@@ -187,11 +187,11 @@ zkRune democratizes Zcash's privacy technology:
 
 ### Why Zcash?
 We use Zcash's **battle-tested Groth16 proving system** - the same cryptography that secures billions in shielded transactions. This gives our users:
-- ✅ Proven security (8+ years in production)
-- ✅ Efficient proofs (200 bytes, <2ms verification)
-- ✅ Industry standard (audited, trusted)
-- ✅ Privacy guarantee (mathematical, not trust-based)
-- ✅ Ecosystem compatibility (same tech as Zcash)
+- Proven security (8+ years in production)
+- Efficient proofs (200 bytes, <2ms verification)
+- Industry standard (audited, trusted)
+- Privacy guarantee (mathematical, not trust-based)
+- Ecosystem compatibility (same tech as Zcash)
 
 ### Key Metrics
 
@@ -245,10 +245,10 @@ All 13 templates compiled and production-ready:
 
 ## Links
 
-- **Live Site:** [zkrune.vercel.app](https://zkrune.vercel.app)
-- **Zcash Integration:** [zkrune.vercel.app/zcash](https://zkrune.vercel.app/zcash)
-- **Documentation:** [zkrune.vercel.app/docs](https://zkrune.vercel.app/docs)
-- **API Reference:** [zkrune.vercel.app/api-docs](https://zkrune.vercel.app/api-docs)
+- **Live Site:** [zkrune.com](https://zkrune.com)
+- **Zcash Integration:** [zkrune.com/zcash](https://zkrune.com/zcash)
+- **Documentation:** [zkrune.com/docs](https://zkrune.com/docs)
+- **API Reference:** [zkrune.com/api-docs](https://zkrune.com/api-docs)
 - **GitHub:** [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
 - **Twitter:** [@rune_zk](https://x.com/rune_zk)
 - **Developer:** [@legelsteinn](https://x.com/legelsteinn)
