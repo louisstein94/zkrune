@@ -21,6 +21,14 @@ export default function DocsPage() {
         { name: "Membership Proof", href: "#membership-proof" },
         { name: "Range Proof", href: "#range-proof" },
         { name: "Private Voting", href: "#private-voting" },
+        { name: "Hash Preimage", href: "#hash-preimage" },
+        { name: "Credential Proof", href: "#credential-proof" },
+        { name: "Token Swap", href: "#token-swap" },
+        { name: "Signature Verification", href: "#signature-verification" },
+        { name: "Patience Proof", href: "#patience-proof" },
+        { name: "Quadratic Voting", href: "#quadratic-voting" },
+        { name: "NFT Ownership", href: "#nft-ownership" },
+        { name: "Anonymous Reputation", href: "#anonymous-reputation" },
       ],
     },
     {
@@ -93,7 +101,7 @@ export default function DocsPage() {
               <p className="text-sm text-white font-medium mb-2">Key Features:</p>
               <ul className="text-sm text-zk-gray space-y-1 list-disc list-inside">
                 <li>Client-side ZK proof generation (browser-based, 100% private)</li>
-                <li>5 Real Groth16 zk-SNARK circuits (compiled Circom)</li>
+                <li>13 Real Groth16 zk-SNARK circuits (compiled Circom)</li>
                 <li>Visual circuit builder (drag-drop, no code)</li>
                 <li>Cryptographic verification in browser</li>
                 <li>Zero server dependency - your data never leaves your device</li>
@@ -114,7 +122,7 @@ export default function DocsPage() {
                 <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
                   <h3 className="text-white font-medium mb-3">1. Choose Template or Build Custom</h3>
                   <p className="text-sm text-zk-gray">
-                    Select from 5 pre-built templates or use the Visual Circuit Builder to design your own ZK circuit.
+                    Select from 13 pre-built templates or use the Visual Circuit Builder to design your own ZK circuit.
                   </p>
                 </div>
 
@@ -152,7 +160,7 @@ export default function DocsPage() {
                   <h3 className="text-white font-medium mb-3">1. Choose a Template</h3>
                   <p className="text-sm text-zk-gray mb-3">
                     Visit <Link href="/templates" className="text-zk-primary hover:underline">/templates</Link> and 
-                    select one of 5 zero-knowledge proof types.
+                    select one of 13 zero-knowledge proof types.
                   </p>
                 </div>
 
@@ -242,9 +250,169 @@ export default function DocsPage() {
                 <p className="text-sm text-zk-gray mb-4">
                   Vote anonymously with cryptographic proof.
                 </p>
-                <Link href="/templates/private-voting" className="text-sm text-zk-primary hover:underline">
-                  Try it →
-                </Link>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    isValid = (voterId ∈ eligibleVoters) ∧ (choice ∈ validOptions)
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/private-voting" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Hash Preimage */}
+              <div id="hash-preimage" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">Hash Preimage</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Prove you know the preimage of a hash without revealing it.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    hash(secret) === publicHash
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/hash-preimage" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Credential Proof */}
+              <div id="credential-proof" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">Credential Proof</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Prove you have valid credentials without revealing details.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    verify(credential, issuerPublicKey) ∧ (expiryDate ≥ currentDate)
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/credential-proof" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Token Swap */}
+              <div id="token-swap" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">Token Swap</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Prove fair token exchange without revealing amounts.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    (amountA × rateA) === (amountB × rateB)
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/token-swap" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Signature Verification */}
+              <div id="signature-verification" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">Signature Verification</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Prove you have a valid signature without revealing the signer.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    verify(signature, message, publicKey) === true
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/signature-verification" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Patience Proof */}
+              <div id="patience-proof" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">Patience Proof</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Prove computation completion without revealing intermediate steps.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    result = iterate(input, steps) ∧ (steps ≥ threshold)
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/patience-proof" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Quadratic Voting */}
+              <div id="quadratic-voting" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">Quadratic Voting</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Vote with quadratic cost without revealing vote weight.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    cost = votes² ∧ (cost ≤ credits)
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/quadratic-voting" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* NFT Ownership */}
+              <div id="nft-ownership" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">NFT Ownership</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Prove NFT ownership without revealing wallet address.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    hash(ownerAddress, tokenId) === merkleRoot
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/nft-ownership" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
+              </div>
+
+              {/* Anonymous Reputation */}
+              <div id="anonymous-reputation" className="mb-8 p-6 bg-zk-dark/30 border border-zk-gray/20 rounded-xl">
+                <h3 className="text-xl text-white font-medium mb-3">Anonymous Reputation</h3>
+                <p className="text-sm text-zk-gray mb-4">
+                  Prove reputation score without revealing identity.
+                </p>
+                <div className="bg-zk-darker rounded-lg p-4">
+                  <p className="text-xs text-zk-gray mb-2">Circuit:</p>
+                  <code className="text-xs text-zk-primary">
+                    (reputationScore ≥ threshold) ∧ verify(credential)
+                  </code>
+                </div>
+                <div className="mt-3">
+                  <Link href="/templates/anonymous-reputation" className="text-sm text-zk-primary hover:underline">
+                    Try it →
+                  </Link>
+                </div>
               </div>
             </section>
 
