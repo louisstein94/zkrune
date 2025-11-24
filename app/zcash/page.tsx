@@ -104,7 +104,11 @@ export default function ZcashIntegrationPage() {
           <div className="grid md:grid-cols-3 gap-6">
             {/* Use Case 1 */}
             <div className="bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-6">
-              <div className="text-4xl mb-4">🔒</div>
+              <div className="w-12 h-12 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-white mb-2">Shielded Balance Proofs</h3>
               <p className="text-sm text-zk-gray mb-4">
                 Prove you have sufficient ZEC balance without revealing the exact amount or transaction history.
@@ -116,7 +120,11 @@ export default function ZcashIntegrationPage() {
 
             {/* Use Case 2 */}
             <div className="bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-6">
-              <div className="text-4xl mb-4">🗳️</div>
+              <div className="w-12 h-12 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-white mb-2">Private DAO Voting</h3>
               <p className="text-sm text-zk-gray mb-4">
                 Enable anonymous governance for Zcash DAOs with cryptographic vote verification.
@@ -128,7 +136,11 @@ export default function ZcashIntegrationPage() {
 
             {/* Use Case 3 */}
             <div className="bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-6">
-              <div className="text-4xl mb-4">💎</div>
+              <div className="w-12 h-12 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-white mb-2">Anonymous Reputation</h3>
               <p className="text-sm text-zk-gray mb-4">
                 Build reputation systems for Zcash ecosystem without compromising user privacy.
@@ -140,7 +152,11 @@ export default function ZcashIntegrationPage() {
 
             {/* Use Case 4 */}
             <div className="bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-6">
-              <div className="text-4xl mb-4">🎯</div>
+              <div className="w-12 h-12 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-white mb-2">Range Proofs</h3>
               <p className="text-sm text-zk-gray mb-4">
                 Prove values are within acceptable ranges for Zcash DeFi applications.
@@ -152,7 +168,11 @@ export default function ZcashIntegrationPage() {
 
             {/* Use Case 5 */}
             <div className="bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-6">
-              <div className="text-4xl mb-4">👤</div>
+              <div className="w-12 h-12 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-white mb-2">Age Verification</h3>
               <p className="text-sm text-zk-gray mb-4">
                 Prove you meet age requirements for Zcash services without revealing your birthdate.
@@ -164,7 +184,11 @@ export default function ZcashIntegrationPage() {
 
             {/* Use Case 6 */}
             <div className="bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-6">
-              <div className="text-4xl mb-4">🔄</div>
+              <div className="w-12 h-12 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-4">
+                <svg className="w-6 h-6 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                </svg>
+              </div>
               <h3 className="text-xl font-bold text-white mb-2">Private Token Swaps</h3>
               <p className="text-sm text-zk-gray mb-4">
                 Enable confidential DEX swaps with ZEC while maintaining full privacy.
