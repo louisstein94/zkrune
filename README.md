@@ -176,7 +176,7 @@ Zero server calls for proof generation or verification. All cryptographic operat
 - **GitHub:** [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
 - **Documentation:** [zkrune.com/docs](https://zkrune.com/docs)
 - **Twitter:** [@rune_zk](https://x.com/rune_zk)
-- **Contract:** `51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump`
+- **Contract:** See `.env.local` file (configured via `NEXT_PUBLIC_CONTRACT_ADDRESS`)
 - **Developer:** [@legelsteinn](https://x.com/legelsteinn)
 
 ## License

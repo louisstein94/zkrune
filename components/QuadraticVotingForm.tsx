@@ -190,3 +190,4 @@ export default function QuadraticVotingForm({ onProofGenerated }: QuadraticVotin
   );
 }
 
+

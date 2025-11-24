@@ -67,3 +67,4 @@ template NFTOwnership() {
 
 component main {public [collectionRoot, minTokenId, maxTokenId]} = NFTOwnership();
 
+
