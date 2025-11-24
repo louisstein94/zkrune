@@ -11,8 +11,6 @@ export default function Navigation() {
     { name: "Templates", href: "/templates" },
     { name: "Builder", href: "/builder" },
     { name: "Docs", href: "/docs" },
-    { name: "API", href: "/api-docs" },
-    { name: "Verify", href: "/verify-proof" },
     { name: "Install", href: "/install" },
   ];
 
@@ -41,6 +39,15 @@ export default function Navigation() {
                 {item.name}
               </a>
             ))}
+            
+            {/* Zcash Highlighted Link */}
+            <a
+              href="/zcash"
+              className="flex items-center gap-2 px-4 py-2 bg-[#F4B728]/10 border border-[#F4B728]/30 rounded-lg text-[#F4B728] hover:bg-[#F4B728]/20 transition-all text-sm font-bold uppercase tracking-wider"
+            >
+              <img src="/zcash-logo.png" alt="Zcash" className="w-4 h-4" />
+              Zcash
+            </a>
           </nav>
 
           {/* Right Side - Icons + CTA */}
