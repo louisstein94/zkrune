@@ -77,70 +77,102 @@ npm run compile:circuits
 ```
 zkrune/
 ├── app/                      # Next.js app directory
-│   ├── page.tsx             # Landing page
+│   ├── page.tsx             # Landing page with Zcash branding
+│   ├── zcash/               # Zcash integration page
 │   ├── dashboard/           # Analytics dashboard
-│   ├── templates/[id]/      # Template pages
-│   ├── verify/[id]/         # Proof verification
-│   └── api/generate-proof/  # ZK proof API
-├── components/               # React components (22 components)
-│   ├── Navigation.tsx       # Sticky nav
+│   ├── templates/[id]/      # 13 template pages
+│   ├── verify/[id]/         # Proof verification demos
+│   ├── verify-proof/        # Real proof verification
+│   ├── docs/                # Complete documentation
+│   ├── api-docs/            # API reference
+│   ├── builder/             # Visual circuit builder
+│   ├── install/             # PWA installation
+│   └── api/verify-proof/    # Verification API
+├── components/               # React components (35+ components)
+│   ├── Navigation.tsx       # Responsive navigation
 │   ├── TemplateGallery.tsx  # Template browser
 │   ├── ProofExport.tsx      # Export functionality
-│   └── ...                  # More components
-├── circuits/                 # Circom ZK circuits
+│   ├── *Form.tsx            # 13 template forms
+│   └── circuit-builder/     # Visual builder components
+├── circuits/                 # 13 Circom ZK circuits
 │   ├── age-verification/
-│   └── balance-proof/
+│   ├── balance-proof/
+│   ├── membership-proof/
+│   ├── range-proof/
+│   ├── private-voting/
+│   ├── hash-preimage/
+│   ├── credential-proof/
+│   ├── token-swap/
+│   ├── signature-verification/
+│   ├── patience-proof/
+│   ├── quadratic-voting/
+│   ├── nft-ownership/
+│   └── anonymous-reputation/
 ├── lib/                      # Utilities
-│   └── zkProof.ts           # ZK proof library
-├── scripts/                  # Build scripts
-│   └── compile-circuits.sh  # Circuit compiler
-├── public/circuits/          # Compiled WASM & keys
-└── CIRCOM_SETUP.md          # Circuit setup guide
+│   ├── clientZkProof.ts     # Client-side ZK library
+│   ├── circuitTemplates.ts  # 13 template definitions
+│   └── circuitGenerator.ts  # Circuit code generator
+├── public/circuits/          # Compiled WASM & keys (13 circuits)
+│   ├── *.wasm               # Circuit WASM files
+│   ├── *.zkey               # Proving keys
+│   └── *_vkey.json          # Verification keys
+└── packages/zkrune-sdk/     # NPM SDK package
 ```
 
 ## Feature Overview
 
 ### Core Features
-- [x] Landing Page with Cyber Rune branding
+- [x] Landing Page with Zcash branding
 - [x] Animated Rune particles
 - [x] Sticky Navigation + Mobile menu
-- [x] Template Gallery (10 templates) with Search
+- [x] Template Gallery (13 templates) with Search
 - [x] Dashboard with Analytics
-- [x] **REAL ZK-SNARK Proofs** (All 10 circuits compiled!)
+- [x] **REAL ZK-SNARK Proofs** (All 13 circuits compiled!)
   - Age Verification (Real Groth16 circuit)
   - Balance Proof (Real Groth16 circuit)
   - Membership Proof (Real Groth16 circuit)
   - Range Proof (Real Groth16 circuit)
   - Private Voting (Real Groth16 circuit)
-  - Credential Verification (Real Groth16 circuit)
-  - Token Swap Proof (Real Groth16 circuit)
+  - Hash Preimage (Real Groth16 circuit)
+  - Credential Proof (Real Groth16 circuit)
+  - Token Swap (Real Groth16 circuit)
   - Signature Verification (Real Groth16 circuit)
+  - Patience Proof (Real Groth16 circuit)
+  - Quadratic Voting (Real Groth16 circuit)
+  - NFT Ownership (Real Groth16 circuit)
+  - Anonymous Reputation (Real Groth16 circuit)
 - [x] Proof Export (JSON, Code, Share)
 - [x] Circuit Code Viewer (Circom)
-- [x] Mock Zcash Testnet Deployment
+- [x] Zcash Integration Page
 - [x] Proof Verification Page
+- [x] Complete Documentation (13 templates)
+- [x] API Reference (deprecated, client-side only)
 - [x] How It Works + FAQ + Educational Content
 - [x] Comparison Table + Testimonials
 - [x] Error Handling + 404 Page
-- [x] Performance Optimized
+- [x] Performance Optimized + PWA Support
 
 ### Completed
 - [x] Visual Circuit Builder (drag-drop, live)
-- [x] Client-side ZK proofs (browser-based)
-- [x] All 10 templates with real circuits
+- [x] Client-side ZK proofs (100% browser-based)
+- [x] All 13 templates with real circuits
 - [x] Independent verification
+- [x] Zcash ecosystem integration
+- [x] Progressive Web App (offline support)
 
 ### Roadmap
 - [ ] Template Marketplace
-- [ ] API Access for developers
-- [ ] Mobile app
+- [ ] Mobile app (iOS/Android)
 - [ ] Advanced circuit templates (20+)
+- [ ] Multi-language support
 - [ ] User authentication (optional)
-- [ ] Database integration
+- [ ] Community templates
 
 ## 🏆 ZypherPunk Hackathon 2025 Submission
 
-**Live Site:** [zkrune.com](https://zkrune.com)
+**Live Site:** [zkrune.vercel.app](https://zkrune.vercel.app)  
+**Version:** 1.2.0  
+**Status:** Production-Ready ✅
 
 ### The Problem
 Privacy tools are complex. Building zero-knowledge applications on Zcash requires deep cryptography knowledge, limiting ecosystem growth.
@@ -151,13 +183,15 @@ zkRune democratizes Zcash's privacy technology:
 - **Browser-based** - 100% client-side, complete privacy
 - **Production-ready** - 13 real Groth16 circuits compiled and tested
 - **Educational** - Learn ZK concepts while building
+- **Progressive Web App** - Install and use offline
 
 ### Why Zcash?
 We use Zcash's **battle-tested Groth16 proving system** - the same cryptography that secures billions in shielded transactions. This gives our users:
 - ✅ Proven security (8+ years in production)
-- ✅ Efficient proofs (200 bytes, 2ms verification)
+- ✅ Efficient proofs (200 bytes, <2ms verification)
 - ✅ Industry standard (audited, trusted)
 - ✅ Privacy guarantee (mathematical, not trust-based)
+- ✅ Ecosystem compatibility (same tech as Zcash)
 
 ### Key Metrics
 
@@ -175,7 +209,7 @@ We use Zcash's **battle-tested Groth16 proving system** - the same cryptography 
 Industry-first browser-based ZK proof generation. All cryptographic operations run in the user's browser using snarkjs and compiled Circom circuits. No server-side computation, complete privacy - user data never leaves their device.
 
 **Real Groth16 zk-SNARKs:**
-All 10 templates use actual Groth16 proving system with compiled Circom circuits. Not simulations - mathematically verifiable zero-knowledge proofs generated and verified entirely in the browser.
+All 13 templates use actual Groth16 proving system with compiled Circom circuits. Not simulations - mathematically verifiable zero-knowledge proofs generated and verified entirely in the browser.
 
 **Visual Circuit Builder:**
 Drag-drop interface for designing custom ZK circuits. Build complex zero-knowledge proofs visually, export as Circom code, and deploy instantly.
@@ -185,22 +219,40 @@ Zero server calls for proof generation or verification. All cryptographic operat
 
 ### Circuits
 
-| Template | Constraints | File Size | Generation Time |
-|----------|-------------|-----------|-----------------|
-| Age Verification | 3 | 34 KB | 0.44s |
-| Balance Proof | 2 | 34 KB | 0.41s |
-| Membership Proof | 1 | 34 KB | 0.38s |
-| Range Proof | 3 | 34 KB | 0.42s |
-| Private Voting | 2 | 34 KB | 0.40s |
+All 13 templates compiled and production-ready:
+
+| Template | Use Case | Complexity |
+|----------|----------|-----------|
+| Age Verification | Prove age without revealing birthdate | Low |
+| Balance Proof | Prove minimum balance privately | Low |
+| Membership Proof | Prove group membership anonymously | Medium |
+| Range Proof | Prove value within range | Low |
+| Private Voting | Anonymous voting with proof | Medium |
+| Hash Preimage | Prove hash knowledge | Low |
+| Credential Proof | Verify credentials privately | High |
+| Token Swap | Prove fair exchange | Medium |
+| Signature Verification | Verify signatures anonymously | High |
+| Patience Proof | Prove computation completion | Medium |
+| Quadratic Voting | Quadratic cost voting | Medium |
+| NFT Ownership | Prove NFT ownership privately | High |
+| Anonymous Reputation | Prove reputation score | High |
+
+**Average Performance:**
+- Proof Generation: 2-5 seconds (cached)
+- Proof Size: ~200 bytes
+- Verification: <2ms
+- Circuit Files: ~35KB WASM + ~40KB zkey each
 
 ## Links
 
-- **Live Site:** [zkrune.com](https://zkrune.com)
+- **Live Site:** [zkrune.vercel.app](https://zkrune.vercel.app)
+- **Zcash Integration:** [zkrune.vercel.app/zcash](https://zkrune.vercel.app/zcash)
+- **Documentation:** [zkrune.vercel.app/docs](https://zkrune.vercel.app/docs)
+- **API Reference:** [zkrune.vercel.app/api-docs](https://zkrune.vercel.app/api-docs)
 - **GitHub:** [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
-- **Documentation:** [zkrune.com/docs](https://zkrune.com/docs)
 - **Twitter:** [@rune_zk](https://x.com/rune_zk)
-- **Contract:** See `.env.local` file (configured via `NEXT_PUBLIC_CONTRACT_ADDRESS`)
 - **Developer:** [@legelsteinn](https://x.com/legelsteinn)
+- **Contract:** See `.env.local` file (configured via `NEXT_PUBLIC_CONTRACT_ADDRESS`)
 
 ## License
 
