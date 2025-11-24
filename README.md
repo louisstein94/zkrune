@@ -1,8 +1,15 @@
 # zkRune
 
-Visual Zero-Knowledge Proof Builder for Zcash
+<div align="center">
+  <img src="public/zcash-logo.png" alt="Zcash" width="80" />
+  <h3>Visual Zero-Knowledge Proof Builder for Zcash</h3>
+  <p>Build privacy-preserving applications without cryptography expertise.</p>
+  <p><strong>🏆 Built for ZypherPunk Hackathon 2025</strong></p>
+</div>
 
-Build privacy-preserving applications without cryptography expertise.
+## 🔐 Privacy-First, Zcash-Powered
+
+zkRune leverages **Zcash's battle-tested Groth16 zk-SNARK technology** to bring zero-knowledge proofs to everyone. No cryptography expertise required - just drag, drop, and generate mathematically verifiable privacy proofs.
 
 ## Brand Identity
 
@@ -15,8 +22,9 @@ Build privacy-preserving applications without cryptography expertise.
 - **Framework**: Next.js 14 (App Router)
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS
-- **Blockchain**: Zcash (via Lightwalletd)
-- **ZK System**: Circom + snarkjs
+- **Privacy Tech**: Zcash Groth16 zk-SNARKs
+- **ZK System**: Circom + snarkjs (same as Zcash)
+- **Proving System**: Groth16 (battle-tested since 2016)
 
 ## Quick Start
 
@@ -130,11 +138,26 @@ zkrune/
 - [ ] User authentication (optional)
 - [ ] Database integration
 
-## Production Deployment
+## 🏆 ZypherPunk Hackathon 2025 Submission
 
 **Live Site:** [zkrune.com](https://zkrune.com)
 
-Built for ZypherPunk Hackathon 2025
+### The Problem
+Privacy tools are complex. Building zero-knowledge applications on Zcash requires deep cryptography knowledge, limiting ecosystem growth.
+
+### Our Solution
+zkRune democratizes Zcash's privacy technology:
+- **No-code ZK proof builder** - Visual interface, no cryptography needed
+- **Browser-based** - 100% client-side, complete privacy
+- **Production-ready** - 13 real Groth16 circuits compiled and tested
+- **Educational** - Learn ZK concepts while building
+
+### Why Zcash?
+We use Zcash's **battle-tested Groth16 proving system** - the same cryptography that secures billions in shielded transactions. This gives our users:
+- ✅ Proven security (8+ years in production)
+- ✅ Efficient proofs (200 bytes, 2ms verification)
+- ✅ Industry standard (audited, trusted)
+- ✅ Privacy guarantee (mathematical, not trust-based)
 
 ### Key Metrics
 

@@ -18,6 +18,9 @@ const config: Config = {
         'zk-darker': '#060814',        // Darker void
         'zk-gray': '#999999',          // Medium gray
         'zk-accent': '#FF3366',        // Electric pink
+        // Zcash branding
+        'zcash-gold': '#F4B728',       // Zcash official gold
+        'zcash-dark': '#231F20',       // Zcash dark
       },
       fontFamily: {
         'hatton': ['var(--font-hatton)', 'serif'],

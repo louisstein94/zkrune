@@ -34,11 +34,11 @@ export default function Home() {
       <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-16 py-20 pt-32 min-h-screen gap-12">
         {/* Left Side - Content */}
         <div className="max-w-2xl space-y-8 text-center lg:text-left">
-          {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/50 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
-            <span className="text-xs font-medium text-zk-gray uppercase tracking-wider">
-              Zcash Powered
+          {/* Zcash Badge */}
+          <div className="inline-flex items-center gap-3 px-5 py-2.5 border border-[#F4B728]/50 bg-[#F4B728]/10 rounded-full backdrop-blur-sm">
+            <img src="/zcash-logo.png" alt="Zcash" className="w-5 h-5" />
+            <span className="text-xs font-bold text-[#F4B728] uppercase tracking-wider">
+              Powered by Zcash Privacy
             </span>
           </div>
 
@@ -50,7 +50,13 @@ export default function Home() {
               <span className="text-zk-primary">Without Code</span>.
             </h2>
             <p className="text-lg md:text-xl text-zk-gray max-w-xl mx-auto lg:mx-0">
-              Visual Zero-Knowledge Proof Builder for Zcash. Create privacy-preserving applications without cryptography expertise.
+              Visual Zero-Knowledge Proof Builder for <span className="text-[#F4B728] font-semibold">Zcash</span>. Create privacy-preserving applications without cryptography expertise.
+            </p>
+            <p className="text-sm text-[#F4B728]/80 max-w-xl mx-auto lg:mx-0 flex items-center gap-2">
+              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              Using Zcash's battle-tested Groth16 zk-SNARK technology
             </p>
           </div>
 
@@ -169,6 +175,15 @@ export default function Home() {
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 px-6 md:px-12 lg:px-16 py-6">
         <div className="flex flex-col md:flex-row items-center justify-between gap-6">
+          {/* Zcash Badge */}
+          <div className="flex items-center gap-3 px-4 py-2 border border-[#F4B728]/30 bg-[#F4B728]/5 rounded-lg">
+            <img src="/zcash-logo.png" alt="Zcash" className="w-6 h-6" />
+            <div>
+              <p className="text-xs font-bold text-[#F4B728]">Built for Zcash</p>
+              <p className="text-xs text-zk-gray">Privacy Technology</p>
+            </div>
+          </div>
+
           <div className="flex flex-wrap justify-center md:justify-start gap-6 md:gap-12 text-sm">
             <div className="space-y-1">
               <p className="text-xs font-medium text-zk-gray uppercase tracking-wider opacity-60">
