@@ -215,17 +215,35 @@ export default function Home() {
             </div>
           </div>
 
-          {/* Social Links */}
-          <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm font-medium uppercase tracking-wider">
-            <a href="/install" className="text-zk-primary hover:text-zk-primary/80 transition-colors">
-              Install App
-            </a>
-            <a href="https://x.com/rune_zk" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-              Twitter
-            </a>
-            <a href="https://github.com/louisstein94/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-              GitHub
-            </a>
+          {/* Footer Navigation */}
+          <div className="flex flex-wrap justify-center gap-4 md:gap-6 text-sm">
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Product</h4>
+              <a href="/templates" className="text-zk-gray hover:text-zk-primary transition-colors">Templates</a>
+              <a href="/builder" className="text-zk-gray hover:text-zk-primary transition-colors">Builder</a>
+              <a href="/install" className="text-zk-gray hover:text-zk-primary transition-colors">Install App</a>
+              <a href="/zcash" className="text-[#F4B728] hover:text-[#F4B728]/80 transition-colors font-medium">Zcash Integration</a>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Resources</h4>
+              <a href="/docs" className="text-zk-gray hover:text-zk-primary transition-colors">Documentation</a>
+              <a href="/api-docs" className="text-zk-gray hover:text-zk-primary transition-colors">API Reference</a>
+              <a href="/verify-proof" className="text-zk-gray hover:text-zk-primary transition-colors">Verify Proof</a>
+            </div>
+            
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Community</h4>
+              <a href="https://x.com/rune_zk" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Twitter
+              </a>
+              <a href="https://github.com/louisstein94/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
+                GitHub
+              </a>
+              <a href="https://x.com/legelsteinn" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Developer
+              </a>
+            </div>
           </div>
 
           {/* Scroll Indicator */}
