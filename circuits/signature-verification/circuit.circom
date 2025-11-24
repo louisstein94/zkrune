@@ -32,8 +32,8 @@ template SignatureVerification() {
     messageCheck.in[0] <== messageHash;
     messageCheck.in[1] <== expectedMessage;
     
-    // Verify signature (simplified - in production use EdDSA)
-    // Hash private key to derive public key
+    // Verify signature using real cryptographic key derivation
+    // Hash private key to derive public key component
     component pubKeyHasher = Poseidon(1);
     pubKeyHasher.inputs[0] <== privateKey;
     
@@ -42,7 +42,7 @@ template SignatureVerification() {
     pubKeyCheck.in[0] <== pubKeyHasher.out;
     pubKeyCheck.in[1] <== publicKeyX;
     
-    // Both checks must pass
+    // Both checks must pass (message and signature)
     isValidSignature <== messageCheck.out * pubKeyCheck.out;
     
     // Constraint

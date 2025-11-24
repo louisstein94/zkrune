@@ -1,4 +1,5 @@
 {
-  "vote": "1",
-  "voterId": "12345"
+  "voterId": "98765",
+  "voteChoice": "2",
+  "pollId": "42"
 }
