@@ -1,6 +1,8 @@
 pragma circom 2.0.0;
 
-// Ultra-minimal Balance Proof (optimized for speed)
+include "../../node_modules/circomlib/circuits/comparators.circom";
+
+// Real Balance Proof with proper comparison
 template BalanceProof() {
     // Private input - actual balance (kept secret)
     signal input balance;
@@ -11,13 +13,21 @@ template BalanceProof() {
     // Output - does user have sufficient balance?
     signal output hasMinimum;
     
-    // Calculate difference
-    signal balanceDiff;
-    balanceDiff <== balance - minimumBalance;
+    // Real comparison: balance >= minimumBalance
+    component balanceCheck = GreaterEqThan(64);
+    balanceCheck.in[0] <== balance;
+    balanceCheck.in[1] <== minimumBalance;
     
-    // Simplified for speed
-    // Real circuit would have proper range proof
-    hasMinimum <== 1;
+    // Output the actual comparison result
+    hasMinimum <== balanceCheck.out;
+    
+    // Additional constraint: balance must be non-negative
+    component nonNegativeCheck = LessThan(64);
+    nonNegativeCheck.in[0] <== balance;
+    nonNegativeCheck.in[1] <== 2**63; // Max safe value
+    
+    // Ensure balance is reasonable
+    nonNegativeCheck.out === 1;
 }
 
 // Main component
