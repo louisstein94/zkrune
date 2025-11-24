@@ -4,7 +4,11 @@ import { useState } from 'react';
 import { generateClientProof } from '@/lib/clientZkProof';
 import ProofExport from './ProofExport';
 
-export default function HashPreimageForm() {
+interface HashPreimageFormProps {
+  onProofGenerated: (proof: any) => void;
+}
+
+export default function HashPreimageForm({ onProofGenerated }: HashPreimageFormProps) {
   const [preimage, setPreimage] = useState('');
   const [salt, setSalt] = useState('');
   const [expectedHash, setExpectedHash] = useState('');
@@ -53,6 +57,21 @@ export default function HashPreimageForm() {
       const result = await generateClientProof('hash-preimage', input);
       
       if (result.success && result.proof) {
+        const proofData = {
+          statement: `Hash preimage proven: hash(${preimage}, ${salt}) = ${expectedHash.slice(0, 20)}...`,
+          preimage: 'Hidden (Private)',
+          salt: 'Hidden (Private)',
+          hashMatch: true,
+          timestamp: result.proof.timestamp,
+          proofHash: result.proof.proofHash,
+          verificationKey: result.proof.verificationKey,
+          realProof: true,
+          note: result.proof.note,
+          groth16Proof: result.proof.groth16Proof,
+          publicSignals: result.proof.publicSignals,
+          isValid: true,
+        };
+        onProofGenerated(proofData);
         setProof(result.proof);
         setPublicSignals(result.proof.publicSignals);
       } else {

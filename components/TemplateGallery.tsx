@@ -153,6 +153,42 @@ const templates: Template[] = [
     generationTime: "0.35s",
     useCase: "Commitments, Secret reveals, Voting",
   },
+  {
+    id: "quadratic-voting",
+    name: "Quadratic Voting",
+    description: "Fair governance voting with quadratic token weighting - prevents whale dominance",
+    icon: "vote",
+    category: "Governance",
+    usageCount: 892,
+    difficulty: "Medium",
+    estimatedTime: "45 sec",
+    generationTime: "0.51s",
+    useCase: "DAO governance, Fair voting, Token voting",
+  },
+  {
+    id: "nft-ownership",
+    name: "NFT Ownership Proof",
+    description: "Prove you own an NFT from a collection without revealing which specific NFT",
+    icon: "nft",
+    category: "NFT",
+    usageCount: 1234,
+    difficulty: "Medium",
+    estimatedTime: "50 sec",
+    generationTime: "0.60s",
+    useCase: "Exclusive access, Airdrops, Community membership",
+  },
+  {
+    id: "anonymous-reputation",
+    name: "Anonymous Reputation",
+    description: "Prove your reputation score exceeds threshold without revealing identity",
+    icon: "star",
+    category: "Social",
+    usageCount: 745,
+    difficulty: "Medium",
+    estimatedTime: "55 sec",
+    generationTime: "0.76s",
+    useCase: "Credit systems, Access control, Anonymous verification",
+  },
 ];
 
 const getIconComponent = (iconName: string) => {
@@ -162,6 +198,9 @@ const getIconComponent = (iconName: string) => {
     case "membership": return MembershipIcon;
     case "range": return RangeIcon;
     case "voting": return VotingIcon;
+    case "vote": return VotingIcon;
+    case "nft": return MembershipIcon;
+    case "star": return RangeIcon;
     case "credential": return MembershipIcon; // Reuse similar icon
     case "swap": return BalanceIcon; // Reuse similar icon
     case "signature": return VotingIcon; // Reuse similar icon
