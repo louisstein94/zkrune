@@ -294,13 +294,28 @@ export default function DocsPage() {
               </div>
             </section>
 
-            {/* API Reference */}
+            {/* API Reference - DEPRECATED */}
             <section id="api-generate" className="mb-16">
               <h2 className="font-hatton text-3xl text-white mb-4">API Reference</h2>
               
-              <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6 mb-6">
-                <h3 className="text-white font-medium mb-3">POST /api/generate-proof</h3>
-                <p className="text-sm text-zk-gray mb-4">Generate a zero-knowledge proof.</p>
+              <div className="bg-zk-dark/30 border border-red-500/20 rounded-xl p-6 mb-6 opacity-60">
+                <div className="flex items-center gap-3 mb-3">
+                  <h3 className="text-zk-gray font-medium line-through">POST /api/generate-proof</h3>
+                  <span className="px-3 py-1 bg-red-500/20 text-red-400 text-xs rounded-full uppercase font-bold">
+                    DEPRECATED
+                  </span>
+                </div>
+                
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg mb-4">
+                  <p className="text-sm text-red-300 mb-2">
+                    ⚠️ <strong>This API endpoint has been removed.</strong>
+                  </p>
+                  <p className="text-xs text-red-200">
+                    Migration: Use client-side proof generation with <code className="bg-black/30 px-2 py-1 rounded">generateClientProof()</code> for better privacy.
+                  </p>
+                </div>
+                
+                <p className="text-sm text-zk-gray mb-4 line-through">Generate a zero-knowledge proof.</p>
                 
                 <div className="bg-zk-darker rounded-lg p-4 mb-4">
                   <p className="text-xs text-zk-gray mb-2">Request:</p>

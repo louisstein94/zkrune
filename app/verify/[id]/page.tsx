@@ -24,6 +24,20 @@ export default function VerifyPage() {
 
       <div className="pt-32 px-8 pb-12">
         <div className="max-w-4xl mx-auto">
+          {/* DEMO Warning Banner */}
+          <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+            <div className="flex items-start gap-3">
+              <span className="text-2xl">⚠️</span>
+              <div>
+                <h3 className="text-amber-400 font-medium mb-1">Demo Sayfası</h3>
+                <p className="text-sm text-zk-gray">
+                  Bu bir örnek verification sayfasıdır. Gerçek proof verification için{" "}
+                  <Link href="/verify-proof" className="text-zk-primary underline">buraya tıklayın</Link>.
+                </p>
+              </div>
+            </div>
+          </div>
+
           {/* Header */}
           <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/50 rounded-full mb-6">

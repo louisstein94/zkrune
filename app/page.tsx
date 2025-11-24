@@ -1,6 +1,5 @@
 "use client";
 
-const CONTRACT_ADDRESS = "51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump";
 import RuneAnimation from "@/components/RuneAnimation";
 import Navigation from "@/components/Navigation";
 import HowItWorks from "@/components/HowItWorks";
@@ -189,13 +188,14 @@ export default function Home() {
               </p>
               <button
                 onClick={() => {
-                  navigator.clipboard.writeText(CONTRACT_ADDRESS);
+                  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
+                  navigator.clipboard.writeText(contractAddress);
                   alert('Contract address copied!');
                 }}
                 className="text-xs text-zk-accent font-mono hover:text-zk-primary transition-colors cursor-pointer"
                 title="Click to copy"
               >
-                {CONTRACT_ADDRESS.substring(0, 8)}...{CONTRACT_ADDRESS.substring(CONTRACT_ADDRESS.length - 5)}
+                {process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.substring(0, 8)}...{process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.substring(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS.length - 5)}
               </button>
             </div>
           </div>

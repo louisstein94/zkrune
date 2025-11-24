@@ -214,15 +214,20 @@ console.log('Valid:', isValid); // true/false`}
             </div>
           </div>
 
-          {/* REST API Alternative */}
-          <div className="mb-12 p-8 bg-zk-dark/30 border border-zk-gray/20 rounded-2xl">
+          {/* REST API Alternative - DEPRECATED */}
+          <div className="mb-12 p-8 bg-zk-dark/30 border border-red-500/20 rounded-2xl opacity-60">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="font-hatton text-2xl text-white mb-2">Alternative: REST API</h2>
-                <p className="text-zk-gray text-sm">Server-side proof generation</p>
+                <h2 className="font-hatton text-2xl text-white mb-2">
+                  <span className="line-through text-zk-gray">Alternative: REST API</span>
+                  <span className="ml-3 px-3 py-1 bg-red-500/20 text-red-400 text-xs rounded-full uppercase font-bold">
+                    DEPRECATED
+                  </span>
+                </h2>
+                <p className="text-zk-gray text-sm">⚠️ Removed for better privacy - Use client-side generation above</p>
               </div>
-              <span className="px-3 py-1 bg-zk-gray/20 text-zk-gray text-xs rounded-full">
-                Slower (~2s)
+              <span className="px-3 py-1 bg-red-500/20 text-red-400 text-xs rounded-full">
+                ❌ Removed
               </span>
             </div>
             <div className="bg-zk-darker rounded-lg p-6">
@@ -247,17 +252,26 @@ console.log(data.proof);`}
 
           {/* Endpoints */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
-            {/* Generate Proof */}
-            <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
+            {/* Generate Proof - DEPRECATED */}
+            <div className="bg-zk-dark/30 border border-red-500/20 rounded-2xl p-8 opacity-60">
               <div className="flex items-center gap-3 mb-4">
-                <span className="px-3 py-1 bg-zk-primary/20 text-zk-primary rounded text-sm font-mono">
+                <span className="px-3 py-1 bg-red-500/20 text-red-400 rounded text-sm font-mono line-through">
                   POST
                 </span>
-                <code className="text-white font-mono text-sm">/api/generate-proof</code>
+                <code className="text-zk-gray font-mono text-sm line-through">/api/generate-proof</code>
+                <span className="px-2 py-1 bg-red-500/20 text-red-400 text-xs rounded uppercase font-bold">
+                  DEPRECATED
+                </span>
+              </div>
+
+              <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg mb-4">
+                <p className="text-sm text-red-300">
+                  ⚠️ This endpoint has been removed. Use client-side generation for better privacy and security.
+                </p>
               </div>
 
               <p className="text-zk-gray mb-6">
-                Generate a zero-knowledge proof for a template
+                <span className="line-through">Generate a zero-knowledge proof for a template</span>
               </p>
 
               <h3 className="text-white font-medium mb-3">Request Body:</h3>

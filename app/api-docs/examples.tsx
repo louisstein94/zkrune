@@ -2,7 +2,11 @@
 
 export function CodeExamples() {
   const examples = {
-    javascript: `// JavaScript/TypeScript
+    javascript: `// JavaScript/TypeScript - ⚠️ DEPRECATED API
+// Use client-side generation instead:
+// import { generateClientProof } from '@/lib/clientZkProof';
+// const result = await generateClientProof('age-verification', { ... });
+
 const proof = await fetch('https://zkrune.com/api/generate-proof', {
   method: 'POST',
   headers: { 'Content-Type': 'application/json' },
@@ -18,7 +22,10 @@ const proof = await fetch('https://zkrune.com/api/generate-proof', {
 
 console.log(proof);`,
 
-    python: `# Python
+    python: `# Python - ⚠️ DEPRECATED API
+# This endpoint has been removed.
+# Use client-side generation in browser for better privacy.
+
 import requests
 
 response = requests.post(
@@ -36,7 +43,9 @@ response = requests.post(
 proof = response.json()
 print(proof)`,
 
-    curl: `# cURL
+    curl: `# cURL - ⚠️ DEPRECATED API (Endpoint Removed)
+# Migration: Use browser-based client-side generation
+
 curl -X POST https://zkrune.com/api/generate-proof \\
   -H "Content-Type: application/json" \\
   -d '{
@@ -48,7 +57,10 @@ curl -X POST https://zkrune.com/api/generate-proof \\
     }
   }'`,
 
-    go: `// Go
+    go: `// Go - ⚠️ DEPRECATED API
+// This endpoint has been removed for better privacy.
+// Use client-side generation in browser instead.
+
 package main
 
 import (
