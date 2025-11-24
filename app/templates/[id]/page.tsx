@@ -12,6 +12,9 @@ import TokenSwapForm from "@/components/TokenSwapForm";
 import SignatureVerificationForm from "@/components/SignatureVerificationForm";
 import PatienceProofForm from "@/components/PatienceProofForm";
 import HashPreimageForm from "@/components/HashPreimageForm";
+import QuadraticVotingForm from "@/components/QuadraticVotingForm";
+import NFTOwnershipForm from "@/components/NFTOwnershipForm";
+import AnonymousReputationForm from "@/components/AnonymousReputationForm";
 import ProofExport from "@/components/ProofExport";
 import CodePreview from "@/components/CodePreview";
 import TrustExplainer from "@/components/TrustExplainer";
@@ -234,6 +237,69 @@ const templates: { [key: string]: any } = {
       "Secret reveals",
       "Hash-locked contracts",
       "Prediction markets",
+    ],
+  },
+  "quadratic-voting": {
+    id: "quadratic-voting",
+    name: "Quadratic Voting",
+    description: "Fair governance voting with quadratic token weighting",
+    icon: "voting",
+    category: "Governance",
+    difficulty: "Medium",
+    howItWorks: [
+      "Submit your token balance (kept private)",
+      "Choose your vote option (0-9)",
+      "Calculate quadratic vote weight",
+      "Verify eligibility (minimum tokens)",
+      "Generate anonymous vote commitment",
+    ],
+    useCases: [
+      "DAO governance",
+      "Fair voting systems",
+      "Token-weighted voting",
+      "Preventing whale dominance",
+    ],
+  },
+  "nft-ownership": {
+    id: "nft-ownership",
+    name: "NFT Ownership Proof",
+    description: "Prove NFT ownership without revealing which NFT",
+    icon: "membership",
+    category: "NFT",
+    difficulty: "Medium",
+    howItWorks: [
+      "Input your NFT token ID (private)",
+      "Provide your ownership secret",
+      "Specify collection range",
+      "Verify token is within collection",
+      "Generate anonymous ownership proof",
+    ],
+    useCases: [
+      "Exclusive community access",
+      "NFT-gated content",
+      "Anonymous airdrops",
+      "Holder verification",
+    ],
+  },
+  "anonymous-reputation": {
+    id: "anonymous-reputation",
+    name: "Anonymous Reputation",
+    description: "Prove reputation score without revealing identity",
+    icon: "range",
+    category: "Social",
+    difficulty: "Medium",
+    howItWorks: [
+      "Enter your reputation score (private)",
+      "Set threshold requirement",
+      "Calculate score category",
+      "Verify score meets threshold",
+      "Generate anonymous commitment",
+    ],
+    useCases: [
+      "Credit score verification",
+      "Access control systems",
+      "Anonymous reviews",
+      "Reputation-gated communities",
     ],
   },
 };
@@ -493,7 +559,19 @@ export default function TemplatePage() {
                   )}
 
                   {templateId === "hash-preimage" && (
-                    <HashPreimageForm />
+                    <HashPreimageForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "quadratic-voting" && (
+                    <QuadraticVotingForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "nft-ownership" && (
+                    <NFTOwnershipForm onProofGenerated={handleProofGenerated} />
+                  )}
+
+                  {templateId === "anonymous-reputation" && (
+                    <AnonymousReputationForm onProofGenerated={handleProofGenerated} />
                   )}
 
                   {templateId === "private-voting" && (
@@ -594,6 +672,15 @@ export default function TemplatePage() {
                       )}
                       {templateId === "hash-preimage" && (
                         <>Your secret preimage and salt are NOT included in the proof. </>
+                      )}
+                      {templateId === "quadratic-voting" && (
+                        <>Your voter ID and token balance are NOT included in the proof. </>
+                      )}
+                      {templateId === "nft-ownership" && (
+                        <>Your specific NFT token ID and owner secret are NOT included in the proof. </>
+                      )}
+                      {templateId === "anonymous-reputation" && (
+                        <>Your user ID and exact reputation score are NOT included in the proof. </>
                       )}
                       Only the statement "{proof.statement}" is verifiable.
                     </p>

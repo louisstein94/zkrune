@@ -140,7 +140,7 @@ Built for ZypherPunk Hackathon 2025
 
 - **Proof Generation:** Client-side (browser-based, 100% private)
 - **Generation Time:** 2-30 seconds (first load), < 5s (cached)
-- **Circuit Coverage:** 10/10 templates with real Groth16 implementations
+- **Circuit Coverage:** 13/13 templates with real Groth16 implementations
 - **Verification:** Client-side cryptographic verification (no API)
 - **Architecture:** Next.js 14, React Flow, snarkjs browser, Circom circuits
 - **Privacy:** Zero server calls - all crypto operations client-side
