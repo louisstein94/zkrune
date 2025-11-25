@@ -145,6 +145,167 @@ export default function Home() {
         </div>
       </div>
 
+      {/* Privacy-First Banner */}
+      <div className="relative z-10 px-6 md:px-12 lg:px-16 py-16 border-t border-white/5">
+        <div className="max-w-4xl mx-auto">
+          <div className="p-8 md:p-12 bg-gradient-to-br from-zk-primary/10 via-purple-500/10 to-zk-primary/5 border border-zk-primary/30 rounded-3xl backdrop-blur-sm">
+            <div className="flex items-start gap-4 mb-6">
+              <div className="w-12 h-12 bg-zk-primary/20 rounded-xl flex items-center justify-center flex-shrink-0">
+                <svg className="w-6 h-6 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                </svg>
+              </div>
+              <div>
+                <h2 className="text-2xl md:text-3xl font-hatton text-white mb-3">
+                  Privacy Tools That Actually Respect Privacy
+                </h2>
+                <p className="text-base md:text-lg text-zk-gray leading-relaxed mb-4">
+                  Most ZK platforms require <strong className="text-white">server-side proof generation</strong> - your sensitive data leaves your device and gets transmitted to their servers.
+                </p>
+                <p className="text-base md:text-lg text-white font-medium leading-relaxed">
+                  zkRune generates proofs in <span className="text-zk-primary font-bold">YOUR browser</span>. Your secrets never leave your device. 100% client-side, always. True to Zcash's cypherpunk ethos.
+                </p>
+              </div>
+            </div>
+            
+            {/* Stats Grid */}
+            <div className="grid grid-cols-3 gap-4 md:gap-6 pt-6 border-t border-white/10">
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-hatton text-zk-primary mb-1">13</p>
+                <p className="text-xs md:text-sm text-zk-gray uppercase tracking-wider">Real Groth16 Circuits</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-hatton text-zk-primary mb-1">&lt;5s</p>
+                <p className="text-xs md:text-sm text-zk-gray uppercase tracking-wider">Proof Generation</p>
+              </div>
+              <div className="text-center">
+                <p className="text-3xl md:text-4xl font-hatton text-zk-primary mb-1">0</p>
+                <p className="text-xs md:text-sm text-zk-gray uppercase tracking-wider">Server Calls</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* 3-Layer Developer Funnel */}
+      <div className="relative z-10 px-6 md:px-12 lg:px-16 py-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl md:text-4xl font-hatton text-white mb-4">
+              From Zero to Production in Hours
+            </h2>
+            <p className="text-lg text-zk-gray max-w-2xl mx-auto">
+              Progressive learning path: Learn the concepts, experiment with templates, ship to production.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6 md:gap-8">
+            {/* Layer 1: Learn */}
+            <div className="group p-8 bg-zk-dark/30 border border-zk-primary/20 rounded-2xl hover:border-zk-primary/50 hover:bg-zk-dark/50 transition-all">
+              <div className="w-16 h-16 bg-zk-primary/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                </svg>
+              </div>
+              <div className="mb-2 inline-block px-3 py-1 bg-zk-primary/10 rounded-full">
+                <span className="text-2xl font-hatton text-zk-primary">01</span>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">
+                🎓 Learn <span className="text-zk-gray text-sm">(5 minutes)</span>
+              </h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                <strong className="text-white">Visual Circuit Builder</strong> shows HOW zero-knowledge proofs work. Drag-drop interface, no cryptography background needed.
+              </p>
+              <p className="text-xs text-zk-primary font-medium">
+                → First ZK proof in 5 minutes
+              </p>
+            </div>
+
+            {/* Layer 2: Experiment */}
+            <div className="group p-8 bg-zk-dark/30 border border-purple-500/20 rounded-2xl hover:border-purple-500/50 hover:bg-zk-dark/50 transition-all">
+              <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
+                </svg>
+              </div>
+              <div className="mb-2 inline-block px-3 py-1 bg-purple-500/10 rounded-full">
+                <span className="text-2xl font-hatton text-purple-400">02</span>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">
+                🔬 Experiment <span className="text-zk-gray text-sm">(Templates)</span>
+              </h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                <strong className="text-white">13 Real Groth16 Circuits</strong> with production-ready use cases: voting, credentials, NFTs, token swaps. Copy-paste into your app.
+              </p>
+              <p className="text-xs text-purple-400 font-medium">
+                → Real cryptographic proofs instantly
+              </p>
+            </div>
+
+            {/* Layer 3: Build */}
+            <div className="group p-8 bg-zk-dark/30 border border-[#F4B728]/20 rounded-2xl hover:border-[#F4B728]/50 hover:bg-zk-dark/50 transition-all">
+              <div className="w-16 h-16 bg-[#F4B728]/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+                <svg className="w-8 h-8 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                </svg>
+              </div>
+              <div className="mb-2 inline-block px-3 py-1 bg-[#F4B728]/10 rounded-full">
+                <span className="text-2xl font-hatton text-[#F4B728]">03</span>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">
+                🏗️ Build <span className="text-zk-gray text-sm">(Production)</span>
+              </h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                <strong className="text-white">NPM SDK + Export</strong> ready. Install with npm, export circuits to production. Deploy privacy apps in hours, not months.
+              </p>
+              <p className="text-xs text-[#F4B728] font-medium">
+                → Ship to production instantly
+              </p>
+            </div>
+          </div>
+
+          {/* Before/After Impact */}
+          <div className="mt-12 p-6 bg-zk-darker/50 border border-white/5 rounded-2xl">
+            <div className="grid md:grid-cols-2 gap-8">
+              <div>
+                <h4 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Before zkRune</h4>
+                <ul className="space-y-2 text-sm text-zk-gray">
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 mt-0.5">❌</span>
+                    <span>Months to learn ZK cryptography</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 mt-0.5">❌</span>
+                    <span>Server-side proofs = privacy risk</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-red-400 mt-0.5">❌</span>
+                    <span>Slow Zcash ecosystem growth</span>
+                  </li>
+                </ul>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-zk-primary uppercase tracking-wider mb-3">After zkRune</h4>
+                <ul className="space-y-2 text-sm text-zk-gray">
+                  <li className="flex items-start gap-2">
+                    <span className="text-zk-primary mt-0.5">✅</span>
+                    <span>5 minutes to first ZK proof</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-zk-primary mt-0.5">✅</span>
+                    <span>True privacy (100% client-side)</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <span className="text-zk-primary mt-0.5">✅</span>
+                    <span>More developers → Stronger ecosystem</span>
+                  </li>
+                </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* What is zkRune Section */}
       <WhatIsZkRune />
 

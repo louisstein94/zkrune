@@ -1,0 +1,53 @@
+# zkRune - robots.txt
+# Zero-Knowledge Proof Builder for Zcash
+
+# Allow all crawlers
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://zkrune.com/sitemap.xml
+
+# Crawl-delay (be nice to servers)
+Crawl-delay: 1
+
+# Specific rules for major search engines
+
+# Google
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bing
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# DuckDuckGo
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# Yandex
+User-agent: Yandex
+Allow: /
+Crawl-delay: 1
+
+# Disallow heavy resources (optional - currently allowing all)
+# User-agent: *
+# Disallow: /circuits/*.wasm
+# Disallow: /circuits/*.zkey
+
+# Allow social media crawlers for rich previews
+User-agent: Twitterbot
+Allow: /
+
+User-agent: facebookexternalhit
+Allow: /
+
+User-agent: LinkedInBot
+Allow: /
+
+# Host (canonical domain)
+Host: https://zkrune.com
+
