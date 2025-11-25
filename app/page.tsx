@@ -211,7 +211,7 @@ export default function Home() {
                 <span className="text-2xl font-hatton text-zk-primary">01</span>
               </div>
               <h3 className="text-xl font-hatton text-white mb-3">
-                🎓 Learn <span className="text-zk-gray text-sm">(5 minutes)</span>
+                Learn <span className="text-zk-gray text-sm">(5 minutes)</span>
               </h3>
               <p className="text-sm text-zk-gray leading-relaxed mb-4">
                 <strong className="text-white">Visual Circuit Builder</strong> shows HOW zero-knowledge proofs work. Drag-drop interface, no cryptography background needed.
@@ -232,7 +232,7 @@ export default function Home() {
                 <span className="text-2xl font-hatton text-purple-400">02</span>
               </div>
               <h3 className="text-xl font-hatton text-white mb-3">
-                🔬 Experiment <span className="text-zk-gray text-sm">(Templates)</span>
+                Experiment <span className="text-zk-gray text-sm">(Templates)</span>
               </h3>
               <p className="text-sm text-zk-gray leading-relaxed mb-4">
                 <strong className="text-white">13 Real Groth16 Circuits</strong> with production-ready use cases: voting, credentials, NFTs, token swaps. Copy-paste into your app.
@@ -253,7 +253,7 @@ export default function Home() {
                 <span className="text-2xl font-hatton text-[#F4B728]">03</span>
               </div>
               <h3 className="text-xl font-hatton text-white mb-3">
-                🏗️ Build <span className="text-zk-gray text-sm">(Production)</span>
+                Build <span className="text-zk-gray text-sm">(Production)</span>
               </h3>
               <p className="text-sm text-zk-gray leading-relaxed mb-4">
                 <strong className="text-white">NPM SDK + Export</strong> ready. Install with npm, export circuits to production. Deploy privacy apps in hours, not months.
@@ -271,15 +271,21 @@ export default function Home() {
                 <h4 className="text-sm font-bold text-red-400 uppercase tracking-wider mb-3">Before zkRune</h4>
                 <ul className="space-y-2 text-sm text-zk-gray">
                   <li className="flex items-start gap-2">
-                    <span className="text-red-400 mt-0.5">❌</span>
+                    <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     <span>Months to learn ZK cryptography</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-red-400 mt-0.5">❌</span>
+                    <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     <span>Server-side proofs = privacy risk</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-red-400 mt-0.5">❌</span>
+                    <svg className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     <span>Slow Zcash ecosystem growth</span>
                   </li>
                 </ul>
@@ -288,15 +294,21 @@ export default function Home() {
                 <h4 className="text-sm font-bold text-zk-primary uppercase tracking-wider mb-3">After zkRune</h4>
                 <ul className="space-y-2 text-sm text-zk-gray">
                   <li className="flex items-start gap-2">
-                    <span className="text-zk-primary mt-0.5">✅</span>
+                    <svg className="w-4 h-4 text-zk-primary mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <span>5 minutes to first ZK proof</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-zk-primary mt-0.5">✅</span>
+                    <svg className="w-4 h-4 text-zk-primary mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <span>True privacy (100% client-side)</span>
                   </li>
                   <li className="flex items-start gap-2">
-                    <span className="text-zk-primary mt-0.5">✅</span>
+                    <svg className="w-4 h-4 text-zk-primary mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                    </svg>
                     <span>More developers → Stronger ecosystem</span>
                   </li>
                 </ul>
