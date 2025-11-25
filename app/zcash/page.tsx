@@ -14,18 +14,39 @@ export default function ZcashIntegrationPage() {
           <div className="inline-flex items-center gap-3 px-5 py-2.5 border border-[#F4B728]/50 bg-[#F4B728]/10 rounded-full mb-6">
             <img src="/zcash-logo.png" alt="Zcash" className="w-6 h-6" />
             <span className="text-sm font-bold text-[#F4B728] uppercase tracking-wider">
-              Zcash Integration
+              ZypherPunk Hackathon 2025
             </span>
           </div>
           
           <h1 className="font-hatton text-5xl md:text-6xl text-white mb-6">
-            Built for the <span className="text-[#F4B728]">Zcash</span> Ecosystem
+            Democratizing <span className="text-[#F4B728]">Zcash's</span> Privacy Technology
           </h1>
           
-          <p className="text-xl text-zk-gray max-w-3xl mx-auto">
-            zkRune leverages Zcash's battle-tested Groth16 zk-SNARK technology to bring 
-            privacy-preserving proofs to everyone.
-          </p>
+          <div className="max-w-3xl mx-auto space-y-4 mb-8">
+            <p className="text-xl text-zk-gray">
+              Zcash's <strong className="text-white">Groth16 proving system</strong> is battle-tested, securing 
+              billions in shielded transactions since 2016. But using it requires deep cryptography expertise.
+            </p>
+            <p className="text-xl text-white font-medium">
+              zkRune changes that. We make Zcash's privacy accessible to <span className="text-[#F4B728]">any developer</span>.
+            </p>
+          </div>
+
+          {/* Stats Grid */}
+          <div className="grid grid-cols-3 gap-6 max-w-2xl mx-auto mt-8">
+            <div className="p-6 bg-[#F4B728]/10 border border-[#F4B728]/30 rounded-xl">
+              <p className="text-4xl font-hatton text-[#F4B728] mb-2">13</p>
+              <p className="text-sm text-zk-gray uppercase tracking-wider">Real Groth16 Circuits</p>
+            </div>
+            <div className="p-6 bg-[#F4B728]/10 border border-[#F4B728]/30 rounded-xl">
+              <p className="text-4xl font-hatton text-[#F4B728] mb-2">&lt;5s</p>
+              <p className="text-sm text-zk-gray uppercase tracking-wider">Proof Generation</p>
+            </div>
+            <div className="p-6 bg-[#F4B728]/10 border border-[#F4B728]/30 rounded-xl">
+              <p className="text-4xl font-hatton text-[#F4B728] mb-2">0</p>
+              <p className="text-sm text-zk-gray uppercase tracking-wider">Server Calls</p>
+            </div>
+          </div>
         </div>
 
         {/* Zcash Technology Section */}
