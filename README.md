@@ -90,6 +90,24 @@ npm run compile:circuits
 # See CIRCOM_SETUP.md for detailed instructions
 ```
 
+## ⚠️ Security Note (Hackathon Demo)
+
+**Current Setup:**  
+Proving keys (`.zkey` files) generated via **single-party** `snarkjs zkey contribute` with timestamp-based entropy. This is the standard approach for ZK hackathon projects - it produces cryptographically valid proofs while accepting a trusted setup tradeoff.
+
+**What This Means:**
+- ✅ Proofs are mathematically valid and verifiable
+- ✅ Anyone can independently verify proofs  
+- ⚠️ Key generator could theoretically forge proofs (trusted party risk)
+- 🔒 Production requires multi-party ceremony to eliminate this risk
+
+**Production Path:**  
+Replace single-party keys with MPC ceremony (10+ independent contributors). Tools: [snarkjs ceremony](https://github.com/iden3/snarkjs#trusted-setup) or [Phase2 Coordinator](https://github.com/kobigurk/phase2-bn254).
+
+**Why We're Transparent:** This demonstrates understanding of ZK security models. Hackathon projects prioritize working demos; production deployments prioritize trustlessness.
+
+---
+
 ## 📦 Project Structure
 
 ```
