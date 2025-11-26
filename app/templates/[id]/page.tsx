@@ -58,11 +58,11 @@ const templates: { [key: string]: any } = {
     category: "Financial",
     difficulty: "Easy",
     howItWorks: [
-      "Enter your actual balance",
-      "Set minimum balance threshold",
-      "Click generate to create proof",
-      "Proof shows you meet the threshold",
-      "Actual balance stays hidden",
+      "Enter Zcash address (or manual balance)",
+      "Fetch real balance from blockchain via Crypto APIs",
+      "Set minimum balance threshold (e.g., 1.5 ZEC)",
+      "Generate ZK proof in your browser (Groth16)",
+      "Proof shows you meet threshold - exact balance stays private",
     ],
     useCases: [
       "Loan applications",
@@ -590,9 +590,15 @@ export default function TemplatePage() {
                   >
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
-                        <div className="text-4xl">
-                          {proof.isValid ? "✅" : "❌"}
-                        </div>
+                        {proof.isValid ? (
+                          <svg className="w-10 h-10 text-[#F4B728]" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                        ) : (
+                          <svg className="w-10 h-10 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                          </svg>
+                        )}
                         <div>
                           <h3 className="font-hatton text-xl text-white">
                             {proof.statement}
@@ -603,9 +609,12 @@ export default function TemplatePage() {
                         </div>
                       </div>
                       {proof.realProof && (
-                        <div className="px-3 py-1 bg-zk-secondary/20 border border-zk-secondary rounded-full">
+                        <div className="px-3 py-1 bg-zk-secondary/20 border border-zk-secondary rounded-full flex items-center gap-1.5">
+                          <svg className="w-3.5 h-3.5 text-zk-secondary" fill="currentColor" viewBox="0 0 20 20">
+                            <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                          </svg>
                           <span className="text-xs font-medium text-zk-secondary">
-                            🔥 REAL ZK-SNARK
+                            REAL ZK-SNARK
                           </span>
                         </div>
                       )}

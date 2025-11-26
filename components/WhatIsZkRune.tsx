@@ -120,19 +120,32 @@ export default function WhatIsZkRune() {
 
           {/* Real-World Example */}
           <div className="md:col-span-2 lg:col-span-3 mt-2 p-6 md:p-8 bg-gradient-to-br from-zk-primary/10 to-zk-secondary/10 border border-zk-primary/30 rounded-2xl">
-            <h3 className="text-xl font-hatton text-white mb-4">
-              💡 Real-World Example:
+            <h3 className="text-xl font-hatton text-white mb-4 flex items-center gap-2">
+              <svg className="w-6 h-6 text-zk-primary" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              Real-World Example:
             </h3>
             <p className="text-zk-gray leading-relaxed mb-4">
               You want to join an exclusive group that requires members to have at least $10,000 in savings.
             </p>
             <div className="space-y-2 text-sm">
               <div className="flex gap-3">
-                <span className="text-red-400">❌ Old way:</span>
+                <span className="text-red-400 flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                  Old way:
+                </span>
                 <span className="text-zk-gray">Show your bank statement (reveals exact balance, transactions, personal info)</span>
               </div>
               <div className="flex gap-3">
-                <span className="text-zk-primary">✅ zkRune way:</span>
+                <span className="text-zk-primary flex items-center gap-1.5">
+                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  zkRune way:
+                </span>
                 <span className="text-white">Generate a proof that says "I have $10,000+" - your exact balance stays secret!</span>
               </div>
             </div>

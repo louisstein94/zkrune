@@ -4,7 +4,12 @@ export default function TrustExplainer() {
   return (
     <div className="bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8">
       <div className="flex items-start gap-4 mb-6">
-        <div className="text-4xl">🔐</div>
+        <div className="flex-shrink-0">
+          <svg className="w-12 h-12 text-zk-primary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <rect x="5" y="11" width="14" height="10" rx="2" strokeWidth="2" />
+            <path d="M7 11V7a5 5 0 0110 0v4" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        </div>
         <div>
           <h3 className="font-hatton text-2xl text-white mb-3">
             How Do You Know This is Real?
@@ -41,8 +46,11 @@ export default function TrustExplainer() {
                 <span className="text-white">Save file: <code className="text-zk-gray">zkrune-proof-[date].json</code></span>
               </div>
             </div>
-            <p className="text-xs text-zk-gray mt-2">
-              💡 This file (~2KB) contains your mathematical proof - like a receipt!
+            <p className="text-xs text-zk-gray mt-2 flex items-start gap-1.5">
+              <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span>This file (~2KB) contains your mathematical proof - like a receipt!</span>
             </p>
           </div>
         </div>
@@ -67,7 +75,7 @@ export default function TrustExplainer() {
                   <div>→ Open your downloaded file</div>
                   <div>→ Copy-paste the content</div>
                   <div>→ Click "Verify"</div>
-                  <div>→ See result: ✅ or ❌</div>
+                  <div>→ See result: Valid or Invalid</div>
                 </div>
               </div>
 
@@ -103,7 +111,12 @@ export default function TrustExplainer() {
 
       {/* Analogy */}
       <div className="mt-8 p-4 bg-zk-secondary/10 border border-zk-secondary/20 rounded-xl">
-        <p className="text-sm text-white font-medium mb-2">🧩 Think of it like this:</p>
+        <p className="text-sm text-white font-medium mb-2 flex items-center gap-2">
+          <svg className="w-5 h-5 text-zk-secondary" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M10 3.5a1.5 1.5 0 013 0V4a1 1 0 001 1h3a1 1 0 011 1v3a1 1 0 01-1 1h-.5a1.5 1.5 0 000 3h.5a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-.5a1.5 1.5 0 00-3 0v.5a1 1 0 01-1 1H6a1 1 0 01-1-1v-3a1 1 0 00-1-1h-.5a1.5 1.5 0 010-3H4a1 1 0 001-1V6a1 1 0 011-1h3a1 1 0 001-1v-.5z" />
+          </svg>
+          Think of it like this:
+        </p>
         <p className="text-xs text-zk-gray leading-relaxed">
           zkRune is like a <span className="text-white">puzzle maker</span>. 
           We create a puzzle (the proof) that proves you're 18+ without showing your birthday.

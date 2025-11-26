@@ -56,15 +56,15 @@ export default function VerifyProofPage() {
         setResult({
           success: false,
           isValid: false,
-          message: "❌ Missing required fields",
+          message: "Missing required fields",
           error: "Proof must have: statement, timestamp, proofHash, and verificationKey",
           checks: {
-            hasGroth16Proof: hasGroth16 ? "✅" : "❌",
-            hasProofHash: hasProofHash ? "✅" : "❌",
-            hasStatement: hasStatement ? "✅" : "❌",
-            hasTimestamp: hasTimestamp ? "✅" : "❌",
-            hasVerificationKey: hasVerificationKey ? "✅" : "❌",
-            cryptographicVerification: "⚠️ Skipped",
+            hasGroth16Proof: hasGroth16 ? "PASS" : "FAIL",
+            hasProofHash: hasProofHash ? "PASS" : "FAIL",
+            hasStatement: hasStatement ? "PASS" : "FAIL",
+            hasTimestamp: hasTimestamp ? "PASS" : "FAIL",
+            hasVerificationKey: hasVerificationKey ? "PASS" : "FAIL",
+            cryptographicVerification: "SKIPPED",
           },
         });
         setIsVerifying(false);
@@ -118,12 +118,12 @@ export default function VerifyProofPage() {
         message: allRequiredFields 
           ? (isRealProof 
               ? (groth16Valid && cryptoVerified
-                  ? "✅ REAL Groth16 zk-SNARK proof CRYPTOGRAPHICALLY VERIFIED!" 
-                  : "❌ Groth16 proof structure invalid or verification failed")
+                  ? "REAL Groth16 zk-SNARK proof CRYPTOGRAPHICALLY VERIFIED!" 
+                  : "Groth16 proof structure invalid or verification failed")
               : (proof.isValid
-                  ? "✅ Proof format is valid!"
-                  : "❌ Proof marked as invalid"))
-          : "❌ Missing required fields",
+                  ? "Proof format is valid!"
+                  : "Proof marked as invalid"))
+          : "Missing required fields",
         details: {
           statement: proof.statement,
           timestamp: proof.timestamp,
@@ -133,12 +133,12 @@ export default function VerifyProofPage() {
           cryptoVerified: cryptoVerified,
         },
         checks: {
-          hasGroth16Proof: hasGroth16 ? (groth16Valid ? "✅ Real Groth16" : "⚠️ Invalid") : "⚠️ Mock",
-          hasProofHash: hasProofHash ? "✅" : "❌",
-          hasStatement: hasStatement ? "✅" : "❌",
-          hasTimestamp: hasTimestamp ? "✅" : "❌",
-          hasVerificationKey: hasVerificationKey ? "✅" : "❌",
-          cryptographicVerification: isRealProof ? (cryptoVerified ? "✅ Verified" : "❌ Failed") : "⚠️ N/A",
+          hasGroth16Proof: hasGroth16 ? (groth16Valid ? "PASS - Real Groth16" : "WARNING - Invalid") : "WARNING - Mock",
+          hasProofHash: hasProofHash ? "PASS" : "FAIL",
+          hasStatement: hasStatement ? "PASS" : "FAIL",
+          hasTimestamp: hasTimestamp ? "PASS" : "FAIL",
+          hasVerificationKey: hasVerificationKey ? "PASS" : "FAIL",
+          cryptographicVerification: isRealProof ? (cryptoVerified ? "PASS - Verified" : "FAIL") : "N/A",
         },
         timing: 1000,
       });
@@ -189,7 +189,7 @@ export default function VerifyProofPage() {
         "isValid": true,
         "timestamp": "2024-11-13T19:00:00.000Z",
         "publicSignals": ["1"],
-        "note": "✅ REAL Groth16 zk-SNARK proof"
+        "note": "REAL Groth16 zk-SNARK proof"
       },
       "metadata": {
         "template": "age-verification",
@@ -225,7 +225,9 @@ export default function VerifyProofPage() {
           {/* Info Banner */}
           <div className="mb-8 p-6 bg-zk-secondary/10 border border-zk-secondary/30 rounded-2xl">
             <h3 className="font-medium text-zk-secondary mb-3 flex items-center gap-2">
-              <span className="text-2xl">🔬</span>
+              <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 20 20">
+                <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
+              </svg>
               Why Independent Verification?
             </h3>
             <ul className="space-y-2 text-sm text-zk-gray">
@@ -277,7 +279,9 @@ export default function VerifyProofPage() {
 
               {/* Helper Text */}
               <div className="mt-4 flex items-start gap-2 text-xs text-zk-gray">
-                <span className="text-zk-primary">💡</span>
+                <svg className="w-4 h-4 flex-shrink-0 mt-0.5 text-zk-primary" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                </svg>
                 <div>
                   <p className="font-medium text-white mb-1">How to get this:</p>
                   <ol className="space-y-1 list-decimal list-inside">
@@ -318,9 +322,15 @@ export default function VerifyProofPage() {
                 : "bg-red-500/10 border-red-500"
             }`}>
               <div className="flex items-center gap-4 mb-6">
-                <div className="text-6xl">
-                  {result.success && result.isValid ? "✅" : "❌"}
-                </div>
+                {result.success && result.isValid ? (
+                  <svg className="w-16 h-16 text-[#F4B728]" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                ) : (
+                  <svg className="w-16 h-16 text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                )}
                 <div>
                   <h2 className="font-hatton text-3xl text-white mb-2">
                     {result.success && result.isValid

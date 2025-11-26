@@ -63,7 +63,7 @@ export async function generateClientProof(
         timestamp: new Date().toISOString(),
         isValid,
         proofHash: JSON.stringify(groth16Proof).substring(0, 66),
-        note: `🔥 REAL ZK-SNARK generated in browser! (${(proofTime / 1000).toFixed(2)}s)`,
+        note: `REAL ZK-SNARK generated in browser! (${(proofTime / 1000).toFixed(2)}s)`,
       },
       timing: proofTime,
     };

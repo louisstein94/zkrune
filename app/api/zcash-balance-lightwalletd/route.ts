@@ -23,12 +23,12 @@ export async function GET(request: Request) {
   }
 
   try {
-    console.log(`🔍 Fetching balance for ${address} from Lightwalletd...`);
+    console.log(`[Lightwalletd] Fetching balance for ${address}...`);
     
     // Get balance from Lightwalletd
     const balance = await getAddressBalance(address);
     
-    console.log(`✅ Balance fetched: ${balance} ZEC`);
+    console.log(`[Lightwalletd] Balance fetched: ${balance} ZEC`);
 
     return NextResponse.json({
       success: true,
@@ -42,7 +42,7 @@ export async function GET(request: Request) {
     console.error('Lightwalletd balance fetch error:', error);
     
     // Fallback to demo mode if Lightwalletd fails
-    console.log('⚠️ Lightwalletd failed, using demo mode');
+    console.log('[Lightwalletd] Failed, using demo mode');
     
     return NextResponse.json({
       success: true,

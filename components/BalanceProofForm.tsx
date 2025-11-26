@@ -32,9 +32,9 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
     setBalanceFetched(false);
     
     try {
-      // Call Lightwalletd via our Next.js API route (server-side gRPC)
+      // Call Zcash explorer API via our Next.js API route
       const response = await fetch(
-        `/api/zcash-balance-lightwalletd?address=${encodeURIComponent(zcashAddress)}`
+        `/api/zcash-balance?address=${encodeURIComponent(zcashAddress)}`
       );
       
       if (!response.ok) {
@@ -50,8 +50,8 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
         setBalanceFetched(true);
         
         const message = data.source === 'demo' 
-          ? `✅ Demo Balance: ${balanceInZEC.toFixed(8)} ZEC\n\n${data.note || 'Demo mode'}\n\nAddress: ${zcashAddress.substring(0, 10)}...`
-          : `✅ Real balance fetched via Lightwalletd!\n\nBalance: ${balanceInZEC.toFixed(8)} ZEC\nSource: ${data.source}\nAddress: ${zcashAddress.substring(0, 10)}...\n\n🔗 Connected to Zcash network via gRPC`;
+          ? `Demo Balance: ${balanceInZEC.toFixed(8)} ZEC\n\n${data.note || 'Demo mode'}\n\nAddress: ${zcashAddress.substring(0, 10)}...`
+          : `Real balance fetched from Zcash blockchain!\n\nBalance: ${balanceInZEC.toFixed(8)} ZEC\nSource: ${data.source}\nAddress: ${zcashAddress.substring(0, 10)}...\n\nLive data from ${data.source}`;
         
         alert(message);
       } else {
@@ -59,7 +59,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
       }
     } catch (error) {
       console.error("Zcash balance fetch error:", error);
-      alert("❌ Failed to fetch balance. Please check your address or enter manually.");
+      alert("Failed to fetch balance. Please check your address or enter manually.");
       setBalanceFetched(false);
     } finally {
       setIsFetchingBalance(false);
@@ -123,8 +123,11 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
       <div className="bg-gradient-to-r from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-3">
           <img src="/zcash-logo.png" alt="Zcash" className="w-5 h-5" />
-          <label className="text-sm font-bold text-[#F4B728] uppercase tracking-wider">
-            🔗 Real Zcash Blockchain Integration
+          <label className="text-sm font-bold text-[#F4B728] uppercase tracking-wider flex items-center gap-1.5">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+            </svg>
+            Real Zcash Blockchain Integration
           </label>
         </div>
         
@@ -163,7 +166,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
           <svg className="w-3 h-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
-          <span>Powered by Lightwalletd (Zcash official light client) via gRPC</span>
+          <span>Real-time Zcash balance from Crypto APIs (enterprise blockchain data)</span>
         </p>
       </div>
 
@@ -193,10 +196,17 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
           disabled={isFetchingBalance}
           className="w-full px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white focus:border-zk-primary focus:outline-none transition-colors disabled:opacity-50"
         />
-        <p className="text-xs text-zk-gray mt-2">
-          {balanceFetched 
-            ? "✅ Fetched from Zcash blockchain - Your exact amount stays private in the proof"
-            : "Your actual balance will NOT be revealed in the proof"}
+        <p className="text-xs text-zk-gray mt-2 flex items-start gap-1.5">
+          {balanceFetched ? (
+            <>
+              <svg className="w-4 h-4 text-[#F4B728] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+              </svg>
+              <span>Fetched from Zcash blockchain - Your exact amount stays private in the proof</span>
+            </>
+          ) : (
+            <span>Your actual balance will NOT be revealed in the proof</span>
+          )}
         </p>
       </div>
 

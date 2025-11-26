@@ -48,8 +48,8 @@ export default function TokenSwapForm({ onProofGenerated }: TokenSwapFormProps) 
       if (data.success && data.proof) {
         const resultProof = {
           statement: canSwap
-            ? `✅ Swap possible: ${requiredTokenA} Token A → ~${Math.floor(expectedReceive)} Token B`
-            : `❌ Swap not possible (insufficient balance or rate)`,
+            ? `Swap possible: ${requiredTokenA} Token A → ~${Math.floor(expectedReceive)} Token B`
+            : `Swap not possible (insufficient balance or rate)`,
           isValid: canSwap,
           timestamp: data.proof.timestamp,
           proofHash: data.proof.proofHash,
