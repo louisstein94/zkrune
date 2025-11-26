@@ -356,6 +356,47 @@ All 13 templates compiled and production-ready:
 - **Developer:** [@legelsteinn](https://x.com/legelsteinn)
 - **Contract:** See `.env.local` file (configured via `NEXT_PUBLIC_CONTRACT_ADDRESS`)
 
+## 🚀 Future Enhancements & Roadmap
+
+### Phase 1: Zcash Shielded Integration (In Development)
+**Status:** Infrastructure Ready, Full Implementation in Progress
+
+zkRune has laid the groundwork for complete Zcash shielded address support:
+
+- ✅ **UI/UX Ready:** z-address input, viewing key fields, address type detection
+- ✅ **API Infrastructure:** Separate endpoint for shielded balance (`/api/zcash-balance-shielded`)
+- ✅ **Lightwalletd Client:** gRPC client infrastructure in place
+- 🔄 **In Development:** Full shielded note decryption with Zcash Rust SDK
+- 🔄 **Next:** WASM compilation for client-side viewing key processing
+- 🔄 **Next:** Sapling/Orchard protocol support
+
+**Why It Matters:** This will make zkRune the first visual ZK proof builder with native support for Zcash's privacy-preserving shielded transactions.
+
+**Current Demo:** Shielded addresses work in demo mode to showcase the concept and UX flow.
+
+### Phase 2: Cross-Chain Proof Verification
+- Axelar GMP integration for cross-chain proof verification
+- Generate proof on Zcash, verify on Ethereum/Cosmos
+- Universal ZK proof standard
+
+### Phase 3: Advanced Privacy Features
+- Multi-party computation (MPC) for trusted setup
+- Recursive proofs (proof of proof)
+- Aggregated proofs for batch verification
+
+### Phase 4: Developer Tools
+- zkRune CLI enhancements
+- Custom circuit templates
+- Proof verification SDK for multiple languages
+
+**Want to Contribute?** These are ambitious features. We welcome collaboration from:
+- Zcash SDK experts
+- WASM/Rust developers
+- ZK cryptography researchers
+- UX designers for privacy tools
+
+---
+
 ## License
 
 MIT License - see LICENSE file for details
@@ -363,4 +404,10 @@ MIT License - see LICENSE file for details
 ## Contributing
 
 Contributions welcome. Please open an issue or PR on GitHub.
+
+Special interest areas:
+- Zcash shielded integration (Rust/WASM)
+- Cross-chain proof systems
+- Custom circuit templates
+- Performance optimizations
 

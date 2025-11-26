@@ -9,11 +9,24 @@ interface BalanceProofFormProps {
 
 export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormProps) {
   const [zcashAddress, setZcashAddress] = useState("");
+  const [viewingKey, setViewingKey] = useState(""); // For shielded addresses
   const [balance, setBalance] = useState("");
   const [minBalance, setMinBalance] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isFetchingBalance, setIsFetchingBalance] = useState(false);
   const [balanceFetched, setBalanceFetched] = useState(false);
+  const [addressType, setAddressType] = useState<'transparent' | 'shielded' | null>(null);
+
+  // Detect address type
+  const detectAddressType = (address: string): 'transparent' | 'shielded' | null => {
+    if (address.startsWith('t1') || address.startsWith('t3')) {
+      return 'transparent';
+    }
+    if (address.startsWith('zs1') || address.startsWith('zu1') || address.startsWith('zregtestsapling')) {
+      return 'shielded';
+    }
+    return null;
+  };
 
   // Fetch real Zcash balance from blockchain
   const fetchZcashBalance = async () => {
@@ -22,9 +35,17 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
       return;
     }
 
-    // Basic validation
-    if (!zcashAddress.startsWith('t') && !zcashAddress.startsWith('z')) {
-      alert("Invalid Zcash address. Must start with 't' (transparent) or 'z' (shielded)");
+    // Detect address type
+    const type = detectAddressType(zcashAddress);
+    if (!type) {
+      alert("Invalid Zcash address format");
+      return;
+    }
+    setAddressType(type);
+
+    // For shielded addresses, require viewing key
+    if (type === 'shielded' && !viewingKey.trim()) {
+      alert("Shielded addresses require a viewing key. Please enter your viewing key.");
       return;
     }
 
@@ -32,10 +53,12 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
     setBalanceFetched(false);
     
     try {
-      // Call Zcash explorer API via our Next.js API route
-      const response = await fetch(
-        `/api/zcash-balance?address=${encodeURIComponent(zcashAddress)}`
-      );
+      // Call Zcash balance API (different endpoints for transparent vs shielded)
+      const endpoint = type === 'shielded' 
+        ? `/api/zcash-balance-shielded?address=${encodeURIComponent(zcashAddress)}&viewingKey=${encodeURIComponent(viewingKey)}`
+        : `/api/zcash-balance?address=${encodeURIComponent(zcashAddress)}`;
+      
+      const response = await fetch(endpoint);
       
       if (!response.ok) {
         throw new Error("Failed to fetch balance");
@@ -137,10 +160,46 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
           onChange={(e) => {
             setZcashAddress(e.target.value);
             setBalanceFetched(false);
+            setAddressType(detectAddressType(e.target.value));
           }}
-          placeholder="t1abc... or z1xyz... (Zcash address)"
+          placeholder="t1abc... or zs1xyz... (Zcash address)"
           className="w-full px-4 py-3 bg-zk-darker border border-[#F4B728]/30 rounded-lg text-white focus:border-[#F4B728] focus:outline-none transition-colors font-mono text-sm mb-3"
         />
+
+        {/* Address Type Badge */}
+        {addressType && (
+          <div className="flex items-center gap-2 mb-3">
+            <span className={`px-3 py-1 rounded-full text-xs font-medium ${
+              addressType === 'shielded' 
+                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40' 
+                : 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
+            }`}>
+              {addressType === 'shielded' ? '🛡️ Shielded Address' : '🔓 Transparent Address'}
+            </span>
+          </div>
+        )}
+        
+        {/* Viewing Key Input (only for shielded addresses) */}
+        {addressType === 'shielded' && (
+          <div className="mb-3 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+            <label className="block text-sm font-medium text-purple-400 mb-2">
+              Viewing Key (Required for Shielded)
+            </label>
+            <input
+              type="password"
+              value={viewingKey}
+              onChange={(e) => setViewingKey(e.target.value)}
+              placeholder="zxviews1..."
+              className="w-full px-4 py-3 bg-zk-darker border border-purple-500/30 rounded-lg text-white focus:border-purple-400 focus:outline-none transition-colors font-mono text-sm"
+            />
+            <p className="text-xs text-purple-300 mt-2 flex items-start gap-1.5">
+              <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+              <span>Your viewing key allows reading shielded balance without revealing spending ability. Processed client-side only.</span>
+            </p>
+          </div>
+        )}
         
         <button
           onClick={fetchZcashBalance}
