@@ -13,8 +13,7 @@ export async function generateClientProof(
     const startTime = Date.now();
 
     // Dynamically import snarkjs (browser compatible)
-    // @ts-ignore
-    const snarkjs = await import("snarkjs");
+    const snarkjs = await import("snarkjs") as any;
 
     // Load circuit files from public folder
     const wasmPath = `/circuits/${templateId}.wasm`;
