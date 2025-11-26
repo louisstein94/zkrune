@@ -1,0 +1,59 @@
+// Copyright (c) 2019-2020 The Zcash developers
+// Distributed under the MIT software license, see the accompanying
+// file COPYING or https://www.opensource.org/licenses/mit-license.php .
+// 
+// Real Lightwalletd service definitions from:
+// https://github.com/zcash/lightwalletd/blob/master/walletrpc/service.proto
+
+syntax = "proto3";
+
+package cash.z.wallet.sdk.rpc;
+
+option go_package = "lightwalletd/walletrpc";
+option swift_prefix = "";
+
+// Empty is for gRPCs that take no arguments
+message Empty {}
+
+// LightdInfo returns various information about this lightwalletd instance
+message LightdInfo {
+    string version = 1;
+    string vendor = 2;
+    bool   taddrSupport = 3;
+    string chainName = 4;
+    uint64 saplingActivationHeight = 5;
+    string consensusBranchId = 6;
+    uint64 blockHeight = 7;
+    string gitCommit = 8;
+    string branch = 9;
+    string buildDate = 10;
+    string buildUser = 11;
+    uint64 estimatedHeight = 12;
+    string zcashdBuild = 13;
+    string zcashdSubversion = 14;
+}
+
+message Address {
+    string address = 1;
+}
+
+message AddressList {
+    repeated string addresses = 1;
+}
+
+message Balance {
+    int64 valueZat = 1;
+}
+
+// Main service
+service CompactTxStreamer {
+    // Get transparent address balance
+    rpc GetTaddressBalance(AddressList) returns (Balance) {}
+    
+    // Get transparent address balance (streaming)
+    rpc GetTaddressBalanceStream(stream Address) returns (Balance) {}
+    
+    // Return information about this lightwalletd instance
+    rpc GetLightdInfo(Empty) returns (LightdInfo) {}
+}
+
