@@ -1,6 +1,6 @@
 {
   "name": "zkrune-sdk",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "JavaScript SDK for zkRune - Generate zero-knowledge proofs with Zcash's Groth16 technology",
   "main": "dist/index.js",
   "module": "dist/index.mjs",

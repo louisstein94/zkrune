@@ -53,8 +53,7 @@ export async function generateProof(options: ZKProofOptions): Promise<ZKProofRes
     const startTime = Date.now();
 
     // Dynamic import snarkjs
-    // @ts-ignore
-    const snarkjs = await import('snarkjs');
+    const snarkjs = await import('snarkjs') as any;
 
     // Determine circuit paths (files are in /circuits/ on zkrune.com)
     const basePath = circuitPath || (typeof window !== 'undefined' ? '/circuits' : 'https://zkrune.com/circuits');
@@ -139,8 +138,7 @@ export async function verifyProof(params: {
   verificationKey: any;
 }): Promise<boolean> {
   try {
-    // @ts-ignore
-    const snarkjs = await import('snarkjs');
+    const snarkjs = await import('snarkjs') as any;
     
     const isValid = await snarkjs.groth16.verify(
       params.verificationKey,
