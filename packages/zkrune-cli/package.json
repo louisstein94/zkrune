@@ -1,0 +1,55 @@
+{
+  "name": "zkrune-cli",
+  "version": "1.0.0",
+  "description": "CLI tool for zkRune - Compile and manage zero-knowledge circuits",
+  "main": "dist/index.js",
+  "bin": {
+    "zkrune": "./dist/cli.js"
+  },
+  "files": [
+    "dist",
+    "templates"
+  ],
+  "scripts": {
+    "build": "tsup src/cli.ts src/index.ts --format cjs --dts",
+    "dev": "tsup src/cli.ts src/index.ts --format cjs --dts --watch",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [
+    "zkrune",
+    "zero-knowledge",
+    "zk-snark",
+    "groth16",
+    "circom",
+    "cli",
+    "circuit-compiler",
+    "zcash",
+    "privacy"
+  ],
+  "author": "zkRune Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/louisstein94/zkrune.git",
+    "directory": "packages/zkrune-cli"
+  },
+  "homepage": "https://zkrune.com",
+  "dependencies": {
+    "commander": "^11.1.0",
+    "chalk": "^4.1.2",
+    "ora": "^5.4.1",
+    "inquirer": "^8.2.5",
+    "fs-extra": "^11.2.0",
+    "snarkjs": "^0.7.4",
+    "circomlibjs": "^0.1.7",
+    "circomlib": "^2.0.5"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.6",
+    "@types/inquirer": "^8.2.10",
+    "@types/fs-extra": "^11.0.4",
+    "tsup": "^8.0.1",
+    "typescript": "^5.3.3"
+  }
+}
+
