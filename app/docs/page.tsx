@@ -455,7 +455,12 @@ export default function DocsPage() {
               </div>
 
               <div className="bg-zk-secondary/10 border border-zk-secondary/20 rounded-xl p-6">
-                <p className="text-sm text-white font-medium mb-2">⚡ Performance:</p>
+                <p className="text-sm text-white font-medium mb-2 flex items-center gap-2">
+                  <svg className="w-4 h-4 text-zk-secondary" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
+                  </svg>
+                  Performance:
+                </p>
                 <p className="text-xs text-zk-gray">
                   All circuits optimized for speed. Average proof generation: 0.44 seconds (CLI tested).
                 </p>

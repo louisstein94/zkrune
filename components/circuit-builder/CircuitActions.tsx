@@ -35,7 +35,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
         outputs: nodes.filter(n => n.type === 'output').map(n => n.data.label),
       };
 
-      alert(`✅ Test Passed!\n\nInputs: ${testResults.sampleInputs.join(', ')}\nOutputs: ${testResults.outputs.join(', ')}\n\nCircuit is ready to compile!`);
+      alert(`Test Passed!\n\nInputs: ${testResults.sampleInputs.join(', ')}\nOutputs: ${testResults.outputs.join(', ')}\n\nCircuit is ready to compile!`);
       setIsTesting(false);
     }, 1500);
   };
@@ -57,7 +57,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
     // Simulate compilation
     setTimeout(() => {
       const success = confirm(
-        '🔥 Circuit is ready to compile!\n\n' +
+        'Circuit is ready to compile!\n\n' +
         'This would:\n' +
         '1. Save circuit.circom file\n' +
         '2. Compile to WASM\n' +
@@ -76,7 +76,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
         a.click();
         URL.revokeObjectURL(url);
 
-        alert('✅ Circom code downloaded!\n\nNext steps:\n1. Compile with: circom your-circuit.circom\n2. Generate keys with snarkjs\n3. Test your proof!');
+        alert('Circom code downloaded!\n\nNext steps:\n1. Compile with: circom your-circuit.circom\n2. Generate keys with snarkjs\n3. Test your proof!');
       }
 
       setIsCompiling(false);

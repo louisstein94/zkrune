@@ -50,11 +50,11 @@ export async function getLightwalletdClient() {
           });
         });
 
-        console.log(`✅ Connected to Lightwalletd: ${endpoint}`);
+        console.log(`[Lightwalletd] Connected: ${endpoint}`);
         cachedClient = { client, endpoint };
         return cachedClient;
       } catch (error) {
-        console.log(`❌ Failed to connect to ${endpoint}:`, error);
+        console.log(`[Lightwalletd] Failed to connect to ${endpoint}:`, error);
         continue;
       }
     }

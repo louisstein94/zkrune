@@ -45,8 +45,8 @@ export default function CredentialProofForm({ onProofGenerated }: CredentialProo
       if (data.success && data.proof) {
         const resultProof = {
           statement: isValid
-            ? "✅ Credentials are valid and not expired"
-            : "❌ Credentials are invalid or expired",
+            ? "Credentials are valid and not expired"
+            : "Credentials are invalid or expired",
           isValid: isValid,
           timestamp: data.proof.timestamp,
           proofHash: data.proof.proofHash,
