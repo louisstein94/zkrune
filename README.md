@@ -177,15 +177,18 @@ zkrune/
 - [x] Independent verification
 - [x] Zcash ecosystem integration
 - [x] Progressive Web App (offline support)
-- [x] **NPM SDK Package** (`packages/zkrune-sdk` - ready for npm)
+- [x] **NPM SDK Package** ([`zkrune-sdk@1.2.0`](https://www.npmjs.com/package/zkrune-sdk) - published on npm)
+- [x] **CLI Tool** ([`zkrune-cli@1.0.0`](https://www.npmjs.com/package/zkrune-cli) - circuit compiler)
 - [x] TypeScript support (fully typed)
 - [x] Complete documentation (all 13 templates)
+- [x] Real circom compilation (with circomlib integration)
 
 ### 🚀 Next Steps
-- [ ] Publish `zkrune-sdk` to npm registry
-- [ ] CLI tool for circuit compilation
+- [x] **Publish `zkrune-sdk` to npm registry** → [Live on NPM v1.2.0](https://www.npmjs.com/package/zkrune-sdk)
+- [x] **CLI tool for circuit compilation** → [Live on NPM v1.0.0](https://www.npmjs.com/package/zkrune-cli)
 - [ ] Template Marketplace
 - [ ] Integration examples & tutorials
+- [ ] Mobile app (iOS/Android)
 
 ### 📈 Future Vision
 - [ ] Mobile app (iOS/Android)
