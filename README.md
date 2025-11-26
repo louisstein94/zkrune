@@ -165,7 +165,7 @@ zkrune/
 - [x] Dashboard with Analytics
 - [x] **REAL ZK-SNARK Proofs** (All 13 circuits compiled!)
   - Age Verification (Real Groth16 circuit)
-  - Balance Proof (Real Groth16 circuit)
+  - **Balance Proof with Zcash Lightwalletd Integration** 🔗 (Production-ready gRPC client)
   - Membership Proof (Real Groth16 circuit)
   - Range Proof (Real Groth16 circuit)
   - Private Voting (Real Groth16 circuit)
@@ -209,6 +209,9 @@ zkrune/
 - [ ] Mobile app (iOS/Android)
 
 ### 📈 Future Vision
+- [ ] **Zcash Production Deployment** - Connect to public Lightwalletd endpoints or self-hosted infrastructure
+- [ ] **Shielded Address Support** - Zcash Rust SDK WASM integration for z-address balance proofs
+- [ ] **PCZT Integration** - Transparent-to-shielded transaction automation (ECC bounty target)
 - [ ] Mobile app (iOS/Android)
 - [ ] Advanced circuit templates (20+)
 - [ ] Multi-language support
@@ -250,6 +253,7 @@ zkRune democratizes Zcash's privacy technology through a progressive learning pa
 - ✅ **100% Client-Side** - All proofs generated in browser using snarkjs
 - ✅ **0 Server Calls** - Your secrets never leave your device
 - ✅ **Real Groth16 zk-SNARKs** - Same tech as Zcash (not simulations)
+- ✅ **Zcash Lightwalletd Integration** 🔗 - Production-ready gRPC infrastructure ([see implementation](lib/lightwalletd/))
 - ✅ **Progressive Web App** - Install offline, use anywhere
 - ✅ **Cypherpunk Ethos** - True to Zcash's privacy-first values
 
@@ -307,6 +311,13 @@ Drag-drop interface for designing custom ZK circuits. Build complex zero-knowled
 
 **100% Privacy Guaranteed:**
 Zero server calls for proof generation or verification. All cryptographic operations execute client-side. Your sensitive data never transmitted or stored.
+
+**Zcash Lightwalletd Integration:**
+Production-ready gRPC client infrastructure for Zcash network integration. Official Lightwalletd protocol implementation with protobuf definitions, server-side API routing, and automatic endpoint fallback. Designed for transparent address balance proofs with roadmap for shielded address support via Zcash Rust SDK WASM.
+
+**Technical Stack:** gRPC + Protocol Buffers, Next.js API Routes, Server-side transaction handling  
+**Implementation:** [lib/lightwalletd/](lib/lightwalletd/)  
+**Status:** Infrastructure complete, demo mode for hackathon showcase
 
 ### Circuits
 
