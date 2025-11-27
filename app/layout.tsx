@@ -4,6 +4,7 @@ import "./globals.css";
 import InstallPrompt from "@/components/InstallPrompt";
 import FirstTimeSetupPrompt from "@/components/FirstTimeSetupPrompt";
 import TutorialOverlay from "@/components/TutorialOverlay";
+import { ClientWalletProvider } from "@/components/ClientWalletProvider";
 
 const dmSans = DM_Sans({
   subsets: ["latin"],
@@ -66,10 +67,12 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${dmSans.variable} ${playfairDisplay.variable}`}>
       <body className="font-dm-sans antialiased">
-        {children}
-        <InstallPrompt />
-        <FirstTimeSetupPrompt />
-        <TutorialOverlay />
+        <ClientWalletProvider>
+          {children}
+          <InstallPrompt />
+          <FirstTimeSetupPrompt />
+          <TutorialOverlay />
+        </ClientWalletProvider>
       </body>
     </html>
   );
