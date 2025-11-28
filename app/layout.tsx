@@ -68,10 +68,10 @@ export default function RootLayout({
     <html lang="en" className={`${dmSans.variable} ${playfairDisplay.variable}`}>
       <body className="font-dm-sans antialiased">
         <ClientWalletProvider>
-          {children}
-          <InstallPrompt />
-          <FirstTimeSetupPrompt />
-          <TutorialOverlay />
+        {children}
+        <InstallPrompt />
+        <FirstTimeSetupPrompt />
+        <TutorialOverlay />
         </ClientWalletProvider>
       </body>
     </html>

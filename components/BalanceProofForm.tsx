@@ -232,8 +232,8 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
       <div>
         <div className="flex items-center justify-between mb-2">
           <label className="block text-sm font-medium text-zk-gray">
-            Your Balance (ZEC)
-          </label>
+          Your Balance (ZEC)
+        </label>
           {balanceFetched && (
             <span className="text-xs px-2 py-1 bg-[#F4B728]/20 text-[#F4B728] rounded-full border border-[#F4B728]/30 flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">

@@ -1,0 +1,1 @@
+/Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/target/sbf-solana-solana/release/solana_groth16_verifier.so: /Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/src/lib.rs

@@ -189,6 +189,7 @@ if (isValid) {
         <SolanaVerifier 
             proof={proof.groth16Proof || proof.proof} 
             publicSignals={proof.publicSignals} 
+            templateId={templateId}
         />
       )}
     </div>

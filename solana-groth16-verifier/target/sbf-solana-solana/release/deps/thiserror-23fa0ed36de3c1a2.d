@@ -1,0 +1,10 @@
+/Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/target/sbf-solana-solana/release/deps/libthiserror-23fa0ed36de3c1a2.rmeta: /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/aserror.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/display.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/provide.rs
+
+/Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/target/sbf-solana-solana/release/deps/libthiserror-23fa0ed36de3c1a2.rlib: /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/aserror.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/display.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/provide.rs
+
+/Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/target/sbf-solana-solana/release/deps/thiserror-23fa0ed36de3c1a2.d: /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/aserror.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/display.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/provide.rs
+
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/lib.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/aserror.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/display.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/thiserror-1.0.69/src/provide.rs:

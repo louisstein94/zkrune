@@ -1,0 +1,10 @@
+/Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/target/sbf-solana-solana/release/deps/libmemoffset-f4ee4f8d73c634c9.rmeta: /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/raw_field.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/offset_of.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/span_of.rs
+
+/Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/target/sbf-solana-solana/release/deps/libmemoffset-f4ee4f8d73c634c9.rlib: /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/raw_field.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/offset_of.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/span_of.rs
+
+/Users/hakkioz/Desktop/ZypherPunkHackathon/zkrune/solana-groth16-verifier/target/sbf-solana-solana/release/deps/memoffset-f4ee4f8d73c634c9.d: /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/raw_field.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/offset_of.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/span_of.rs
+
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/lib.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/raw_field.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/offset_of.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-6f17d22bba15001f/memoffset-0.9.1/src/span_of.rs:
