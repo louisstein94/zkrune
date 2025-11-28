@@ -16,5 +16,8 @@ cpi = ["no-entrypoint"]
 default = []
 
 [dependencies]
-anchor-lang = "0.26.0"
-groth16-solana = { git = "https://github.com/Lightprotocol/groth16-solana" }
+anchor-lang = { version = "0.28.0" }
+solana-program = { version = "=1.16.27" }
+# Pin these as dependencies
+getrandom = { version = "=0.2.12", features = ["custom"] }
+jobserver = "=0.1.32"

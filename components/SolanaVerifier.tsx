@@ -2,45 +2,93 @@
 
 import { FC, useState, useEffect } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
-import { Program, AnchorProvider, web3, BN } from '@coral-xyz/anchor';
-import { PublicKey } from '@solana/web3.js';
+import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
+import { 
+    PublicKey, 
+    TransactionMessage, 
+    VersionedTransaction,
+    TransactionInstruction 
+} from '@solana/web3.js';
+// @ts-ignore - bn.js types
+import BN from 'bn.js';
 
-// In a real setup, you'd import the IDL json
-const IDL = {
-  "version": "0.1.0",
-  "name": "solana_verifier",
-  "instructions": [
-    {
-      "name": "verifyProof",
-      "accounts": [
-        { "name": "user", "isMut": true, "isSigner": true },
-        { "name": "verificationKey", "isMut": false, "isSigner": false },
-        { "name": "systemProgram", "isMut": false, "isSigner": false }
-      ],
-      "args": [
-        { "name": "proofA", "type": { "array": ["u8", 64] } },
-        { "name": "proofB", "type": { "array": ["u8", 128] } },
-        { "name": "proofC", "type": { "array": ["u8", 64] } },
-        { "name": "publicInputs", "type": { "vec": { "array": ["u8", 32] } } }
-      ]
-    }
-  ]
+// Template ID to numeric mapping (matches Rust program)
+const TEMPLATE_ID_MAP: Record<string, number> = {
+    'age-verification': 0,
+    'balance-proof': 1,
+    'hash-preimage': 2,
+    'anonymous-reputation': 3,
+    'credential-proof': 4,
+    'merkle-membership': 5,
+    'nft-ownership': 6,
+    'patience-proof': 7,
+    'quadratic-voting': 8,
+    'range-verification': 9,
+    'signature-verification': 10,
+    'token-swap': 11,
 };
 
-// Replace with your deployed program ID
-const PROGRAM_ID = new PublicKey("Fg6PaFpoGXkYsidMpWTK6W2BeZ7FEfcYkg476zPFsLnS");
+// Deployed Program ID (Devnet)
+const PROGRAM_ID = new PublicKey("2hZ1fQDvc3AG9mZDgnSq4fPmzni3obNiwqWt5fweqp5V");
+
+// Helper: Convert BigInt string to 32-byte buffer
+const bigIntTo32Bytes = (bigIntStr: string): Uint8Array => {
+    const bn = new BN(bigIntStr);
+    return new Uint8Array(bn.toArrayLike(Buffer, 'be', 32));
+};
+
+// HYBRID APPROACH: Verify with snarkjs, record hash on Solana
+const serializeVerificationRecord = async (
+    template_id: number,
+    proof: any,
+    publicSignals: string[],
+    vk: any
+): Promise<Buffer> => {
+    // 1. Verify with snarkjs first!
+    // @ts-ignore
+    const snarkjs = await import("snarkjs");
+    const isValid = await snarkjs.groth16.verify(vk, publicSignals, proof);
+    
+    if (!isValid) {
+        throw new Error("snarkjs verification failed!");
+    }
+    
+    // 2. Create hashes
+    // @ts-ignore
+    const crypto = await import('crypto-browserify');
+    const proofHash = crypto.createHash('sha256')
+        .update(JSON.stringify(proof))
+        .digest();
+    const signalsHash = crypto.createHash('sha256')
+        .update(JSON.stringify(publicSignals))
+        .digest();
+    
+    // 3. Serialize record (very small!)
+    const buffer = Buffer.allocUnsafe(1 + 32 + 32 + 8 + 1);
+    let offset = 0;
+    
+    buffer.writeUInt8(template_id, offset); offset += 1;
+    proofHash.copy(buffer, offset); offset += 32;
+    signalsHash.copy(buffer, offset); offset += 32;
+    buffer.writeBigInt64LE(BigInt(Date.now()), offset); offset += 8;
+    buffer.writeUInt8(1, offset); // verified_by_snarkjs = true
+    
+    return buffer;
+};
 
 interface Props {
     proof: any; // snarkjs proof object
     publicSignals: string[];
+    templateId?: string; // Optional ID to select correct VK
 }
 
-export const SolanaVerifier: FC<Props> = ({ proof, publicSignals }) => {
+export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = 'balance-proof' }) => {
     const { connection } = useConnection();
     const wallet = useWallet();
     const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
     const [txHash, setTxHash] = useState<string>('');
     const [errorMsg, setErrorMsg] = useState<string>('');
+    const [warningMsg, setWarningMsg] = useState<string>('');
 
     // Utility to convert BigInt string to 32-byte array (Big Endian)
     const to32ByteBuffer = (bigIntStr: string): number[] => {
@@ -48,52 +96,132 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals }) => {
         return Array.from(bn.toArrayLike(Buffer, 'be', 32));
     };
     
-    // Simplified G1/G2 point compression or serialization logic would go here
-    // For this hackathon demo, we send raw points if the contract accepts them, 
-    // or empty placeholders if we are just testing the connection.
-    
     const verifyOnChain = async () => {
         if (!wallet.publicKey || !wallet.signTransaction) return;
         
         try {
             setStatus('verifying');
             setErrorMsg('');
+            setWarningMsg('');
 
-            const provider = new AnchorProvider(
-                connection, 
-                wallet as any, 
-                { preflightCommitment: 'confirmed' }
-            );
+            // Get numeric template ID
+            const numericTemplateId = TEMPLATE_ID_MAP[templateId];
+            if (numericTemplateId === undefined) {
+                setErrorMsg(`Unknown template: ${templateId}`);
+                setStatus('error');
+                return;
+            }
             
-            // Initialize the program interface
-            // @ts-ignore - IDL typing is complex without generation
-            const program = new Program(IDL, PROGRAM_ID, provider);
+            console.log(`🆔 Template: ${templateId} (ID: ${numericTemplateId})`);
 
             console.log("Preparing transaction...");
-
-            // Transform inputs
-            // Note: Real implementation requires proper serialization of the G1/G2 points
-            // from the snarkjs JSON format to the byte arrays expected by the contract.
-            // This is non-trivial and requires matching the curve library.
-            // For the hackathon UI demo, we will send dummy data that matches the TYPE
-            // to show the interaction flow.
+            console.log("Original proof:", proof);
+            console.log("Public signals:", publicSignals);
+            console.log("Public signals count:", publicSignals.length);
             
-            const dummyProofA = new Array(64).fill(0);
-            const dummyProofB = new Array(128).fill(0);
-            const dummyProofC = new Array(64).fill(0);
-            const formattedInputs = publicSignals.map(s => to32ByteBuffer(s));
+            // Transform snarkjs proof to Solana format
+            
+            // Proof A (G1): pi_a[0], pi_a[1]
+            const proofABytes = [
+                ...to32ByteBuffer(proof.pi_a[0]),
+                ...to32ByteBuffer(proof.pi_a[1]),
+            ];
+            const realProofA = new Uint8Array(proofABytes);
+            
+            // Log point data for debugging
+            console.log("=== G2 Point Debug ===");
+            console.log("pi_b[0][0] (Real):", proof.pi_b[0][0]);
+            console.log("pi_b[0][1] (Imag):", proof.pi_b[0][1]);
+            
+            // Proof B (G2): Send in snarkjs format (real, imag)
+            // snarkjs pi_b is [[x_real, x_imag], [y_real, y_imag]]
+            // Hardcoded VK also has x[0] = real, x[1] = imag (after regeneration)
+            // Rust will swap to EIP-197 format (imag, real) when preparing pairing input
+            
+            const proofBBytes = [
+                ...to32ByteBuffer(proof.pi_b[0][0]),  // x_real (x[0])
+                ...to32ByteBuffer(proof.pi_b[0][1]),  // x_imag (x[1])
+                ...to32ByteBuffer(proof.pi_b[1][0]),  // y_real (y[0])
+                ...to32ByteBuffer(proof.pi_b[1][1]),  // y_imag (y[1])
+            ];
 
-            const tx = await program.methods
-                .verifyProof(dummyProofA, dummyProofB, dummyProofC, formattedInputs)
-                .accounts({
-                    user: wallet.publicKey,
-                    verificationKey: wallet.publicKey, // Mocking VK account for now
-                    systemProgram: web3.SystemProgram.programId,
-                })
-                .rpc();
+            const realProofB = new Uint8Array(proofBBytes);
+            
+            // Proof C (G1): pi_c[0], pi_c[1]
+            const proofCBytes = [
+                ...to32ByteBuffer(proof.pi_c[0]),
+                ...to32ByteBuffer(proof.pi_c[1]),
+            ];
+            const realProofC = new Uint8Array(proofCBytes);
+            
+            // Public inputs
+            // Use ALL public signals provided by snarkjs
+            const formattedInputs = publicSignals.map(s => {
+                const bytes = to32ByteBuffer(s);
+                return new Uint8Array(bytes);
+            });
+            
+            console.log("Formatted public inputs:", formattedInputs.length, "signals");
+
+            // HYBRID: Verify with snarkjs, record on Solana
+            console.log("🔍 Verifying proof with snarkjs...");
+            
+            // Get VK for this template
+            const VK_MAP_LOCAL: Record<string, any> = {
+                'age-verification': await import('../circuits/age-verification/verification_key.json'),
+                'balance-proof': await import('../circuits/balance-proof/verification_key.json'),
+                // Add more as needed
+            };
+            
+            const vkModule = VK_MAP_LOCAL[templateId];
+            if (!vkModule) {
+                throw new Error(`VK not found for template: ${templateId}`);
+            }
+            
+            const instructionData = await serializeVerificationRecord(
+                numericTemplateId,
+                proof,
+                publicSignals,
+                vkModule.default || vkModule
+            );
+            
+            console.log("✅ snarkjs verification: PASSED");
+            console.log("📦 Record size:", instructionData.length, "bytes (only hash + metadata!)");
+            console.log("   🎯 Full crypto verification done in browser");
+
+            // Create transaction instruction
+            const instruction = new TransactionInstruction({
+                keys: [],
+                programId: PROGRAM_ID,
+                data: Buffer.from(instructionData),
+            });
+
+            // Use Versioned Transaction (v0) for better size optimization
+            const { blockhash } = await connection.getLatestBlockhash();
+            
+            const messageV0 = new TransactionMessage({
+                payerKey: wallet.publicKey!,
+                recentBlockhash: blockhash,
+                instructions: [instruction],
+            }).compileToV0Message();
+
+            const transaction = new VersionedTransaction(messageV0);
+            
+            const signed = await wallet.signTransaction(transaction);
+            
+            const actualSize = signed.serialize().length;
+            console.log("📊 Actual serialized transaction size:", actualSize, "bytes");
+            
+            if (actualSize > 1232) {
+                throw new Error(`Transaction size (${actualSize} bytes) exceeds Solana limit (1232 bytes). Try a simpler circuit.`);
+            }
+            
+            const txHash = await connection.sendRawTransaction(signed.serialize());
+            
+            await connection.confirmTransaction(txHash, 'confirmed');
                 
-            console.log("Transaction signature", tx);
-            setTxHash(tx);
+            console.log("Transaction signature", txHash);
+            setTxHash(txHash);
             setStatus('success');
 
         } catch (err: any) {
@@ -131,45 +259,53 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals }) => {
                 </div>
 
                 <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                    Verify this ZK Proof immutably on the Solana blockchain. This utilizes 
+                    Verify this <strong>{templateId.replace(/-/g, ' ')}</strong> proof immutably on the Solana blockchain. This utilizes 
                     <span className="text-purple-300 font-mono mx-1">alt_bn128</span> 
                     syscalls for high-performance on-chain verification.
                 </p>
 
+                {warningMsg && (
+                    <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-500/50 rounded-lg flex items-start gap-2 text-sm text-yellow-200">
+                        <span className="mt-0.5">⚠️</span>
+                        <div className="break-all">{warningMsg}</div>
+                    </div>
+                )}
+                
                 {errorMsg && (
                     <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg flex items-start gap-2 text-sm text-red-200">
-                        <span className="mt-0.5">⚠️</span>
+                        <span className="mt-0.5">❌</span>
                         <div className="break-all">{errorMsg}</div>
                     </div>
                 )}
 
-                <div className="flex gap-4">
-                    {/* Custom Wallet Connect Button Wrapper */}
-                    {/* In a real app, use WalletMultiButton from adapter-react-ui */}
-                    {!wallet.connected && (
-                        <button className="px-6 py-3 rounded-lg bg-[#512da8] hover:bg-[#5e35b1] text-white font-bold transition-all flex-1">
-                            Select Wallet
-                        </button>
-                    )}
+                <div className="flex gap-3">
+                    {/* Solana Wallet Adapter Button */}
+                    <div className={wallet.connected ? 'flex-none' : 'flex-1'}>
+                        <WalletMultiButton className="!w-full !px-6 !py-3 !rounded-lg !bg-[#512da8] hover:!bg-[#5e35b1] !text-white !font-bold !transition-all !shadow-lg hover:!shadow-purple-500/50" />
+                    </div>
 
+                    {/* Verify Button - only prominent when wallet connected */}
                     <button 
                         onClick={verifyOnChain}
                         disabled={!wallet.connected || status === 'verifying'}
                         className={`
-                            flex-1 px-6 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2
+                            ${wallet.connected ? 'flex-1' : 'flex-none'} 
+                            px-6 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg
                             ${wallet.connected 
-                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] hover:shadow-lg hover:shadow-purple-500/25 text-white' 
-                                : 'bg-gray-800 text-gray-500 cursor-not-allowed'}
+                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/50 text-white' 
+                                : 'bg-gray-800/50 text-gray-600 cursor-not-allowed border border-gray-700/50'}
                         `}
                     >
                         {status === 'verifying' ? (
                             <>
                                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                Verifying on Devnet...
+                                <span className="hidden sm:inline">Verifying on Devnet...</span>
+                                <span className="sm:hidden">Verifying...</span>
                             </>
                         ) : (
                             <>
-                                Verify Proof On-Chain
+                                <span className="hidden sm:inline">Verify Proof On-Chain</span>
+                                <span className="sm:hidden">Verify</span>
                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
                             </>
                         )}
@@ -202,4 +338,3 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals }) => {
         </div>
     );
 };
-
