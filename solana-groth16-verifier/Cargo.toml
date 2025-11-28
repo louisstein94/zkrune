@@ -1,0 +1,20 @@
+[package]
+name = "solana-groth16-verifier"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+solana-program = "~1.17"
+borsh = "=0.10.3"
+
+[dev-dependencies]
+solana-program-test = "~1.17"
+solana-sdk = "~1.17"
+
+[patch.crates-io]
+# Pin to versions compatible with Solana Rust 1.79
+indexmap = { git = "https://github.com/indexmap-rs/indexmap", tag = "2.2.6" }
+ahash = { git = "https://github.com/tkaitchuck/aHash", tag = "v0.8.11" }

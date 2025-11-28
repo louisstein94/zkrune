@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SolanaVerifier } from "./SolanaVerifier";
 
 interface ProofExportProps {
   proof: any;
@@ -182,6 +183,15 @@ if (isValid) {
           </div>
         </div>
       </div>
+      
+      {/* Solana On-Chain Verification */}
+      {(proof.groth16Proof || proof.proof) && proof.publicSignals && (
+        <SolanaVerifier 
+            proof={proof.groth16Proof || proof.proof} 
+            publicSignals={proof.publicSignals} 
+            templateId={templateId}
+        />
+      )}
     </div>
   );
 }

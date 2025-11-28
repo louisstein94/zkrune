@@ -11,9 +11,16 @@
     "setup:circom": "echo 'Install Circom: cargo install --git https://github.com/iden3/circom.git'"
   },
   "dependencies": {
+    "@coral-xyz/anchor": "^0.29.0",
     "@ducanh2912/next-pwa": "^10.2.9",
     "@grpc/grpc-js": "^1.14.1",
     "@grpc/proto-loader": "^0.8.0",
+    "@solana/wallet-adapter-base": "^0.9.23",
+    "@solana/wallet-adapter-react": "^0.15.35",
+    "@solana/wallet-adapter-react-ui": "^0.9.35",
+    "@solana/wallet-adapter-wallets": "^0.19.32",
+    "@solana/web3.js": "^1.91.0",
+    "borsh": "^2.0.0",
     "circomlib": "^2.0.5",
     "next": "14.2.15",
     "react": "^18.3.1",
