@@ -7,14 +7,15 @@ edition = "2021"
 crate-type = ["cdylib", "lib"]
 
 [dependencies]
-solana-program = "~1.17"
-borsh = "=0.10.3"
+solana-program = "~1.18"
+borsh = "0.10.3"
+groth16-solana = "0.0.3"
 
-[dev-dependencies]
-solana-program-test = "~1.17"
-solana-sdk = "~1.17"
+# [dev-dependencies]
+# Temporarily disabled to avoid indexmap version conflicts
+# solana-program-test = "~1.18"
+# solana-sdk = "~1.18"
 
 [patch.crates-io]
-# Pin to versions compatible with Solana Rust 1.79
+# Force compatible version with Solana Rust 1.79  
 indexmap = { git = "https://github.com/indexmap-rs/indexmap", tag = "2.2.6" }
-ahash = { git = "https://github.com/tkaitchuck/aHash", tag = "v0.8.11" }
