@@ -22,7 +22,7 @@ export async function GET(request: Request) {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
-          'x-api-key': 'dfb117d597d5f831f86ea42c8ebe6415a8ae7941',
+          'x-api-key': process.env.CRYPTO_APIS_KEY || '',
         },
       }
     );
