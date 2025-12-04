@@ -25,7 +25,6 @@ const nextConfig = {
   productionBrowserSourceMaps: false,
   // Experimental features for better performance
   experimental: {
-    optimizeCss: true,
     optimizePackageImports: ['@solana/web3.js', 'reactflow'],
   },
   // Webpack configuration for snarkjs
