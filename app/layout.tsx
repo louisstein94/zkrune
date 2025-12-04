@@ -98,18 +98,19 @@ export const metadata: Metadata = {
     ],
   },
   applicationName: 'zkRune',
-  viewport: {
-    width: 'device-width',
-    initialScale: 1,
-    maximumScale: 5,
-    userScalable: true,
-  },
   
   // Additional
   category: 'Technology',
   alternates: {
     canonical: 'https://zkrune.com',
   },
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  userScalable: true,
 };
 
 export default function RootLayout({
