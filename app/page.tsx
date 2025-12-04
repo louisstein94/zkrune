@@ -2,6 +2,8 @@
 
 import RuneAnimation from "@/components/RuneAnimation";
 import Navigation from "@/components/Navigation";
+import StructuredData from "@/components/StructuredData";
+import { generateOrganizationSchema, generateSoftwareApplicationSchema } from "@/lib/seo";
 import HowItWorks from "@/components/HowItWorks";
 import FAQ from "@/components/FAQ";
 import ComparisonTable from "@/components/ComparisonTable";
@@ -16,6 +18,13 @@ import TrustBadges from "@/components/TrustBadges";
 export default function Home() {
 
   return (
+    <>
+      {/* Structured Data for SEO */}
+      <StructuredData data={[
+        generateOrganizationSchema(),
+        generateSoftwareApplicationSchema(),
+      ]} />
+      
     <main id="home" className="relative min-h-screen bg-zk-darker overflow-hidden">
       {/* Navigation */}
       <Navigation />
@@ -427,6 +436,7 @@ export default function Home() {
         </div>
       </footer>
     </main>
+    </>
   );
 }
 
