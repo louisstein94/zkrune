@@ -4,6 +4,10 @@ import withPWA from '@ducanh2912/next-pwa';
 const nextConfig = {
   images: {
     domains: ['www.figma.com'],
+    formats: ['image/webp', 'image/avif'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920, 2048, 3840],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
   },
   // Performance optimizations
   compiler: {
@@ -13,6 +17,17 @@ const nextConfig = {
   reactStrictMode: true,
   // Optimize fonts
   optimizeFonts: true,
+  // Compress responses
+  compress: true,
+  // Enable SWC minification
+  swcMinify: true,
+  // Production source maps (disabled for better performance)
+  productionBrowserSourceMaps: false,
+  // Experimental features for better performance
+  experimental: {
+    optimizeCss: true,
+    optimizePackageImports: ['@solana/web3.js', 'reactflow'],
+  },
   // Webpack configuration for snarkjs
   webpack: (config, { isServer }) => {
     if (!isServer) {
