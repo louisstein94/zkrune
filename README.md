@@ -204,9 +204,69 @@ zkrune/
 ### 🚀 Next Steps
 - [x] **Publish `zkrune-sdk` to npm registry** → [Live on NPM v1.2.0](https://www.npmjs.com/package/zkrune-sdk)
 - [x] **CLI tool for circuit compilation** → [Live on NPM v1.0.0](https://www.npmjs.com/package/zkrune-cli)
-- [ ] Template Marketplace
+- [x] **Template Marketplace** → Creator revenue sharing (95% to creators)
+- [x] **zkRune Token Utility** → Governance, Burn Mechanism, Staking, Gasless Proofs
 - [ ] Integration examples & tutorials
 - [ ] Mobile app (iOS/Android)
+
+---
+
+## zkRune Token Utility Roadmap
+
+Building REAL utility into $zkRune:
+
+> **Status:** Demo mode (UI/UX testing). Real blockchain integration coming after testing phase.
+>
+> **Token:** [`51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump`](https://solscan.io/token/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump) (Solana)
+>
+> **Roadmap:** Demo → Devnet Testing → Mainnet Integration
+
+### 1. Governance (Demo)
+Vote on community templates and protocol features. Quadratic voting ensures fair representation.
+- Minimum 10 zkRUNE to vote
+- Minimum 1,000 zkRUNE to create proposals
+- 7-day voting period with 10% quorum
+- *Demo: Votes stored in localStorage, production will use on-chain governance*
+
+### 2. Burn Mechanism (Demo)
+Burn zkRUNE tokens to unlock premium features permanently:
+
+| Tier | Burn Required | Features |
+|------|---------------|----------|
+| Free | 0 | Basic proofs, 5/day limit, community templates |
+| Builder | 100 zkRUNE | Unlimited proofs, all templates, API access |
+| Pro | 500 zkRUNE | Custom circuits, gasless proofs, priority support |
+| Enterprise | 2,000 zkRUNE | White-label, custom integrations, SLA |
+
+*Demo: Simulated burn stored locally. Production will use real SPL token burn instruction.*
+
+### 3. Template Marketplace (Demo)
+Creators earn 95% of every template sale. Platform takes 5% (burned).
+- List templates with custom pricing
+- Featured listings available (50 zkRUNE burned)
+- Categories: identity, finance, voting, gaming, social, enterprise
+- *Demo: Purchases stored locally. Production will use token transfers with escrow.*
+
+### 4. Mobile ZK Wallet (Demo)
+Unified wallet for zkRune, Solana, and Zcash:
+- Gasless proof generation (Pro+ tiers)
+- Zcash bridge for cross-chain privacy
+- Multi-asset portfolio view
+- *Demo: Mock balances. Production will fetch real on-chain data via RPC.*
+
+### 5. Staking Rewards (Demo)
+Earn up to 36% APY by staking zkRUNE:
+
+| Lock Period | APY | Multiplier |
+|-------------|-----|------------|
+| Flexible (30d) | 12% | 1.0x |
+| 3 Months | 18% | 1.5x |
+| 6 Months | 24% | 2.0x |
+| 1 Year | 36% | 3.0x |
+
+*Demo: Rewards calculated locally. Production will use Solana staking program.*
+
+---
 
 ### 📈 Future Vision
 - [ ] **Zcash Production Deployment** - Connect to public Lightwalletd endpoints or self-hosted infrastructure
