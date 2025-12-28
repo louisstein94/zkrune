@@ -3,15 +3,37 @@
 import { useState } from "react";
 import Link from "next/link";
 
+interface NavSubItem {
+  name: string;
+  href: string;
+}
+
+interface NavItem {
+  name: string;
+  href: string;
+  submenu?: NavSubItem[];
+}
+
 export default function Navigation() {
   const [isOpen, setIsOpen] = useState(false);
+  const [tokenMenuOpen, setTokenMenuOpen] = useState(false);
 
-  const navItems = [
+  const navItems: NavItem[] = [
     { name: "Home", href: "/" },
     { name: "Templates", href: "/templates" },
     { name: "Builder", href: "/builder" },
+    { 
+      name: "Token", 
+      href: "#",
+      submenu: [
+        { name: "Governance", href: "/governance" },
+        { name: "Premium", href: "/premium" },
+        { name: "Marketplace", href: "/marketplace" },
+        { name: "Staking", href: "/staking" },
+        { name: "Wallet", href: "/wallet" },
+      ]
+    },
     { name: "Docs", href: "/docs" },
-    { name: "Install", href: "/install" },
   ];
 
   return (
@@ -31,13 +53,42 @@ export default function Navigation() {
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
             {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider"
-              >
-                {item.name}
-              </a>
+              item.submenu ? (
+                <div 
+                  key={item.name}
+                  className="relative"
+                  onMouseEnter={() => setTokenMenuOpen(true)}
+                  onMouseLeave={() => setTokenMenuOpen(false)}
+                >
+                  <button className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider flex items-center gap-1">
+                    {item.name}
+                    <svg className={`w-4 h-4 transition-transform ${tokenMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {tokenMenuOpen && (
+                    <div className="absolute top-full left-0 mt-2 w-48 bg-zk-dark/95 backdrop-blur-lg border border-zk-primary/20 rounded-xl shadow-xl overflow-hidden">
+                      {item.submenu.map((subitem) => (
+                        <a
+                          key={subitem.name}
+                          href={subitem.href}
+                          className="block px-4 py-3 text-sm text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10 transition-colors"
+                        >
+                          {subitem.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider"
+                >
+                  {item.name}
+                </a>
+              )
             ))}
             
             {/* Zcash Highlighted Link */}
@@ -116,15 +167,53 @@ export default function Navigation() {
         {isOpen && (
           <nav className="md:hidden pt-4 pb-2 flex flex-col gap-3">
             {navItems.map((item) => (
-              <a
-                key={item.name}
-                href={item.href}
-                onClick={() => setIsOpen(false)}
-                className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider py-2"
-              >
-                {item.name}
-              </a>
+              item.submenu ? (
+                <div key={item.name}>
+                  <button
+                    onClick={() => setTokenMenuOpen(!tokenMenuOpen)}
+                    className="w-full text-left text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider py-2 flex items-center justify-between"
+                  >
+                    {item.name}
+                    <svg className={`w-4 h-4 transition-transform ${tokenMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  {tokenMenuOpen && (
+                    <div className="pl-4 space-y-2 mt-2">
+                      {item.submenu.map((subitem) => (
+                        <a
+                          key={subitem.name}
+                          href={subitem.href}
+                          onClick={() => {
+                            setIsOpen(false);
+                            setTokenMenuOpen(false);
+                          }}
+                          className="block text-sm text-zk-gray hover:text-zk-primary transition-colors py-2"
+                        >
+                          {subitem.name}
+                        </a>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  onClick={() => setIsOpen(false)}
+                  className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider py-2"
+                >
+                  {item.name}
+                </a>
+              )
             ))}
+            <a
+              href="/zcash"
+              onClick={() => setIsOpen(false)}
+              className="text-sm font-medium text-[#F4B728] hover:text-[#F4B728]/80 transition-colors uppercase tracking-wider py-2"
+            >
+              Zcash Integration
+            </a>
             <a
               href="https://github.com/louisstein94/zkrune"
               target="_blank"

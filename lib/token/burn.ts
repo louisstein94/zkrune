@@ -1,12 +1,14 @@
 // zkRune Token Burn Mechanism
 // Deflationary premium features
 
-import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
-import { 
-  getAssociatedTokenAddress, 
-  createBurnInstruction,
-  TOKEN_PROGRAM_ID,
-} from '@solana/spl-token';
+// Real blockchain imports (currently not used in demo mode)
+// import { Connection, PublicKey, Transaction, SystemProgram } from '@solana/web3.js';
+// import { 
+//   getAssociatedTokenAddress, 
+//   createBurnInstruction,
+//   TOKEN_PROGRAM_ID,
+// } from '@solana/spl-token';
+
 import { ZKRUNE_TOKEN, PREMIUM_TIERS, type PremiumTier } from './config';
 
 export interface BurnResult {
@@ -148,7 +150,8 @@ export function getTokensForNextTier(currentTier: PremiumTier): { tier: PremiumT
   };
 }
 
-// Create burn transaction
+// Create burn transaction (ready for production)
+/* PRODUCTION CODE - Currently commented out for demo mode
 export async function createBurnTransaction(
   connection: Connection,
   walletPublicKey: PublicKey,
@@ -183,7 +186,7 @@ export async function createBurnTransaction(
   return transaction;
 }
 
-// Execute burn for premium upgrade
+// Execute burn for premium upgrade (ready for production)
 export async function burnForPremium(
   connection: Connection,
   walletPublicKey: PublicKey,
@@ -248,6 +251,7 @@ export async function burnForPremium(
     };
   }
 }
+*/
 
 // Simulate burn for demo/testing (no actual blockchain transaction)
 export function simulateBurn(

@@ -1,4 +1,5 @@
-import withPWA from '@ducanh2912/next-pwa';
+// Temporarily disable PWA to fix Babel dependencies issue
+// import withPWA from '@ducanh2912/next-pwa';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -57,10 +58,15 @@ const nextConfig = {
   },
 };
 
+// Temporarily disable PWA
+export default nextConfig;
+
+/*
 /**
  * PWA Configuration
  * Wraps Next.js config with PWA capabilities
  */
+/*
 const pwaConfig = withPWA({
   dest: 'public',
   disable: process.env.NODE_ENV === 'development',
@@ -93,3 +99,4 @@ const pwaConfig = withPWA({
 });
 
 export default pwaConfig(nextConfig);
+*/

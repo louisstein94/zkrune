@@ -327,6 +327,189 @@ export default function Home() {
         </div>
       </div>
 
+      {/* zkRune Token Utility */}
+      <div className="relative z-10 px-6 md:px-12 lg:px-16 py-20 border-t border-white/5">
+        <div className="max-w-7xl mx-auto">
+          {/* Section Header */}
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 rounded-full mb-6">
+              <span className="text-sm font-bold text-zk-primary uppercase tracking-wider">
+                zkRUNE Token
+              </span>
+            </div>
+            <h2 className="text-3xl md:text-5xl font-hatton text-white mb-4">
+              Real Utility, Real Value
+            </h2>
+            <p className="text-lg text-zk-gray max-w-2xl mx-auto">
+              Five utility features that make zkRUNE more than just a token
+            </p>
+          </div>
+
+          {/* Features Grid */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {/* Governance */}
+            <a href="/governance" className="group p-8 bg-gradient-to-br from-zk-dark/40 to-zk-dark/20 border border-zk-primary/20 rounded-2xl hover:border-zk-primary/60 hover:scale-105 transition-all duration-300">
+              <div className="w-14 h-14 bg-zk-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-zk-primary/30 transition-colors">
+                <svg className="w-7 h-7 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">Governance</h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                Vote on community templates and protocol features. Quadratic voting ensures fair representation.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-zk-primary font-medium">
+                <span>Launch Governance</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            {/* Premium Features */}
+            <a href="/premium" className="group p-8 bg-gradient-to-br from-purple-500/10 to-zk-dark/20 border border-purple-500/20 rounded-2xl hover:border-purple-500/60 hover:scale-105 transition-all duration-300">
+              <div className="w-14 h-14 bg-purple-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/30 transition-colors">
+                <svg className="w-7 h-7 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">Premium Features</h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                Burn zkRUNE to unlock premium tiers. From unlimited proofs to white-label solutions.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-purple-400 font-medium">
+                <span>View Tiers</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            {/* Marketplace */}
+            <a href="/marketplace" className="group p-8 bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/20 border border-[#F4B728]/20 rounded-2xl hover:border-[#F4B728]/60 hover:scale-105 transition-all duration-300">
+              <div className="w-14 h-14 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#F4B728]/30 transition-colors">
+                <svg className="w-7 h-7 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">Template Marketplace</h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                Creators earn 95% of every sale. Platform takes 5% (burned). Build and monetize circuits.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-[#F4B728] font-medium">
+                <span>Browse Marketplace</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            {/* Staking */}
+            <a href="/staking" className="group p-8 bg-gradient-to-br from-emerald-500/10 to-zk-dark/20 border border-emerald-500/20 rounded-2xl hover:border-emerald-500/60 hover:scale-105 transition-all duration-300">
+              <div className="w-14 h-14 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-500/30 transition-colors">
+                <svg className="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">Staking Rewards</h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                Earn up to 36% APY. Lock periods from 30 days to 1 year with increasing multipliers.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-emerald-400 font-medium">
+                <span>Start Staking</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            {/* Mobile Wallet */}
+            <a href="/wallet" className="group p-8 bg-gradient-to-br from-blue-500/10 to-zk-dark/20 border border-blue-500/20 rounded-2xl hover:border-blue-500/60 hover:scale-105 transition-all duration-300">
+              <div className="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-500/30 transition-colors">
+                <svg className="w-7 h-7 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
+                </svg>
+              </div>
+              <h3 className="text-xl font-hatton text-white mb-3">Mobile ZK Wallet</h3>
+              <p className="text-sm text-zk-gray leading-relaxed mb-4">
+                Unified wallet for zkRune, Solana, and Zcash. Gasless proofs for Pro+ tiers.
+              </p>
+              <div className="flex items-center gap-2 text-xs text-blue-400 font-medium">
+                <span>Open Wallet</span>
+                <svg className="w-4 h-4 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </div>
+            </a>
+
+            {/* Token Info Card */}
+            <div className="p-8 bg-gradient-to-br from-zk-primary/5 to-zk-dark/20 border border-zk-primary/30 rounded-2xl">
+              <div className="mb-6">
+                <p className="text-xs text-zk-gray uppercase tracking-wider mb-2">Token Contract</p>
+                <div className="flex items-center gap-2">
+                  <code className="text-xs font-mono text-white bg-zk-darker/50 px-3 py-2 rounded-lg break-all">
+                    51mx...pump
+                  </code>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText('51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump');
+                      alert('Token address copied!');
+                    }}
+                    className="p-2 hover:bg-zk-primary/10 rounded-lg transition-colors"
+                  >
+                    <svg className="w-4 h-4 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+              </div>
+              <div className="space-y-3 pt-4 border-t border-white/10">
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-zk-gray">Symbol</span>
+                  <span className="text-sm font-medium text-white">zkRUNE</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-zk-gray">Network</span>
+                  <span className="text-sm font-medium text-white">Solana</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-xs text-zk-gray">Status</span>
+                  <span className="text-xs px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-full font-medium">Live</span>
+                </div>
+              </div>
+              <a 
+                href="https://solscan.io/token/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-3 bg-zk-primary/10 border border-zk-primary/30 rounded-lg hover:bg-zk-primary/20 transition-colors"
+              >
+                <span className="text-sm font-medium text-zk-primary">View on Solscan</span>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Demo Mode Notice */}
+          <div className="mt-12 p-6 bg-zk-darker/50 border border-amber-500/30 rounded-xl">
+            <div className="flex items-start gap-4">
+              <div className="w-10 h-10 bg-amber-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                <svg className="w-5 h-5 text-amber-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-white mb-1">Demo Mode Active</h4>
+                <p className="text-sm text-zk-gray leading-relaxed">
+                  Token utility features are currently in demo mode for UI/UX testing. All data is stored locally (localStorage). Real blockchain integration (token burn, on-chain staking, governance contracts) will be activated after testing phase.
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* What is zkRune Section */}
       <WhatIsZkRune />
 
