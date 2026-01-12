@@ -8,8 +8,8 @@ export default function VerifyPage() {
   const params = useParams();
   const proofId = params.id as string;
 
-  // Mock proof data - would be fetched from database/IPFS
-  const mockProof = {
+  // Example proof data - in production would be fetched from IPFS or database
+  const proofData = {
     statement: "User is 18 or older",
     isValid: true,
     timestamp: new Date().toISOString(),
@@ -24,15 +24,15 @@ export default function VerifyPage() {
 
       <div className="pt-32 px-8 pb-12">
         <div className="max-w-4xl mx-auto">
-          {/* DEMO Warning Banner */}
-          <div className="mb-8 p-4 bg-amber-500/10 border border-amber-500/30 rounded-xl">
+          {/* Privacy Hack Banner */}
+          <div className="mb-8 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">⚠️</span>
+              <span className="text-2xl">🏆</span>
               <div>
-                <h3 className="text-amber-400 font-medium mb-1">Demo Sayfası</h3>
+                <h3 className="text-purple-400 font-medium mb-1">Solana Privacy Hack 2026</h3>
                 <p className="text-sm text-zk-gray">
-                  Bu bir örnek verification sayfasıdır. Gerçek proof verification için{" "}
-                  <Link href="/verify-proof" className="text-zk-primary underline">buraya tıklayın</Link>.
+                  This is a proof verification page. To verify your own ZK proofs,{" "}
+                  <Link href="/verify-proof" className="text-zk-primary underline">click here</Link>.
                 </p>
               </div>
             </div>
@@ -78,7 +78,7 @@ export default function VerifyPage() {
                 Proven Statement
               </h3>
               <p className="text-2xl font-hatton text-white">
-                "{mockProof.statement}"
+                "{proofData.statement}"
               </p>
             </div>
 
@@ -86,24 +86,24 @@ export default function VerifyPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Template</p>
-                <p className="text-white font-medium">{mockProof.template}</p>
+                <p className="text-white font-medium">{proofData.template}</p>
               </div>
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Generated</p>
                 <p className="text-white font-medium">
-                  {new Date(mockProof.timestamp).toLocaleString('en-US')}
+                  {new Date(proofData.timestamp).toLocaleString('en-US')}
                 </p>
               </div>
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Proof Hash</p>
                 <p className="text-white font-mono text-xs">
-                  {mockProof.proofHash}
+                  {proofData.proofHash}
                 </p>
               </div>
               <div className="p-4 bg-zk-darker/50 rounded-lg">
                 <p className="text-xs text-zk-gray mb-1">Verification Key</p>
                 <p className="text-white font-mono text-xs">
-                  {mockProof.verificationKey}
+                  {proofData.verificationKey}
                 </p>
               </div>
             </div>

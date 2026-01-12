@@ -22,19 +22,20 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   metadataBase: new URL('https://zkrune.com'),
   title: {
-    default: "zkRune - Build Privacy Without Code",
+    default: "zkRune - Privacy Tooling for Solana | Solana Privacy Hack 2026",
     template: "%s | zkRune"
   },
-  description: "Visual Zero-Knowledge Proof Builder for Zcash. Create privacy-preserving applications without cryptography expertise. 100% client-side proof generation with real Groth16 zk-SNARKs.",
+  description: "Build private payments, privacy-preserving credentials, and anonymous voting on Solana. 100% client-side ZK proofs with real Groth16 zk-SNARKs. No server, no data leakage.",
   icons: {
     icon: '/mobile-logo.png',
     apple: '/mobile-logo.png',
     shortcut: '/mobile-logo.png',
   },
   keywords: [
-    "zkRune", "Zero-Knowledge", "ZK Proofs", "Zcash", "Privacy", "Blockchain", 
+    "zkRune", "Zero-Knowledge", "ZK Proofs", "Solana", "Privacy", "Blockchain", 
     "Cryptography", "Groth16", "zk-SNARK", "Circuit Builder", "Web3", "DeFi",
-    "Private Voting", "Credential Verification", "Anonymous Reputation"
+    "Private Voting", "Credential Verification", "Anonymous Reputation",
+    "Solana Privacy Hack", "Private Payments", "Privacy Tooling"
   ],
   authors: [{ name: "zkRune Team", url: "https://zkrune.com" }],
   creator: "zkRune Team",
@@ -42,8 +43,8 @@ export const metadata: Metadata = {
   
   // OpenGraph
   openGraph: {
-    title: "zkRune - Build Privacy Without Code",
-    description: "Visual Zero-Knowledge Proof Builder for Zcash. 13 production-ready templates. 100% client-side. Build privacy apps in hours, not months.",
+    title: "zkRune - Privacy Tooling for Solana | Solana Privacy Hack 2026",
+    description: "Build private payments, credentials, and anonymous voting on Solana. 13 real Groth16 circuits. 100% client-side ZK proofs. No server, no data leakage.",
     url: "https://zkrune.com",
     siteName: "zkRune",
     locale: "en_US",
@@ -53,7 +54,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'zkRune - Visual Zero-Knowledge Proof Builder',
+        alt: 'zkRune - Privacy Tooling for Solana',
       }
     ],
   },
@@ -61,8 +62,8 @@ export const metadata: Metadata = {
   // Twitter
   twitter: {
     card: "summary_large_image",
-    title: "zkRune - Build Privacy Without Code",
-    description: "Visual ZK Proof Builder for Zcash. 13 templates. 100% client-side. Build privacy apps fast.",
+    title: "zkRune - Privacy Tooling for Solana 🔐",
+    description: "Solana Privacy Hack 2026: 13 real Groth16 circuits. 100% client-side ZK proofs. Private payments, credentials, voting.",
     creator: "@rune_zk",
     site: "@rune_zk",
     images: ['/og-image.png'],

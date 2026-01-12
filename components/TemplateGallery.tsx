@@ -22,6 +22,7 @@ interface Template {
   generationTime: string;
   isPopular?: boolean;
   useCase: string;
+  hackathonTrack?: "Private Payments" | "Private Launchpads" | "Open Track";
 }
 
 interface TemplateGalleryProps {
@@ -41,6 +42,7 @@ const templates: Template[] = [
     generationTime: "0.44s",
     isPopular: true,
     useCase: "KYC, Age-gated content",
+    hackathonTrack: "Open Track",
   },
   {
     id: "balance-proof",
@@ -54,6 +56,7 @@ const templates: Template[] = [
     generationTime: "0.41s",
     isPopular: true,
     useCase: "Lending, Financial verification",
+    hackathonTrack: "Private Payments",
   },
   {
     id: "membership-proof",
@@ -66,6 +69,7 @@ const templates: Template[] = [
     estimatedTime: "1 min",
     generationTime: "0.38s",
     useCase: "Private communities, Access control",
+    hackathonTrack: "Private Launchpads",
   },
   {
     id: "range-proof",
@@ -78,6 +82,7 @@ const templates: Template[] = [
     estimatedTime: "1 min",
     generationTime: "0.42s",
     useCase: "Credit scores, Salary verification",
+    hackathonTrack: "Open Track",
   },
   {
     id: "private-voting",
@@ -90,6 +95,7 @@ const templates: Template[] = [
     estimatedTime: "2 min",
     generationTime: "0.40s",
     useCase: "DAO voting, Elections",
+    hackathonTrack: "Open Track",
   },
   {
     id: "credential-proof",
@@ -103,6 +109,7 @@ const templates: Template[] = [
     generationTime: "0.52s",
     isPopular: true,
     useCase: "KYC, License verification",
+    hackathonTrack: "Private Launchpads",
   },
   {
     id: "token-swap",
@@ -115,6 +122,7 @@ const templates: Template[] = [
     estimatedTime: "1.5 min",
     generationTime: "0.58s",
     useCase: "DEX trading, P2P swaps",
+    hackathonTrack: "Private Payments",
   },
   {
     id: "signature-verification",
@@ -127,6 +135,7 @@ const templates: Template[] = [
     estimatedTime: "2 min",
     generationTime: "0.61s",
     useCase: "Message signing, Authentication",
+    hackathonTrack: "Open Track",
   },
   {
     id: "patience-proof",
@@ -140,6 +149,7 @@ const templates: Template[] = [
     generationTime: "0.48s",
     isPopular: true,
     useCase: "Time-locked rewards, Contest verification",
+    hackathonTrack: "Open Track",
   },
   {
     id: "hash-preimage",
@@ -152,6 +162,7 @@ const templates: Template[] = [
     estimatedTime: "30 sec",
     generationTime: "0.35s",
     useCase: "Commitments, Secret reveals, Voting",
+    hackathonTrack: "Private Payments",
   },
   {
     id: "quadratic-voting",
@@ -164,6 +175,7 @@ const templates: Template[] = [
     estimatedTime: "45 sec",
     generationTime: "0.51s",
     useCase: "DAO governance, Fair voting, Token voting",
+    hackathonTrack: "Open Track",
   },
   {
     id: "nft-ownership",
@@ -176,6 +188,7 @@ const templates: Template[] = [
     estimatedTime: "50 sec",
     generationTime: "0.60s",
     useCase: "Exclusive access, Airdrops, Community membership",
+    hackathonTrack: "Private Launchpads",
   },
   {
     id: "anonymous-reputation",
@@ -188,6 +201,7 @@ const templates: Template[] = [
     estimatedTime: "55 sec",
     generationTime: "0.76s",
     useCase: "Credit systems, Access control, Anonymous verification",
+    hackathonTrack: "Open Track",
   },
 ];
 
@@ -241,19 +255,27 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
     <section className="relative py-24 px-16" id="templates">
       {/* Section Header */}
       <div className="max-w-7xl mx-auto mb-16">
-        <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/50 rounded-full mb-6">
-          <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
-          <span className="text-xs font-medium text-zk-gray uppercase tracking-wider">
-            Ready to Use
-          </span>
+        <div className="flex flex-wrap items-center gap-3 mb-6">
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/50 rounded-full">
+            <span className="text-lg">🏆</span>
+            <span className="text-xs font-medium text-purple-400 uppercase tracking-wider">
+              Solana Privacy Hack 2026
+            </span>
+          </div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-primary/50 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
+            <span className="text-xs font-medium text-zk-primary uppercase tracking-wider">
+              Real Groth16 Proofs
+            </span>
+          </div>
         </div>
 
         <h2 className="font-hatton text-5xl text-white mb-4">
-          ZK Proof <span className="text-zk-primary">Templates</span>
+          Privacy Tooling <span className="text-purple-400">Templates</span>
         </h2>
         <p className="text-xl text-zk-gray max-w-2xl">
-          Choose from our curated collection of zero-knowledge proof templates.
-          No cryptography knowledge required.
+          Build private payments, privacy-preserving credentials, and anonymous voting.
+          Real ZK proofs generated in your browser - no server required.
         </p>
       </div>
 
@@ -332,13 +354,23 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
             {/* Hover Gradient Effect */}
             <div className="absolute inset-0 bg-gradient-to-br from-zk-primary/5 to-zk-secondary/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-            {/* Popular Badge - Top Center */}
-            {template.isPopular && (
-              <div className="absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1 bg-zk-primary/20 border border-zk-primary/30 rounded-full flex items-center gap-1">
-                <svg className="w-3 h-3 text-zk-primary" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
-                </svg>
-                <span className="text-xs font-medium text-zk-primary">Popular</span>
+            {/* Hackathon Track Badge - Top Center */}
+            {template.hackathonTrack && (
+              <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-20 px-3 py-1 rounded-full flex items-center gap-1 ${
+                template.hackathonTrack === "Private Payments" 
+                  ? "bg-purple-500/20 border border-purple-500/40" 
+                  : template.hackathonTrack === "Private Launchpads"
+                  ? "bg-zk-primary/20 border border-zk-primary/40"
+                  : "bg-amber-500/20 border border-amber-500/40"
+              }`}>
+                <span className="text-xs">🏆</span>
+                <span className={`text-xs font-medium ${
+                  template.hackathonTrack === "Private Payments" 
+                    ? "text-purple-400" 
+                    : template.hackathonTrack === "Private Launchpads"
+                    ? "text-zk-primary"
+                    : "text-amber-400"
+                }`}>{template.hackathonTrack}</span>
               </div>
             )}
 

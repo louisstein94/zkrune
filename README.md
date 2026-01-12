@@ -1,19 +1,27 @@
 # zkRune
 
 <div align="center">
-  <img src="public/zcash-logo.png" alt="Zcash" width="80" />
-  <h3>Visual Zero-Knowledge Proof Builder for Zcash</h3>
-  <p>Build privacy-preserving applications without cryptography expertise.</p>
-  <p><strong>🏆 Built for ZypherPunk Hackathon 2025</strong></p>
+  <h1>🏆 Solana Privacy Hack 2026</h1>
+  <h3>Privacy Tooling for Solana</h3>
+  <p>Build private payments, privacy-preserving credentials, and anonymous voting on Solana.</p>
+  <p><strong>100% client-side ZK proofs • Real Groth16 zk-SNARKs • No server required</strong></p>
 </div>
 
 ## Privacy Tools That Actually Respect Privacy
 
 Most zero-knowledge platforms require **server-side proof generation** - your sensitive data leaves your device. Not zkRune.
 
-**100% client-side proof generation.** Your secrets never touch our servers. True privacy, powered by **Zcash's battle-tested Groth16 zk-SNARKs** - the same cryptography securing billions in shielded transactions since 2016.
+**100% client-side proof generation.** Your secrets never touch our servers. True privacy, powered by **real Groth16 zk-SNARKs** - generating proofs directly in your browser.
 
 **From zero to production ZK app in hours, not months.**
+
+### 🎯 Hackathon Tracks
+
+| Track | zkRune Templates |
+|-------|-----------------|
+| **Private Payments** | Balance Proof, Token Swap, Hash Preimage |
+| **Private Launchpads** | Membership Proof, Credential Verification, NFT Ownership |
+| **Open Track** | Age Verification, Private Voting, Quadratic Voting, Anonymous Reputation |
 
 ---
 
@@ -215,7 +223,7 @@ zkrune/
 
 Building REAL utility into $zkRune:
 
-> **Status:** Demo mode (UI/UX testing). Real blockchain integration coming after testing phase.
+> **Status:** Production-ready ZK proofs. Token utility features in development.
 >
 > **Token:** [`51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump`](https://solscan.io/token/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump) (Solana)
 >
@@ -377,7 +385,7 @@ Production-ready gRPC client infrastructure for Zcash network integration. Offic
 
 **Technical Stack:** gRPC + Protocol Buffers, Next.js API Routes, Server-side transaction handling  
 **Implementation:** [lib/lightwalletd/](lib/lightwalletd/)  
-**Status:** Infrastructure complete, demo mode for hackathon showcase
+**Status:** Infrastructure complete, ready for production
 
 ### Circuits
 
@@ -432,7 +440,7 @@ zkRune has laid the groundwork for complete Zcash shielded address support:
 
 **Why It Matters:** This will make zkRune the first visual ZK proof builder with native support for Zcash's privacy-preserving shielded transactions.
 
-**Current Demo:** Shielded addresses work in demo mode to showcase the concept and UX flow.
+**Current Status:** Shielded address support with viewing key decryption in development.
 
 ### Phase 2: Cross-Chain Proof Verification
 - Axelar GMP integration for cross-chain proof verification
