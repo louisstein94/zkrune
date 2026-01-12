@@ -3,14 +3,13 @@
 export default function CTAShowcase() {
   return (
     <section className="relative py-24 px-16 overflow-hidden">
-      {/* Background Effects */}
-      <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] rounded-full bg-zk-primary/5 blur-[100px]" />
-        <div className="absolute top-1/2 right-1/4 w-[400px] h-[400px] rounded-full bg-zk-secondary/10 blur-[120px]" />
+      {/* Background Effects - Subtle */}
+      <div className="absolute inset-0 opacity-50">
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-zk-primary/5 blur-[80px]" />
       </div>
 
       <div className="max-w-5xl mx-auto relative z-10">
-        <div className="bg-gradient-to-br from-zk-dark/50 to-zk-darker/50 border border-zk-primary/20 rounded-3xl p-8 md:p-12 lg:p-16 text-center backdrop-blur-sm">
+        <div className="bg-zk-dark/60 border border-zk-primary/20 rounded-3xl p-8 md:p-12 lg:p-16 text-center backdrop-blur-sm">
           {/* Floating Runes */}
           <div className="absolute top-8 left-8 text-4xl opacity-20 animate-float">
             ᚱ
@@ -24,7 +23,7 @@ export default function CTAShowcase() {
 
           {/* Content */}
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 rounded-full mb-6">
-            <span className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-zk-primary" />
             <span className="text-sm font-medium text-zk-primary uppercase tracking-wider">
               Open Source • Free to Use
             </span>

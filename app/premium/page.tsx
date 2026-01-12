@@ -18,15 +18,20 @@ import {
   type UserPremiumStatus,
 } from '@/lib/token/burn';
 import { PREMIUM_TIERS, type PremiumTier, formatTokenAmount } from '@/lib/token/config';
+import { useTokenStats, formatUsd, formatNumber, calculateDynamicBurnTiers } from '@/lib/hooks/useTokenStats';
 
 export default function PremiumPage() {
   const { publicKey, connected } = useWallet();
+  const { stats: tokenStats, isLoading: statsLoading } = useTokenStats();
   const [status, setStatus] = useState<UserPremiumStatus | null>(null);
   const [selectedTier, setSelectedTier] = useState<PremiumTier>('BUILDER');
   const [burnAmount, setBurnAmount] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [burnHistory, setBurnHistory] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  // Calculate dynamic burn tiers based on current market cap
+  const dynamicTiers = calculateDynamicBurnTiers(tokenStats);
 
   useEffect(() => {
     loadUserStatus();
@@ -108,6 +113,45 @@ export default function PremiumPage() {
           </div>
         )}
 
+        {/* Live Token Stats Banner */}
+        {tokenStats && (
+          <div className="bg-gradient-to-r from-[#00FFA3]/10 to-[#6B4CFF]/10 border border-white/10 rounded-xl p-4 mb-8">
+            <div className="flex flex-wrap justify-between items-center gap-4">
+              <div className="flex items-center gap-6">
+                <div>
+                  <div className="text-xs text-gray-400">zkRUNE Price</div>
+                  <div className="text-lg font-bold text-white">
+                    {formatUsd(tokenStats.price)}
+                    <span className={`text-sm ml-2 ${tokenStats.priceChange24h >= 0 ? 'text-green-400' : 'text-red-400'}`}>
+                      {tokenStats.priceChange24h >= 0 ? '+' : ''}{tokenStats.priceChange24h.toFixed(2)}%
+                    </span>
+                  </div>
+                </div>
+                <div className="border-l border-white/10 pl-6">
+                  <div className="text-xs text-gray-400">Market Cap</div>
+                  <div className="text-lg font-bold text-[#00FFA3]">{formatUsd(tokenStats.marketCap)}</div>
+                </div>
+                <div className="border-l border-white/10 pl-6">
+                  <div className="text-xs text-gray-400">Total Burned</div>
+                  <div className="text-lg font-bold text-orange-400">{formatNumber(tokenStats.burned)} zkRUNE</div>
+                </div>
+                <div className="border-l border-white/10 pl-6">
+                  <div className="text-xs text-gray-400">24h Volume</div>
+                  <div className="text-lg font-bold text-white">{formatUsd(tokenStats.volume24h)}</div>
+                </div>
+              </div>
+              <a
+                href="https://pump.fun/coin/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-4 py-2 bg-[#00FFA3]/20 text-[#00FFA3] rounded-lg hover:bg-[#00FFA3]/30 transition text-sm font-medium"
+              >
+                Buy on Pump.fun →
+              </a>
+            </div>
+          </div>
+        )}
+
         {/* Page Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
@@ -117,6 +161,11 @@ export default function PremiumPage() {
             Burn zkRUNE tokens to unlock premium features. Tokens are permanently burned, 
             making zkRUNE deflationary while giving you exclusive access.
           </p>
+          {tokenStats && (
+            <p className="text-sm text-[#6B4CFF] mt-2">
+              Burn prices adjust dynamically based on market cap. Current rates are optimized for {formatUsd(tokenStats.marketCap)} MC.
+            </p>
+          )}
         </div>
 
         {/* Current Status */}

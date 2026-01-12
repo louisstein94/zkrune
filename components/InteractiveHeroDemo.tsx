@@ -64,7 +64,7 @@ export default function InteractiveHeroDemo() {
   return (
     <div className="relative w-full max-w-md mx-auto">
       {/* Main Card */}
-      <div className="relative bg-gradient-to-br from-zk-dark/80 to-zk-darker/80 backdrop-blur-xl border border-zk-primary/30 rounded-2xl p-8 shadow-2xl">
+      <div className="relative bg-zk-dark/80 backdrop-blur-xl border border-zk-primary/25 rounded-2xl p-8 shadow-xl">
         {/* Step Indicator */}
         <div className="flex justify-center gap-2 mb-6">
           {steps.map((_, index) => (
@@ -152,9 +152,9 @@ export default function InteractiveHeroDemo() {
         </div>
       )}
 
-      {/* Glow Effect */}
+      {/* Glow Effect - Subtle */}
       {step === 2 && (
-        <div className="absolute inset-0 -z-10 bg-zk-primary/20 blur-3xl rounded-full animate-pulse" />
+        <div className="absolute inset-0 -z-10 bg-zk-primary/10 blur-2xl rounded-full" />
       )}
     </div>
   );

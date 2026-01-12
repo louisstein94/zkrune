@@ -67,14 +67,9 @@ export default function TrustBadges() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-primary/50 rounded-full mb-4">
-            <svg className="w-4 h-4 text-zk-primary" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-            </svg>
-            <span className="text-xs font-medium text-zk-primary uppercase tracking-wider">
-              Trusted & Secure
-            </span>
-          </div>
+          <span className="text-xs font-medium text-zk-gray/60 uppercase tracking-widest mb-3 block">
+            Security
+          </span>
           
           <h2 className="font-hatton text-3xl md:text-4xl text-white mb-3">
             Privacy You Can <span className="text-zk-primary">Trust</span>
@@ -89,7 +84,7 @@ export default function TrustBadges() {
           {badges.map((badge, index) => (
             <div
               key={index}
-              className="group p-6 bg-gradient-to-br from-zk-dark/50 to-zk-darker/50 border border-zk-gray/20 rounded-xl hover:border-zk-primary/50 transition-all duration-300 hover:scale-105"
+              className="group p-6 bg-zk-dark/40 border border-zk-gray/15 rounded-xl hover:border-zk-primary/40 transition-all duration-300 hover:translate-y-[-2px]"
             >
               {/* Icon */}
               <div className="w-10 h-10 rounded-lg bg-zk-primary/10 border border-zk-primary/20 flex items-center justify-center text-zk-primary mb-4 group-hover:bg-zk-primary/20 transition-colors">

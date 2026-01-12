@@ -262,8 +262,8 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
               Solana Privacy Hack 2026
             </span>
           </div>
-          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-primary/50 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-primary/40 rounded-full">
+            <div className="w-2 h-2 rounded-full bg-zk-primary" />
             <span className="text-xs font-medium text-zk-primary uppercase tracking-wider">
               Real Groth16 Proofs
             </span>
@@ -344,10 +344,10 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
           <div
             key={template.id}
             id={`template-${template.id}`}
-            className={`group relative bg-gradient-to-br from-zk-dark/50 to-zk-darker/50 border rounded-2xl p-6 hover:border-zk-primary/50 transition-all duration-300 hover:scale-105 cursor-pointer overflow-hidden ${
+            className={`group relative bg-zk-dark/40 border rounded-2xl p-6 hover:border-zk-primary/40 transition-all duration-300 hover:translate-y-[-4px] cursor-pointer overflow-hidden ${
               isHighlighted 
-                ? 'border-zk-primary/70 animate-pulse shadow-2xl shadow-zk-primary/50 ring-4 ring-zk-primary/30' 
-                : 'border-zk-gray/20'
+                ? 'border-zk-primary/60 shadow-xl shadow-zk-primary/30 ring-2 ring-zk-primary/20' 
+                : 'border-zk-gray/15'
             }`}
             style={{ animationDelay: `${index * 100}ms` }}
           >
@@ -470,7 +470,7 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
         <p className="text-zk-gray mb-4">
           Can't find what you're looking for?
         </p>
-        <button className="px-8 py-4 border border-zk-primary/30 text-zk-primary rounded-full font-medium hover:bg-zk-primary hover:text-zk-darker transition-all hover:scale-105">
+        <button className="px-8 py-4 border border-zk-primary/30 text-zk-primary rounded-full font-medium hover:bg-zk-primary hover:text-zk-darker transition-all hover:translate-y-[-2px]">
           Request Custom Template
         </button>
       </div>

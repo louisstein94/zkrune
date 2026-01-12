@@ -50,13 +50,26 @@ const OWNED_TEMPLATES_KEY = 'zkrune_owned_templates';
 
 // Get all marketplace templates
 export function getMarketplaceTemplates(): MarketplaceTemplate[] {
+  // Always return default templates on SSR for initial render
   if (typeof window === 'undefined') return getDefaultMarketplaceTemplates();
 
   try {
     const stored = localStorage.getItem(MARKETPLACE_KEY);
-    if (!stored) return getDefaultMarketplaceTemplates();
+    if (!stored) {
+      // Initialize with default templates
+      const defaults = getDefaultMarketplaceTemplates();
+      localStorage.setItem(MARKETPLACE_KEY, JSON.stringify(defaults));
+      return defaults;
+    }
     
     const templates = JSON.parse(stored);
+    // If empty, return defaults
+    if (templates.length === 0) {
+      const defaults = getDefaultMarketplaceTemplates();
+      localStorage.setItem(MARKETPLACE_KEY, JSON.stringify(defaults));
+      return defaults;
+    }
+    
     return templates.map((t: any) => ({
       ...t,
       createdAt: new Date(t.createdAt),
@@ -344,133 +357,104 @@ function addOwnedTemplate(templateId: string, userAddress: string): void {
   }
 }
 
-// Default marketplace templates
+// Default marketplace templates - Solana Privacy Hack focused
 function getDefaultMarketplaceTemplates(): MarketplaceTemplate[] {
   const now = new Date();
 
   return [
     {
-      id: 'tmpl_premium_kyc',
-      name: 'Advanced KYC Verification',
-      description: 'Enterprise-grade KYC verification with multi-attribute proofs. Verify age, nationality, and accreditation status simultaneously without revealing any personal data.',
+      id: 'tmpl_private_transfer',
+      name: 'Private SPL Token Transfer',
+      description: 'Send SPL tokens privately on Solana. Proves you have sufficient balance without revealing your wallet address or exact amount. Perfect for payroll, donations, and confidential transactions.',
       creator: 'zkRune Labs',
       creatorAddress: 'zkRuneLabsAddress123',
-      price: 250,
-      category: 'identity',
+      price: 300,
+      category: 'finance',
       circuitCode: `pragma circom 2.0.0;
 include "circomlib/poseidon.circom";
 include "circomlib/comparators.circom";
 
-template AdvancedKYC() {
-    signal input birthYear;
-    signal input nationality;
-    signal input accredited;
-    signal input currentYear;
-    signal input minAge;
-    signal output isVerified;
+template PrivateTransfer() {
+    signal input balance;
+    signal input amount;
+    signal input recipientHash;
+    signal input senderSecret;
+    signal output isValid;
+    signal output nullifier;
     
-    // Age verification
-    signal age;
-    age <== currentYear - birthYear;
+    // Verify sufficient balance
+    component cmp = GreaterEqThan(64);
+    cmp.in[0] <== balance;
+    cmp.in[1] <== amount;
+    isValid <== cmp.out;
     
-    component ageCheck = GreaterEqThan(32);
-    ageCheck.in[0] <== age;
-    ageCheck.in[1] <== minAge;
-    
-    isVerified <== ageCheck.out * accredited;
+    // Create nullifier to prevent double-spending
+    component hasher = Poseidon(2);
+    hasher.inputs[0] <== senderSecret;
+    hasher.inputs[1] <== amount;
+    nullifier <== hasher.out;
 }
 
-component main = AdvancedKYC();`,
-      createdAt: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
+component main = PrivateTransfer();`,
+      createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
       updatedAt: now,
-      downloads: 342,
-      rating: 4.8,
-      ratingCount: 45,
+      downloads: 456,
+      rating: 4.9,
+      ratingCount: 67,
       featured: true,
       verified: true,
-      tags: ['kyc', 'identity', 'enterprise', 'compliance'],
+      tags: ['private', 'transfer', 'solana', 'spl', 'payment'],
     },
     {
-      id: 'tmpl_defi_credit',
-      name: 'DeFi Credit Score Proof',
-      description: 'Prove your on-chain credit worthiness without revealing your full transaction history. Perfect for under-collateralized lending protocols.',
-      creator: 'DeFi Dev',
-      creatorAddress: 'DeFiDevAddress456',
-      price: 150,
+      id: 'tmpl_anon_launch',
+      name: 'Anonymous Launchpad Allocation',
+      description: 'Prove eligibility for token launches without revealing your wallet. Show you meet holding requirements, time locks, or other criteria privately. Prevents front-running and whale identification.',
+      creator: 'Privacy DeFi',
+      creatorAddress: 'PrivacyDeFiAddr',
+      price: 250,
       category: 'finance',
       circuitCode: `pragma circom 2.0.0;
 include "circomlib/poseidon.circom";
+include "circomlib/comparators.circom";
 
-template CreditScore() {
-    signal input score;
-    signal input threshold;
-    signal input walletHash;
-    signal output meetsThreshold;
+template LaunchpadAllocation() {
+    signal input walletSecret;
+    signal input tokenBalance;
+    signal input holdingDays;
+    signal input minBalance;
+    signal input minDays;
+    signal output isEligible;
     signal output commitment;
     
-    component cmp = GreaterEqThan(32);
-    cmp.in[0] <== score;
-    cmp.in[1] <== threshold;
-    meetsThreshold <== cmp.out;
+    component balCheck = GreaterEqThan(64);
+    balCheck.in[0] <== tokenBalance;
+    balCheck.in[1] <== minBalance;
     
-    component hasher = Poseidon(2);
-    hasher.inputs[0] <== walletHash;
-    hasher.inputs[1] <== score;
+    component dayCheck = GreaterEqThan(32);
+    dayCheck.in[0] <== holdingDays;
+    dayCheck.in[1] <== minDays;
+    
+    isEligible <== balCheck.out * dayCheck.out;
+    
+    component hasher = Poseidon(1);
+    hasher.inputs[0] <== walletSecret;
     commitment <== hasher.out;
 }
 
-component main = CreditScore();`,
-      createdAt: new Date(now.getTime() - 15 * 24 * 60 * 60 * 1000),
+component main = LaunchpadAllocation();`,
+      createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
       updatedAt: now,
-      downloads: 189,
-      rating: 4.5,
-      ratingCount: 23,
+      downloads: 312,
+      rating: 4.8,
+      ratingCount: 42,
       featured: true,
       verified: true,
-      tags: ['defi', 'credit', 'lending', 'finance'],
-    },
-    {
-      id: 'tmpl_gaming_rank',
-      name: 'Private Gaming Rank Proof',
-      description: 'Prove your gaming rank or achievements without revealing your player ID. Great for anonymous esports matchmaking.',
-      creator: 'GameFi Builder',
-      creatorAddress: 'GameFiAddress789',
-      price: 75,
-      category: 'gaming',
-      circuitCode: `pragma circom 2.0.0;
-include "circomlib/poseidon.circom";
-
-template GamingRank() {
-    signal input playerId;
-    signal input rank;
-    signal input minRank;
-    signal output qualifies;
-    signal output anonId;
-    
-    component cmp = GreaterEqThan(16);
-    cmp.in[0] <== rank;
-    cmp.in[1] <== minRank;
-    qualifies <== cmp.out;
-    
-    component hasher = Poseidon(1);
-    hasher.inputs[0] <== playerId;
-    anonId <== hasher.out;
-}
-
-component main = GamingRank();`,
-      createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
-      updatedAt: now,
-      downloads: 98,
-      rating: 4.2,
-      ratingCount: 12,
-      featured: false,
-      verified: true,
-      tags: ['gaming', 'esports', 'matchmaking', 'rank'],
+      tags: ['launchpad', 'allocation', 'privacy', 'fairlaunch'],
     },
     {
       id: 'tmpl_dao_sybil',
       name: 'DAO Sybil Resistance',
-      description: 'Prevent sybil attacks in DAOs by proving unique personhood without KYC. Uses commitment schemes to ensure one-person-one-vote.',
+      description: 'Prevent sybil attacks in Solana DAOs. Prove unique personhood without KYC using commitment schemes. One-person-one-vote without revealing identity.',
       creator: 'DAO Architect',
       creatorAddress: 'DAOArchAddress101',
       price: 200,
@@ -504,7 +488,137 @@ component main = SybilResistance();`,
       ratingCount: 38,
       featured: true,
       verified: true,
-      tags: ['dao', 'governance', 'sybil', 'identity'],
+      tags: ['dao', 'governance', 'sybil', 'identity', 'solana'],
+    },
+    {
+      id: 'tmpl_confidential_swap',
+      name: 'Confidential DEX Swap',
+      description: 'Execute token swaps without revealing trade size or direction. Prove you have tokens to swap without exposing your trading strategy. Anti-MEV protection built-in.',
+      creator: 'MEV Shield',
+      creatorAddress: 'MEVShieldAddr',
+      price: 350,
+      category: 'finance',
+      circuitCode: `pragma circom 2.0.0;
+include "circomlib/poseidon.circom";
+include "circomlib/comparators.circom";
+
+template ConfidentialSwap() {
+    signal input tokenABalance;
+    signal input tokenBBalance;
+    signal input swapAmountA;
+    signal input minReceiveB;
+    signal input traderSecret;
+    signal output canSwap;
+    signal output commitment;
+    
+    component cmp = GreaterEqThan(64);
+    cmp.in[0] <== tokenABalance;
+    cmp.in[1] <== swapAmountA;
+    canSwap <== cmp.out;
+    
+    component hasher = Poseidon(3);
+    hasher.inputs[0] <== traderSecret;
+    hasher.inputs[1] <== swapAmountA;
+    hasher.inputs[2] <== minReceiveB;
+    commitment <== hasher.out;
+}
+
+component main = ConfidentialSwap();`,
+      createdAt: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      downloads: 198,
+      rating: 4.7,
+      ratingCount: 29,
+      featured: false,
+      verified: true,
+      tags: ['dex', 'swap', 'mev', 'privacy', 'trading'],
+    },
+    {
+      id: 'tmpl_private_nft',
+      name: 'Private NFT Ownership',
+      description: 'Prove you own an NFT from a collection without revealing which specific NFT. Access exclusive content, airdrops, and communities while maintaining privacy.',
+      creator: 'NFT Privacy',
+      creatorAddress: 'NFTPrivacyAddr',
+      price: 150,
+      category: 'identity',
+      circuitCode: `pragma circom 2.0.0;
+include "circomlib/poseidon.circom";
+include "circomlib/comparators.circom";
+
+template PrivateNFT() {
+    signal input tokenId;
+    signal input ownerSecret;
+    signal input collectionMin;
+    signal input collectionMax;
+    signal output isInCollection;
+    signal output ownerCommitment;
+    
+    component minCheck = GreaterEqThan(32);
+    minCheck.in[0] <== tokenId;
+    minCheck.in[1] <== collectionMin;
+    
+    component maxCheck = LessEqThan(32);
+    maxCheck.in[0] <== tokenId;
+    maxCheck.in[1] <== collectionMax;
+    
+    isInCollection <== minCheck.out * maxCheck.out;
+    
+    component hasher = Poseidon(2);
+    hasher.inputs[0] <== ownerSecret;
+    hasher.inputs[1] <== tokenId;
+    ownerCommitment <== hasher.out;
+}
+
+component main = PrivateNFT();`,
+      createdAt: new Date(now.getTime() - 12 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      downloads: 234,
+      rating: 4.6,
+      ratingCount: 31,
+      featured: false,
+      verified: true,
+      tags: ['nft', 'ownership', 'collection', 'airdrop', 'access'],
+    },
+    {
+      id: 'tmpl_anon_salary',
+      name: 'Anonymous Payroll Proof',
+      description: 'Prove salary range for loans or rentals without revealing exact income or employer. Perfect for privacy-conscious professionals needing financial verification.',
+      creator: 'Enterprise Privacy',
+      creatorAddress: 'EntPrivAddr',
+      price: 180,
+      category: 'enterprise',
+      circuitCode: `pragma circom 2.0.0;
+include "circomlib/poseidon.circom";
+include "circomlib/comparators.circom";
+
+template AnonSalary() {
+    signal input monthlySalary;
+    signal input employerHash;
+    signal input employeeSecret;
+    signal input minRequired;
+    signal output meetsRequirement;
+    signal output employmentProof;
+    
+    component cmp = GreaterEqThan(64);
+    cmp.in[0] <== monthlySalary;
+    cmp.in[1] <== minRequired;
+    meetsRequirement <== cmp.out;
+    
+    component hasher = Poseidon(2);
+    hasher.inputs[0] <== employerHash;
+    hasher.inputs[1] <== employeeSecret;
+    employmentProof <== hasher.out;
+}
+
+component main = AnonSalary();`,
+      createdAt: new Date(now.getTime() - 18 * 24 * 60 * 60 * 1000),
+      updatedAt: now,
+      downloads: 145,
+      rating: 4.5,
+      ratingCount: 19,
+      featured: false,
+      verified: true,
+      tags: ['salary', 'payroll', 'enterprise', 'verification', 'income'],
     },
   ];
 }

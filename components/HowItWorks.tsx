@@ -49,8 +49,8 @@ export default function HowItWorks() {
     <section id="how-it-works" className="relative py-24 px-16">
       {/* Section Header */}
       <div className="max-w-7xl mx-auto mb-16 text-center">
-        <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/50 rounded-full mb-6">
-          <div className="w-2 h-2 rounded-full bg-zk-secondary animate-pulse" />
+        <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/30 rounded-full mb-6">
+          <div className="w-2 h-2 rounded-full bg-zk-secondary" />
           <span className="text-xs font-medium text-zk-gray uppercase tracking-wider">
             Simple Process
           </span>
@@ -71,7 +71,7 @@ export default function HowItWorks() {
             key={step.number}
             className="relative group h-full"
           >
-            <div className="relative h-full bg-zk-dark/30 border border-zk-gray/20 rounded-2xl p-8 hover:border-zk-primary/50 transition-all duration-300 hover:scale-105 flex flex-col">
+            <div className="relative h-full bg-zk-dark/40 border border-zk-gray/15 rounded-2xl p-8 hover:border-zk-primary/40 transition-all duration-300 hover:translate-y-[-4px] flex flex-col">
               {/* Number */}
               <div className="text-6xl font-hatton text-zk-primary/20 mb-4">
                 {step.number}
