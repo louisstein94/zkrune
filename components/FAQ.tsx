@@ -88,8 +88,8 @@ export default function FAQ() {
       <div className="max-w-4xl mx-auto">
         {/* Section Header */}
         <div className="mb-16 text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/50 rounded-full mb-6">
-            <div className="w-2 h-2 rounded-full bg-zk-accent animate-pulse" />
+        <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/30 rounded-full mb-6">
+          <div className="w-2 h-2 rounded-full bg-zk-accent" />
             <span className="text-xs font-medium text-zk-gray uppercase tracking-wider">
               Common Questions
             </span>

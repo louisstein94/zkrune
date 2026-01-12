@@ -61,8 +61,36 @@ body {
     opacity: 1;
   }
   50% {
-    opacity: 0.5;
+    opacity: 0.7;
   }
+}
+
+/* Subtle glow animation - replacement for aggressive pulse */
+@keyframes subtle-glow {
+  0%, 100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-subtle-glow {
+  animation: subtle-glow 4s ease-in-out infinite;
+}
+
+/* Breathe animation - very subtle, professional */
+@keyframes breathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.02);
+  }
+}
+
+.animate-breathe {
+  animation: breathe 6s ease-in-out infinite;
 }
 
 @keyframes spin-slow {
@@ -169,14 +197,29 @@ body {
 
 /* Gradient backgrounds */
 .gradient-primary {
-  background: linear-gradient(135deg, #00FFA3 0%, #6B4CFF 100%);
+  background: linear-gradient(135deg, #00FFA3 0%, #F4B728 100%);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #00FFA3 0%, #6B4CFF 100%);
+  background: linear-gradient(135deg, #00FFA3 0%, #F4B728 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+/* Typography enhancements */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Better letter spacing for headers */
+.tracking-tight {
+  letter-spacing: -0.025em;
+}
+
+/* Subtle text shadow for depth */
+.text-glow {
+  text-shadow: 0 0 40px rgba(0, 255, 163, 0.15);
 }
 
 /* Glass morphism */

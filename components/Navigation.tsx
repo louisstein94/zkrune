@@ -56,28 +56,34 @@ export default function Navigation() {
               item.submenu ? (
                 <div 
                   key={item.name}
-                  className="relative"
+                  className="relative group"
                   onMouseEnter={() => setTokenMenuOpen(true)}
                   onMouseLeave={() => setTokenMenuOpen(false)}
                 >
-                  <button className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider flex items-center gap-1">
+                  <button className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider flex items-center gap-1 py-2">
                     {item.name}
                     <svg className={`w-4 h-4 transition-transform ${tokenMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   {tokenMenuOpen && (
-                    <div className="absolute top-full left-0 mt-2 w-48 bg-zk-dark/95 backdrop-blur-lg border border-zk-primary/20 rounded-xl shadow-xl overflow-hidden">
-                      {item.submenu.map((subitem) => (
-                        <a
-                          key={subitem.name}
-                          href={subitem.href}
-                          className="block px-4 py-3 text-sm text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10 transition-colors"
-                        >
-                          {subitem.name}
-                        </a>
-                      ))}
-                    </div>
+                    <>
+                      {/* Invisible bridge to prevent menu from closing */}
+                      <div className="absolute top-full left-0 w-48 h-2" />
+                      <div className="absolute top-full left-0 pt-2 w-48">
+                        <div className="bg-zk-dark/95 backdrop-blur-lg border border-zk-primary/20 rounded-xl shadow-xl overflow-hidden">
+                          {item.submenu.map((subitem) => (
+                            <a
+                              key={subitem.name}
+                              href={subitem.href}
+                              className="block px-4 py-3 text-sm text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10 transition-colors"
+                            >
+                              {subitem.name}
+                            </a>
+                          ))}
+                        </div>
+                      </div>
+                    </>
                   )}
                 </div>
               ) : (
@@ -94,7 +100,7 @@ export default function Navigation() {
             {/* Privacy Hack Highlighted Link */}
             <a
               href="/templates"
-              className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all text-sm font-bold uppercase tracking-wider animate-pulse"
+              className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all text-sm font-bold uppercase tracking-wider"
             >
               <span>🏆</span>
               Privacy Hack

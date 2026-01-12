@@ -14,6 +14,7 @@ import InteractiveHeroDemo from "@/components/InteractiveHeroDemo";
 import FirstProofSection from "@/components/FirstProofSection";
 import TutorialOverlay from "@/components/TutorialOverlay";
 import TrustBadges from "@/components/TrustBadges";
+import TokenStatsBanner from "@/components/TokenStatsBanner";
 
 export default function Home() {
 
@@ -34,8 +35,8 @@ export default function Home() {
 
       {/* Gradient Orb Background */}
       <div className="absolute top-0 right-0 w-[60%] h-full overflow-hidden">
-        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-zk-secondary/20 blur-[120px] animate-pulse-slow" />
-        <div className="absolute top-1/3 right-1/3 w-[400px] h-[400px] rounded-full bg-zk-primary/10 blur-[100px] animate-pulse-slow" style={{ animationDelay: '1s' }} />
+        <div className="absolute top-1/4 right-1/4 w-[500px] h-[500px] rounded-full bg-zk-secondary/15 blur-[120px] animate-breathe" />
+        <div className="absolute top-1/3 right-1/3 w-[400px] h-[400px] rounded-full bg-zk-primary/8 blur-[100px]" />
       </div>
 
 
@@ -45,13 +46,13 @@ export default function Home() {
         <div className="max-w-2xl space-y-8 text-center lg:text-left">
           {/* Solana Privacy Hack Badge */}
           <div className="flex flex-wrap items-center gap-3 mb-2">
-            <div className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/50 bg-purple-500/10 rounded-full backdrop-blur-sm animate-pulse">
+            <div className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/40 bg-purple-500/10 rounded-full backdrop-blur-sm">
               <span className="text-lg">🏆</span>
               <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">
                 Solana Privacy Hack 2026
               </span>
             </div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 border border-[#F4B728]/50 bg-[#F4B728]/10 rounded-full backdrop-blur-sm">
+            <div className="inline-flex items-center gap-2 px-4 py-2 border border-[#F4B728]/40 bg-[#F4B728]/10 rounded-full backdrop-blur-sm">
               <img src="/zcash-logo.png" alt="Zcash" className="w-4 h-4" />
               <span className="text-xs font-bold text-[#F4B728] uppercase tracking-wider">
                 Groth16 ZK-SNARKs
@@ -79,7 +80,7 @@ export default function Home() {
 
           {/* Enhanced Stats - Social Proof + Technical */}
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6 pt-8">
-            <div className="group p-4 bg-zk-dark/30 border border-zk-gray/20 rounded-xl hover:border-zk-primary/50 transition-all">
+            <div className="group p-4 bg-zk-dark/40 border border-zk-gray/15 rounded-xl hover:border-zk-primary/30 transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
@@ -93,7 +94,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="group p-4 bg-zk-dark/30 border border-zk-gray/20 rounded-xl hover:border-zk-primary/50 transition-all">
+            <div className="group p-4 bg-zk-dark/40 border border-zk-gray/15 rounded-xl hover:border-zk-primary/30 transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
@@ -107,7 +108,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="group p-4 bg-zk-dark/30 border border-zk-gray/20 rounded-xl hover:border-zk-primary/50 transition-all">
+            <div className="group p-4 bg-zk-dark/40 border border-zk-gray/15 rounded-xl hover:border-zk-primary/30 transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -121,7 +122,7 @@ export default function Home() {
               </p>
             </div>
 
-            <div className="group p-4 bg-zk-dark/30 border border-zk-gray/20 rounded-xl hover:border-zk-primary/50 transition-all">
+            <div className="group p-4 bg-zk-dark/40 border border-zk-gray/15 rounded-xl hover:border-zk-primary/30 transition-all">
               <div className="flex items-center gap-2 mb-2">
                 <svg className="w-4 h-4 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -165,7 +166,7 @@ export default function Home() {
       {/* Privacy-First Banner */}
       <div className="relative z-10 px-6 md:px-12 lg:px-16 py-16 border-t border-white/5">
         <div className="max-w-4xl mx-auto">
-          <div className="p-8 md:p-12 bg-gradient-to-br from-purple-500/10 via-zk-primary/10 to-purple-500/5 border border-purple-500/30 rounded-3xl backdrop-blur-sm">
+          <div className="p-8 md:p-12 bg-zk-dark/50 border border-purple-500/25 rounded-3xl backdrop-blur-sm">
             <div className="flex items-start gap-4 mb-6">
               <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center flex-shrink-0">
                 <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -218,8 +219,8 @@ export default function Home() {
 
           <div className="grid md:grid-cols-3 gap-6 md:gap-8">
             {/* Layer 1: Learn */}
-            <div className="group p-8 bg-zk-dark/30 border border-zk-primary/20 rounded-2xl hover:border-zk-primary/50 hover:bg-zk-dark/50 transition-all">
-              <div className="w-16 h-16 bg-zk-primary/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="group p-8 bg-zk-dark/40 border border-zk-primary/15 rounded-2xl hover:border-zk-primary/40 hover:bg-zk-dark/50 transition-all">
+              <div className="w-16 h-16 bg-zk-primary/15 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform">
                 <svg className="w-8 h-8 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
                 </svg>
@@ -239,8 +240,8 @@ export default function Home() {
             </div>
 
             {/* Layer 2: Experiment */}
-            <div className="group p-8 bg-zk-dark/30 border border-purple-500/20 rounded-2xl hover:border-purple-500/50 hover:bg-zk-dark/50 transition-all">
-              <div className="w-16 h-16 bg-purple-500/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="group p-8 bg-zk-dark/40 border border-purple-500/15 rounded-2xl hover:border-purple-500/40 hover:bg-zk-dark/50 transition-all">
+              <div className="w-16 h-16 bg-purple-500/15 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform">
                 <svg className="w-8 h-8 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                 </svg>
@@ -260,8 +261,8 @@ export default function Home() {
             </div>
 
             {/* Layer 3: Build */}
-            <div className="group p-8 bg-zk-dark/30 border border-[#F4B728]/20 rounded-2xl hover:border-[#F4B728]/50 hover:bg-zk-dark/50 transition-all">
-              <div className="w-16 h-16 bg-[#F4B728]/20 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">
+            <div className="group p-8 bg-zk-dark/40 border border-[#F4B728]/15 rounded-2xl hover:border-[#F4B728]/40 hover:bg-zk-dark/50 transition-all">
+              <div className="w-16 h-16 bg-[#F4B728]/15 rounded-2xl flex items-center justify-center mb-6 group-hover:scale-105 transition-transform">
                 <svg className="w-8 h-8 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
                 </svg>
@@ -339,7 +340,7 @@ export default function Home() {
       <div className="relative z-10 px-6 md:px-12 lg:px-16 py-20 border-t border-white/5">
         <div className="max-w-7xl mx-auto">
           {/* Section Header */}
-          <div className="text-center mb-16">
+          <div className="text-center mb-12">
             <div className="inline-flex items-center gap-2 px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 rounded-full mb-6">
               <span className="text-sm font-bold text-zk-primary uppercase tracking-wider">
                 zkRUNE Token
@@ -353,10 +354,15 @@ export default function Home() {
             </p>
           </div>
 
+          {/* Live Token Stats */}
+          <div className="mb-12">
+            <TokenStatsBanner />
+          </div>
+
           {/* Features Grid */}
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Governance */}
-            <a href="/governance" className="group p-8 bg-gradient-to-br from-zk-dark/40 to-zk-dark/20 border border-zk-primary/20 rounded-2xl hover:border-zk-primary/60 hover:scale-105 transition-all duration-300">
+            <a href="/governance" className="group p-8 bg-zk-dark/40 border border-zk-primary/15 rounded-2xl hover:border-zk-primary/40 hover:translate-y-[-4px] transition-all duration-300">
               <div className="w-14 h-14 bg-zk-primary/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-zk-primary/30 transition-colors">
                 <svg className="w-7 h-7 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
@@ -375,7 +381,7 @@ export default function Home() {
             </a>
 
             {/* Premium Features */}
-            <a href="/premium" className="group p-8 bg-gradient-to-br from-purple-500/10 to-zk-dark/20 border border-purple-500/20 rounded-2xl hover:border-purple-500/60 hover:scale-105 transition-all duration-300">
+            <a href="/premium" className="group p-8 bg-zk-dark/40 border border-purple-500/15 rounded-2xl hover:border-purple-500/40 hover:translate-y-[-4px] transition-all duration-300">
               <div className="w-14 h-14 bg-purple-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-purple-500/30 transition-colors">
                 <svg className="w-7 h-7 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -394,7 +400,7 @@ export default function Home() {
             </a>
 
             {/* Marketplace */}
-            <a href="/marketplace" className="group p-8 bg-gradient-to-br from-[#F4B728]/10 to-zk-dark/20 border border-[#F4B728]/20 rounded-2xl hover:border-[#F4B728]/60 hover:scale-105 transition-all duration-300">
+            <a href="/marketplace" className="group p-8 bg-zk-dark/40 border border-[#F4B728]/15 rounded-2xl hover:border-[#F4B728]/40 hover:translate-y-[-4px] transition-all duration-300">
               <div className="w-14 h-14 bg-[#F4B728]/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-[#F4B728]/30 transition-colors">
                 <svg className="w-7 h-7 text-[#F4B728]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
@@ -413,7 +419,7 @@ export default function Home() {
             </a>
 
             {/* Staking */}
-            <a href="/staking" className="group p-8 bg-gradient-to-br from-emerald-500/10 to-zk-dark/20 border border-emerald-500/20 rounded-2xl hover:border-emerald-500/60 hover:scale-105 transition-all duration-300">
+            <a href="/staking" className="group p-8 bg-zk-dark/40 border border-emerald-500/15 rounded-2xl hover:border-emerald-500/40 hover:translate-y-[-4px] transition-all duration-300">
               <div className="w-14 h-14 bg-emerald-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-emerald-500/30 transition-colors">
                 <svg className="w-7 h-7 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -432,7 +438,7 @@ export default function Home() {
             </a>
 
             {/* Mobile Wallet */}
-            <a href="/wallet" className="group p-8 bg-gradient-to-br from-blue-500/10 to-zk-dark/20 border border-blue-500/20 rounded-2xl hover:border-blue-500/60 hover:scale-105 transition-all duration-300">
+            <a href="/wallet" className="group p-8 bg-zk-dark/40 border border-blue-500/15 rounded-2xl hover:border-blue-500/40 hover:translate-y-[-4px] transition-all duration-300">
               <div className="w-14 h-14 bg-blue-500/20 rounded-xl flex items-center justify-center mb-6 group-hover:bg-blue-500/30 transition-colors">
                 <svg className="w-7 h-7 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z" />
@@ -451,7 +457,7 @@ export default function Home() {
             </a>
 
             {/* Token Info Card */}
-            <div className="p-8 bg-gradient-to-br from-zk-primary/5 to-zk-dark/20 border border-zk-primary/30 rounded-2xl">
+            <div className="p-8 bg-zk-dark/50 border border-zk-primary/20 rounded-2xl">
               <div className="mb-6">
                 <p className="text-xs text-zk-gray uppercase tracking-wider mb-2">Token Contract</p>
                 <div className="flex items-center gap-2">

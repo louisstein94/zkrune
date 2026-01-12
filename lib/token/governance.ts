@@ -51,13 +51,26 @@ const VOTES_KEY = 'zkrune_governance_votes';
 
 // Get all proposals
 export function getProposals(): Proposal[] {
-  if (typeof window === 'undefined') return [];
+  // Always return default proposals on SSR for initial render
+  if (typeof window === 'undefined') return getDefaultProposals();
 
   try {
     const stored = localStorage.getItem(PROPOSALS_KEY);
-    if (!stored) return getDefaultProposals();
+    if (!stored) {
+      // Initialize with default proposals
+      const defaults = getDefaultProposals();
+      localStorage.setItem(PROPOSALS_KEY, JSON.stringify(defaults));
+      return defaults;
+    }
     
     const proposals = JSON.parse(stored);
+    // If empty, return defaults
+    if (proposals.length === 0) {
+      const defaults = getDefaultProposals();
+      localStorage.setItem(PROPOSALS_KEY, JSON.stringify(defaults));
+      return defaults;
+    }
+    
     return proposals.map((p: any) => ({
       ...p,
       createdAt: new Date(p.createdAt),
@@ -263,64 +276,102 @@ function saveVotes(votes: Vote[]): void {
   localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
 }
 
-// Default proposals for demo
+// Default proposals for demo - Solana Privacy Hack focused
 function getDefaultProposals(): Proposal[] {
   const now = new Date();
   const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
+  const threedays = new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000);
+  const fivedays = new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000);
 
   return [
     {
-      id: 'prop_demo_1',
-      type: 'template',
-      title: 'Add KYC Verification Template',
-      description: 'A new template for privacy-preserving KYC verification that proves identity attributes without revealing personal information. Uses zero-knowledge proofs to verify age, nationality, and accreditation status.',
-      creator: 'zkRune Team',
-      createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+      id: 'prop_privacy_1',
+      type: 'feature',
+      title: 'Solana SPL Token Private Transfers',
+      description: 'Implement private SPL token transfers using ZK proofs. Users can send tokens without revealing amounts or wallet addresses publicly. Perfect for salary payments, donations, and confidential business transactions on Solana.',
+      creator: 'zkRune Core',
+      createdAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
       endsAt: weekFromNow,
       status: 'active',
-      votesFor: 1250,
-      votesAgainst: 180,
-      voterCount: 42,
-      quorumReached: true,
-      templateData: {
-        name: 'KYC Verification',
-        category: 'identity',
-      },
-    },
-    {
-      id: 'prop_demo_2',
-      type: 'feature',
-      title: 'Multi-chain Proof Verification',
-      description: 'Enable verification of zkRune proofs on multiple blockchains including Ethereum, Polygon, and Cosmos. This will expand the utility of zkRune proofs across the broader web3 ecosystem.',
-      creator: 'Community Member',
-      createdAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
-      endsAt: new Date(now.getTime() + 2 * 24 * 60 * 60 * 1000),
-      status: 'active',
-      votesFor: 890,
-      votesAgainst: 320,
-      voterCount: 67,
+      votesFor: 2450,
+      votesAgainst: 120,
+      voterCount: 89,
       quorumReached: true,
       featureData: {
-        featureName: 'Multi-chain Verification',
-        specification: 'Deploy verifier contracts on EVM chains and integrate with IBC for Cosmos.',
+        featureName: 'Private SPL Transfers',
+        specification: 'Use Groth16 proofs to verify token ownership and transfer validity without revealing amounts.',
       },
     },
     {
-      id: 'prop_demo_3',
+      id: 'prop_privacy_2',
       type: 'template',
-      title: 'Proof of Reserves Template',
-      description: 'Create a template for exchanges and custodians to prove solvency without revealing exact holdings. Critical for transparency in the crypto ecosystem.',
-      creator: 'DeFi Builder',
-      createdAt: new Date(now.getTime() - 10 * 24 * 60 * 60 * 1000),
-      endsAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
-      status: 'passed',
-      votesFor: 2100,
-      votesAgainst: 450,
-      voterCount: 128,
+      title: 'Anonymous DAO Voting Template',
+      description: 'A template for Solana DAOs to conduct anonymous votes. Prove voting eligibility based on token holdings without revealing your wallet or exact balance. Prevents voter coercion and bribery.',
+      creator: 'Privacy Advocate',
+      createdAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000),
+      endsAt: fivedays,
+      status: 'active',
+      votesFor: 1890,
+      votesAgainst: 340,
+      voterCount: 156,
       quorumReached: true,
       templateData: {
-        name: 'Proof of Reserves',
+        name: 'Anonymous DAO Voting',
+        category: 'voting',
+      },
+    },
+    {
+      id: 'prop_privacy_3',
+      type: 'feature',
+      title: 'Confidential Token Launchpad',
+      description: 'Build a private token launchpad where participants can prove they meet requirements (holding period, token amount, etc.) without revealing their identity. Ideal for fair launches without front-running.',
+      creator: 'DeFi Builder',
+      createdAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000),
+      endsAt: threedays,
+      status: 'active',
+      votesFor: 1560,
+      votesAgainst: 280,
+      voterCount: 78,
+      quorumReached: true,
+      featureData: {
+        featureName: 'Confidential Launchpad',
+        specification: 'ZK proofs for allocation eligibility without wallet address exposure.',
+      },
+    },
+    {
+      id: 'prop_privacy_4',
+      type: 'template',
+      title: 'Private Credit Score Proof',
+      description: 'Prove your on-chain credit worthiness for undercollateralized lending without revealing transaction history. Essential for privacy-preserving DeFi on Solana.',
+      creator: 'Solana DeFi',
+      createdAt: new Date(now.getTime() - 8 * 24 * 60 * 60 * 1000),
+      endsAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000),
+      status: 'passed',
+      votesFor: 3200,
+      votesAgainst: 450,
+      voterCount: 234,
+      quorumReached: true,
+      templateData: {
+        name: 'Private Credit Score',
         category: 'finance',
+      },
+    },
+    {
+      id: 'prop_privacy_5',
+      type: 'feature',
+      title: 'Gasless Proof Verification via Relayers',
+      description: 'Enable users to verify proofs without paying gas. Relayers submit transactions on behalf of users, with costs covered by the protocol. Improves UX for privacy features.',
+      creator: 'UX Team',
+      createdAt: new Date(now.getTime() - 12 * 24 * 60 * 60 * 1000),
+      endsAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000),
+      status: 'executed',
+      votesFor: 4100,
+      votesAgainst: 200,
+      voterCount: 312,
+      quorumReached: true,
+      featureData: {
+        featureName: 'Gasless Verification',
+        specification: 'Implement meta-transactions for proof submission.',
       },
     },
   ];

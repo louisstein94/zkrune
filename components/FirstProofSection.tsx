@@ -55,8 +55,8 @@ export default function FirstProofSection() {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
-          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-primary/50 rounded-full mb-6">
-            <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse"></div>
+          <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-primary/40 rounded-full mb-6">
+            <div className="w-2 h-2 rounded-full bg-zk-primary"></div>
             <span className="text-xs font-medium text-zk-primary uppercase tracking-wider">
               Quick Start Guide
             </span>
