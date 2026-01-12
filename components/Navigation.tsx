@@ -56,35 +56,44 @@ export default function Navigation() {
               item.submenu ? (
                 <div 
                   key={item.name}
-                  className="relative group"
+                  className="relative"
                   onMouseEnter={() => setTokenMenuOpen(true)}
                   onMouseLeave={() => setTokenMenuOpen(false)}
                 >
-                  <button className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider flex items-center gap-1 py-2">
+                  <button className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider flex items-center gap-1 py-4">
                     {item.name}
-                    <svg className={`w-4 h-4 transition-transform ${tokenMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className={`w-4 h-4 transition-transform duration-200 ${tokenMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
-                  {tokenMenuOpen && (
-                    <>
-                      {/* Invisible bridge to prevent menu from closing */}
-                      <div className="absolute top-full left-0 w-48 h-2" />
-                      <div className="absolute top-full left-0 pt-2 w-48">
-                        <div className="bg-zk-dark/95 backdrop-blur-lg border border-zk-primary/20 rounded-xl shadow-xl overflow-hidden">
-                          {item.submenu.map((subitem) => (
-                            <a
-                              key={subitem.name}
-                              href={subitem.href}
-                              className="block px-4 py-3 text-sm text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10 transition-colors"
-                            >
-                              {subitem.name}
-                            </a>
-                          ))}
-                        </div>
-                      </div>
-                    </>
-                  )}
+                  {/* Dropdown Menu */}
+                  <div 
+                    className={`absolute top-full left-1/2 -translate-x-1/2 w-52 pt-1 transition-all duration-200 ${
+                      tokenMenuOpen 
+                        ? 'opacity-100 visible translate-y-0' 
+                        : 'opacity-0 invisible -translate-y-2'
+                    }`}
+                  >
+                    <div className="bg-zk-dark/95 backdrop-blur-xl border border-zk-primary/20 rounded-xl shadow-2xl overflow-hidden">
+                      {item.submenu.map((subitem, index) => (
+                        <a
+                          key={subitem.name}
+                          href={subitem.href}
+                          className="flex items-center gap-3 px-4 py-3 text-sm text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10 transition-all border-b border-white/5 last:border-b-0"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <span className="text-zk-primary/60">
+                            {subitem.name === 'Governance' && '🗳️'}
+                            {subitem.name === 'Premium' && '⭐'}
+                            {subitem.name === 'Marketplace' && '🏪'}
+                            {subitem.name === 'Staking' && '💰'}
+                            {subitem.name === 'Wallet' && '👛'}
+                          </span>
+                          {subitem.name}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
                 </div>
               ) : (
                 <a
