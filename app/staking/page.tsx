@@ -22,15 +22,18 @@ import {
   type UserStakingInfo,
 } from '@/lib/token/staking';
 import { STAKING_CONFIG, formatTokenAmount } from '@/lib/token/config';
+import { useStakingOnChain } from '@/lib/hooks/useStakingOnChain';
 
 export default function StakingPage() {
   const { publicKey, connected } = useWallet();
+  const { stakeTokens, isStaking, isVaultConfigured } = useStakingOnChain();
   const [userInfo, setUserInfo] = useState<UserStakingInfo | null>(null);
   const [stats, setStats] = useState<ReturnType<typeof getStakingStats> | null>(null);
   const [stakeAmount, setStakeAmount] = useState('');
   const [selectedPeriod, setSelectedPeriod] = useState(30);
   const [isProcessing, setIsProcessing] = useState(false);
   const [activeTab, setActiveTab] = useState<'stake' | 'positions'>('stake');
+  const [txSignature, setTxSignature] = useState<string | null>(null);
 
   const lockPeriods = getLockPeriodOptions();
 
@@ -50,22 +53,32 @@ export default function StakingPage() {
   async function handleStake() {
     if (!publicKey || !stakeAmount) return;
 
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-
     const amount = parseFloat(stakeAmount);
     if (isNaN(amount) || amount < STAKING_CONFIG.MIN_STAKE) {
       alert(`Minimum stake is ${STAKING_CONFIG.MIN_STAKE} zkRUNE`);
-      setIsProcessing(false);
       return;
     }
 
+    setIsProcessing(true);
+
+    // Try on-chain staking first if vault is configured
+    if (isVaultConfigured()) {
+      const onChainResult = await stakeTokens(amount);
+      if (!onChainResult.success) {
+        alert(onChainResult.error || 'On-chain staking failed');
+        setIsProcessing(false);
+        return;
+      }
+      setTxSignature(onChainResult.signature || null);
+    }
+
+    // Record stake in local state
     const result = createStake(publicKey.toBase58(), amount, selectedPeriod);
     
     if (result.success) {
       loadData();
       setStakeAmount('');
-      alert('Staking successful!');
+      setTimeout(() => setTxSignature(null), 5000);
     } else {
       alert(result.error || 'Staking failed');
     }
@@ -149,6 +162,21 @@ export default function StakingPage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Success Toast */}
+        {txSignature && (
+          <div className="fixed top-24 right-4 bg-green-500/20 border border-green-500/30 text-green-400 px-6 py-4 rounded-lg z-50 animate-fade-in max-w-md">
+            <div className="font-semibold mb-1">Staking successful!</div>
+            <a 
+              href={`https://solscan.io/tx/${txSignature}?cluster=devnet`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-xs text-green-400 hover:text-green-300 underline"
+            >
+              View on Solscan
+            </a>
+          </div>
+        )}
+
         {/* Page Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
@@ -316,7 +344,7 @@ export default function StakingPage() {
 
                   <button
                     onClick={handleStake}
-                    disabled={isProcessing || !stakeAmount}
+                    disabled={isProcessing || isStaking || !stakeAmount}
                     className="w-full py-3 bg-[#00FFA3] text-black font-semibold rounded-lg hover:bg-[#00cc82] transition disabled:opacity-50"
                   >
                     {isProcessing ? 'Processing...' : 'Stake Now'}
