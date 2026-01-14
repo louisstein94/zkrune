@@ -4,6 +4,8 @@ export { useGovernance } from './useGovernance';
 export { useMarketplace } from './useMarketplace';
 export { useStaking } from './useStaking';
 export { usePremium } from './usePremium';
+export { useOnChainVerify, TEMPLATE_IDS, serializeProof } from './useOnChainVerify';
+export { useSolana } from './useSolana';
 
 // Types
 export type { Proposal, Vote, GovernanceStats } from './useGovernance';
