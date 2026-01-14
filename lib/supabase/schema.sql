@@ -121,6 +121,21 @@ CREATE TABLE IF NOT EXISTS burn_history (
 );
 
 -- =====================================================
+-- CEREMONY TABLES
+-- =====================================================
+
+-- Ceremony Contributions
+CREATE TABLE IF NOT EXISTS ceremony_contributions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  contribution_index INTEGER NOT NULL UNIQUE,
+  contributor_name TEXT NOT NULL,
+  contribution_hash TEXT NOT NULL,
+  circuits TEXT[] DEFAULT ARRAY['age-verification', 'anonymous-reputation', 'balance-proof', 'credential-proof', 'hash-preimage', 'membership-proof', 'nft-ownership', 'patience-proof', 'private-voting', 'quadratic-voting', 'range-proof', 'signature-verification', 'token-swap'],
+  verified BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- =====================================================
 -- INDEXES
 -- =====================================================
 
@@ -137,6 +152,7 @@ CREATE INDEX IF NOT EXISTS idx_staking_staker ON staking_positions(staker);
 CREATE INDEX IF NOT EXISTS idx_staking_active ON staking_positions(is_active);
 CREATE INDEX IF NOT EXISTS idx_premium_wallet ON premium_status(wallet);
 CREATE INDEX IF NOT EXISTS idx_burn_wallet ON burn_history(wallet);
+CREATE INDEX IF NOT EXISTS idx_ceremony_index ON ceremony_contributions(contribution_index);
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS)
@@ -150,6 +166,7 @@ ALTER TABLE purchases ENABLE ROW LEVEL SECURITY;
 ALTER TABLE staking_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE premium_status ENABLE ROW LEVEL SECURITY;
 ALTER TABLE burn_history ENABLE ROW LEVEL SECURITY;
+ALTER TABLE ceremony_contributions ENABLE ROW LEVEL SECURITY;
 
 -- Public read access for proposals and templates
 CREATE POLICY "Public read proposals" ON proposals FOR SELECT USING (true);
@@ -163,6 +180,7 @@ CREATE POLICY "Allow insert purchases" ON purchases FOR INSERT WITH CHECK (true)
 CREATE POLICY "Allow insert staking" ON staking_positions FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow insert premium" ON premium_status FOR INSERT WITH CHECK (true);
 CREATE POLICY "Allow insert burn" ON burn_history FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow insert ceremony" ON ceremony_contributions FOR INSERT WITH CHECK (true);
 
 -- Allow updates
 CREATE POLICY "Allow update proposals" ON proposals FOR UPDATE USING (true);
@@ -176,6 +194,7 @@ CREATE POLICY "Public read purchases" ON purchases FOR SELECT USING (true);
 CREATE POLICY "Public read staking" ON staking_positions FOR SELECT USING (true);
 CREATE POLICY "Public read premium" ON premium_status FOR SELECT USING (true);
 CREATE POLICY "Public read burn" ON burn_history FOR SELECT USING (true);
+CREATE POLICY "Public read ceremony" ON ceremony_contributions FOR SELECT USING (true);
 
 -- =====================================================
 -- SEED DATA
@@ -200,4 +219,10 @@ VALUES
   ('Confidential DEX Swap', 'Execute token swaps without revealing trade size or direction. Prove you have tokens to swap without exposing your trading strategy. Anti-MEV protection built-in.', 'MEV Shield', 'MEVShieldAddr', 350, 'finance', 'pragma circom 2.0.0;\ninclude "circomlib/poseidon.circom";\ninclude "circomlib/comparators.circom";\n\ntemplate ConfidentialSwap() {\n    signal input tokenABalance;\n    signal input tokenBBalance;\n    signal input swapAmountA;\n    signal input minReceiveB;\n    signal input traderSecret;\n    signal output canSwap;\n    signal output commitment;\n    \n    component cmp = GreaterEqThan(64);\n    cmp.in[0] <== tokenABalance;\n    cmp.in[1] <== swapAmountA;\n    canSwap <== cmp.out;\n    \n    component hasher = Poseidon(3);\n    hasher.inputs[0] <== traderSecret;\n    hasher.inputs[1] <== swapAmountA;\n    hasher.inputs[2] <== minReceiveB;\n    commitment <== hasher.out;\n}\n\ncomponent main = ConfidentialSwap();', 198, 4.7, 29, false, true, ARRAY['dex', 'swap', 'mev', 'privacy', 'trading']),
   ('Private NFT Ownership', 'Prove you own an NFT from a collection without revealing which specific NFT. Access exclusive content, airdrops, and communities while maintaining privacy.', 'NFT Privacy', 'NFTPrivacyAddr', 150, 'identity', 'pragma circom 2.0.0;\ninclude "circomlib/poseidon.circom";\ninclude "circomlib/comparators.circom";\n\ntemplate PrivateNFT() {\n    signal input tokenId;\n    signal input ownerSecret;\n    signal input collectionMin;\n    signal input collectionMax;\n    signal output isInCollection;\n    signal output ownerCommitment;\n    \n    component minCheck = GreaterEqThan(32);\n    minCheck.in[0] <== tokenId;\n    minCheck.in[1] <== collectionMin;\n    \n    component maxCheck = LessEqThan(32);\n    maxCheck.in[0] <== tokenId;\n    maxCheck.in[1] <== collectionMax;\n    \n    isInCollection <== minCheck.out * maxCheck.out;\n    \n    component hasher = Poseidon(2);\n    hasher.inputs[0] <== ownerSecret;\n    hasher.inputs[1] <== tokenId;\n    ownerCommitment <== hasher.out;\n}\n\ncomponent main = PrivateNFT();', 234, 4.6, 31, false, true, ARRAY['nft', 'ownership', 'collection', 'airdrop', 'access']),
   ('Anonymous Payroll Proof', 'Prove salary range for loans or rentals without revealing exact income or employer. Perfect for privacy-conscious professionals needing financial verification.', 'Enterprise Privacy', 'EntPrivAddr', 180, 'enterprise', 'pragma circom 2.0.0;\ninclude "circomlib/poseidon.circom";\ninclude "circomlib/comparators.circom";\n\ntemplate AnonSalary() {\n    signal input monthlySalary;\n    signal input employerHash;\n    signal input employeeSecret;\n    signal input minRequired;\n    signal output meetsRequirement;\n    signal output employmentProof;\n    \n    component cmp = GreaterEqThan(64);\n    cmp.in[0] <== monthlySalary;\n    cmp.in[1] <== minRequired;\n    meetsRequirement <== cmp.out;\n    \n    component hasher = Poseidon(2);\n    hasher.inputs[0] <== employerHash;\n    hasher.inputs[1] <== employeeSecret;\n    employmentProof <== hasher.out;\n}\n\ncomponent main = AnonSalary();', 145, 4.5, 19, false, true, ARRAY['salary', 'payroll', 'enterprise', 'verification', 'income'])
+ON CONFLICT DO NOTHING;
+
+-- Insert initial ceremony contribution
+INSERT INTO ceremony_contributions (contribution_index, contributor_name, contribution_hash, verified)
+VALUES 
+  (1, 'zkRune Core', 'a1b2c3d4e5f6789012345678901234567890abcd1234567890abcdef12345678', true)
 ON CONFLICT DO NOTHING;
