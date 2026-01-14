@@ -106,13 +106,13 @@ export default function Navigation() {
               )
             ))}
             
-            {/* Privacy Hack Highlighted Link */}
+            {/* Ceremony Link */}
             <a
-              href="/templates"
+              href="/ceremony"
               className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all text-sm font-bold uppercase tracking-wider"
             >
-              <span>🏆</span>
-              Privacy Hack
+              <span>🔮</span>
+              Ceremony
             </a>
           </nav>
 
@@ -223,11 +223,11 @@ export default function Navigation() {
               )
             ))}
             <a
-              href="/templates"
+              href="/ceremony"
               onClick={() => setIsOpen(false)}
               className="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-wider py-2 flex items-center gap-2"
             >
-              🏆 Privacy Hack
+              🔮 Ceremony
             </a>
             <a
               href="https://github.com/louisstein94/zkrune"
