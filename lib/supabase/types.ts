@@ -294,6 +294,37 @@ export interface Database {
           created_at?: string;
         };
       };
+
+      // Ceremony Contributions
+      ceremony_contributions: {
+        Row: {
+          id: string;
+          contribution_index: number;
+          contributor_name: string;
+          contribution_hash: string;
+          circuits: string[];
+          verified: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          contribution_index: number;
+          contributor_name: string;
+          contribution_hash: string;
+          circuits?: string[];
+          verified?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          contribution_index?: number;
+          contributor_name?: string;
+          contribution_hash?: string;
+          circuits?: string[];
+          verified?: boolean;
+          created_at?: string;
+        };
+      };
     };
     Views: {
       [_ in never]: never;
