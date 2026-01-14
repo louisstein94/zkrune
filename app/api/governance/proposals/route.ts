@@ -1,12 +1,34 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { GOVERNANCE_CONFIG } from '@/lib/token/config';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+interface Proposal {
+  id: string;
+  type: 'template' | 'feature' | 'parameter';
+  title: string;
+  description: string;
+  creator: string;
+  created_at: string;
+  ends_at: string;
+  status: 'active' | 'passed' | 'rejected' | 'executed';
+  votes_for: number;
+  votes_against: number;
+  voter_count: number;
+  quorum_reached: boolean;
+  template_data: unknown;
+  feature_data: unknown;
+}
+
+function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl && supabaseKey);
+}
 
 // GET all proposals
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const status = searchParams.get('status');
-  const creator = searchParams.get('creator');
 
   // If Supabase is not configured, return mock data
   if (!isSupabaseConfigured()) {
@@ -18,34 +40,39 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let query = supabase
-      .from('proposals')
-      .select('*')
-      .order('created_at', { ascending: false });
-
+    let url = `${supabaseUrl}/rest/v1/proposals?select=*&order=created_at.desc`;
+    
     if (status) {
-      query = query.eq('status', status);
+      url += `&status=eq.${status}`;
     }
 
-    if (creator) {
-      query = query.eq('creator', creator);
+    const response = await fetch(url, {
+      headers: {
+        'apikey': supabaseKey!,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json'
+      },
+      next: { revalidate: 30 }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Supabase error: ${response.status}`);
     }
 
-    const { data, error } = await query;
-
-    if (error) throw error;
+    const data: Proposal[] = await response.json();
 
     return NextResponse.json({
       success: true,
       data: data || [],
       source: 'supabase',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching proposals:', error);
     return NextResponse.json({
-      success: false,
-      error: error.message,
-    }, { status: 500 });
+      success: true,
+      data: getMockProposals(),
+      source: 'fallback',
+    });
   }
 }
 
@@ -73,9 +100,15 @@ export async function POST(request: NextRequest) {
     const now = new Date();
     const endsAt = new Date(now.getTime() + GOVERNANCE_CONFIG.VOTING_PERIOD_DAYS * 24 * 60 * 60 * 1000);
 
-    const { data, error } = await supabase
-      .from('proposals')
-      .insert({
+    const response = await fetch(`${supabaseUrl}/rest/v1/proposals`, {
+      method: 'POST',
+      headers: {
+        'apikey': supabaseKey!,
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json',
+        'Prefer': 'return=representation'
+      },
+      body: JSON.stringify({
         type,
         title,
         description,
@@ -84,26 +117,30 @@ export async function POST(request: NextRequest) {
         template_data: templateData || null,
         feature_data: featureData || null,
       })
-      .select()
-      .single();
+    });
 
-    if (error) throw error;
+    if (!response.ok) {
+      throw new Error(`Supabase error: ${response.status}`);
+    }
+
+    const [data]: Proposal[] = await response.json();
 
     return NextResponse.json({
       success: true,
       data,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating proposal:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: message,
     }, { status: 500 });
   }
 }
 
 // Mock data fallback
-function getMockProposals() {
+function getMockProposals(): Proposal[] {
   const now = new Date();
   return [
     {
@@ -119,6 +156,8 @@ function getMockProposals() {
       votes_against: 120,
       voter_count: 89,
       quorum_reached: true,
+      template_data: null,
+      feature_data: null,
     },
     {
       id: 'prop_privacy_2',
@@ -133,6 +172,8 @@ function getMockProposals() {
       votes_against: 340,
       voter_count: 156,
       quorum_reached: true,
+      template_data: null,
+      feature_data: null,
     },
   ];
 }

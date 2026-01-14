@@ -1,6 +1,35 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { PREMIUM_TIERS, type PremiumTier } from '@/lib/token/config';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+interface PremiumStatus {
+  id: string;
+  wallet: string;
+  tier: PremiumTier;
+  total_burned: number;
+  unlocked_at: string | null;
+  expires_at: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl && supabaseKey);
+}
+
+async function supabaseFetch(endpoint: string, options?: RequestInit) {
+  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
+    ...options,
+    headers: {
+      'apikey': supabaseKey!,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+}
 
 // GET premium status
 export async function GET(request: NextRequest) {
@@ -28,17 +57,11 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const { data, error } = await supabase
-      .from('premium_status')
-      .select('*')
-      .eq('wallet', wallet)
-      .single();
+    const response = await supabaseFetch(`premium_status?wallet=eq.${wallet}&select=*`);
+    const data: PremiumStatus[] = await response.json();
+    const status = data[0];
 
-    if (error && error.code !== 'PGRST116') {
-      throw error;
-    }
-
-    if (!data) {
+    if (!status) {
       return NextResponse.json({
         success: true,
         data: {
@@ -52,11 +75,11 @@ export async function GET(request: NextRequest) {
     }
 
     // Check if premium has expired
-    if (data.expires_at && new Date(data.expires_at) < new Date()) {
+    if (status.expires_at && new Date(status.expires_at) < new Date()) {
       return NextResponse.json({
         success: true,
         data: {
-          ...data,
+          ...status,
           tier: 'FREE',
           features: PREMIUM_TIERS.FREE.features,
           expired: true,
@@ -68,16 +91,17 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({
       success: true,
       data: {
-        ...data,
-        features: PREMIUM_TIERS[data.tier as PremiumTier]?.features || PREMIUM_TIERS.FREE.features,
+        ...status,
+        features: PREMIUM_TIERS[status.tier]?.features || PREMIUM_TIERS.FREE.features,
       },
       source: 'supabase',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching premium status:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: message,
     }, { status: 500 });
   }
 }
@@ -112,11 +136,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Get current status
-    const { data: currentStatus } = await supabase
-      .from('premium_status')
-      .select('*')
-      .eq('wallet', wallet)
-      .single();
+    const statusRes = await supabaseFetch(`premium_status?wallet=eq.${wallet}&select=*`);
+    const statuses: PremiumStatus[] = await statusRes.json();
+    const currentStatus = statuses[0];
 
     const currentBurned = currentStatus?.total_burned || 0;
     const newTotalBurned = currentBurned + amount;
@@ -135,32 +157,42 @@ export async function POST(request: NextRequest) {
     const expiresAt = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000); // 1 year
 
     // Upsert premium status
-    const { error: statusError } = await supabase
-      .from('premium_status')
-      .upsert({
-        wallet,
-        tier: achievedTier,
-        total_burned: newTotalBurned,
-        unlocked_at: now.toISOString(),
-        expires_at: expiresAt.toISOString(),
-        updated_at: now.toISOString(),
-      }, {
-        onConflict: 'wallet',
+    if (currentStatus) {
+      // Update existing
+      await supabaseFetch(`premium_status?wallet=eq.${wallet}`, {
+        method: 'PATCH',
+        body: JSON.stringify({
+          tier: achievedTier,
+          total_burned: newTotalBurned,
+          unlocked_at: now.toISOString(),
+          expires_at: expiresAt.toISOString(),
+          updated_at: now.toISOString(),
+        }),
       });
-
-    if (statusError) throw statusError;
+    } else {
+      // Insert new
+      await supabaseFetch('premium_status', {
+        method: 'POST',
+        body: JSON.stringify({
+          wallet,
+          tier: achievedTier,
+          total_burned: newTotalBurned,
+          unlocked_at: now.toISOString(),
+          expires_at: expiresAt.toISOString(),
+        }),
+      });
+    }
 
     // Add to burn history
-    const { error: historyError } = await supabase
-      .from('burn_history')
-      .insert({
+    await supabaseFetch('burn_history', {
+      method: 'POST',
+      body: JSON.stringify({
         wallet,
         amount,
         tier: achievedTier,
         transaction_signature: transactionSignature,
-      });
-
-    if (historyError) throw historyError;
+      }),
+    });
 
     return NextResponse.json({
       success: true,
@@ -172,11 +204,12 @@ export async function POST(request: NextRequest) {
         features: PREMIUM_TIERS[achievedTier].features,
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error processing burn:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: message,
     }, { status: 500 });
   }
 }

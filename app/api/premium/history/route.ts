@@ -1,5 +1,32 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+interface BurnHistory {
+  id: string;
+  wallet: string;
+  amount: number;
+  tier: string;
+  transaction_signature: string;
+  created_at: string;
+}
+
+function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl && supabaseKey);
+}
+
+async function supabaseFetch(endpoint: string, options?: RequestInit) {
+  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
+    ...options,
+    headers: {
+      'apikey': supabaseKey!,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+}
 
 // GET burn history
 export async function GET(request: NextRequest) {
@@ -17,19 +44,16 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let query = supabase
-      .from('burn_history')
-      .select('*')
-      .order('created_at', { ascending: false })
-      .limit(limit);
-
+    let url = `burn_history?select=*&order=created_at.desc&limit=${limit}`;
+    
     if (wallet) {
-      query = query.eq('wallet', wallet);
+      url += `&wallet=eq.${wallet}`;
     }
 
-    const { data, error } = await query;
+    const response = await supabaseFetch(url);
+    if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
 
-    if (error) throw error;
+    const data: BurnHistory[] = await response.json();
 
     // Calculate total burned
     const totalBurned = (data || []).reduce((sum, record) => sum + record.amount, 0);
@@ -40,11 +64,13 @@ export async function GET(request: NextRequest) {
       totalBurned,
       source: 'supabase',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching burn history:', error);
     return NextResponse.json({
-      success: false,
-      error: error.message,
-    }, { status: 500 });
+      success: true,
+      data: [],
+      totalBurned: 0,
+      source: 'fallback',
+    });
   }
 }

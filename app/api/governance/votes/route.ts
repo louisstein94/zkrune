@@ -1,6 +1,42 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { GOVERNANCE_CONFIG } from '@/lib/token/config';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+interface Vote {
+  id: string;
+  proposal_id: string;
+  voter: string;
+  support: boolean;
+  weight: number;
+  created_at: string;
+}
+
+interface Proposal {
+  id: string;
+  status: string;
+  ends_at: string;
+  votes_for: number;
+  votes_against: number;
+  voter_count: number;
+}
+
+function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl && supabaseKey);
+}
+
+async function supabaseFetch(endpoint: string, options?: RequestInit) {
+  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
+    ...options,
+    headers: {
+      'apikey': supabaseKey!,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+}
 
 // GET votes for a proposal or by voter
 export async function GET(request: NextRequest) {
@@ -17,34 +53,32 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let query = supabase
-      .from('votes')
-      .select('*')
-      .order('created_at', { ascending: false });
-
+    let url = 'votes?select=*&order=created_at.desc';
+    
     if (proposalId) {
-      query = query.eq('proposal_id', proposalId);
+      url += `&proposal_id=eq.${proposalId}`;
     }
-
     if (voter) {
-      query = query.eq('voter', voter);
+      url += `&voter=eq.${voter}`;
     }
 
-    const { data, error } = await query;
-
-    if (error) throw error;
+    const response = await supabaseFetch(url);
+    if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
+    
+    const data: Vote[] = await response.json();
 
     return NextResponse.json({
       success: true,
       data: data || [],
       source: 'supabase',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching votes:', error);
     return NextResponse.json({
-      success: false,
-      error: error.message,
-    }, { status: 500 });
+      success: true,
+      data: [],
+      source: 'fallback',
+    });
   }
 }
 
@@ -78,14 +112,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already voted
-    const { data: existingVote } = await supabase
-      .from('votes')
-      .select('id')
-      .eq('proposal_id', proposalId)
-      .eq('voter', voter)
-      .single();
-
-    if (existingVote) {
+    const existingRes = await supabaseFetch(
+      `votes?proposal_id=eq.${proposalId}&voter=eq.${voter}&select=id`
+    );
+    const existingVotes: Vote[] = await existingRes.json();
+    
+    if (existingVotes && existingVotes.length > 0) {
       return NextResponse.json({
         success: false,
         error: 'Already voted on this proposal',
@@ -93,13 +125,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get proposal
-    const { data: proposal, error: proposalError } = await supabase
-      .from('proposals')
-      .select('*')
-      .eq('id', proposalId)
-      .single();
+    const proposalRes = await supabaseFetch(`proposals?id=eq.${proposalId}&select=*`);
+    const proposals: Proposal[] = await proposalRes.json();
+    const proposal = proposals[0];
 
-    if (proposalError || !proposal) {
+    if (!proposal) {
       return NextResponse.json({
         success: false,
         error: 'Proposal not found',
@@ -118,45 +148,46 @@ export async function POST(request: NextRequest) {
     const weight = Math.sqrt(tokenBalance);
 
     // Insert vote
-    const { error: voteError } = await supabase
-      .from('votes')
-      .insert({
+    const voteRes = await supabaseFetch('votes', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({
         proposal_id: proposalId,
         voter,
         support,
         weight,
-      });
+      }),
+    });
 
-    if (voteError) throw voteError;
+    if (!voteRes.ok) throw new Error('Failed to cast vote');
 
     // Update proposal votes
     const newVotesFor = support ? proposal.votes_for + weight : proposal.votes_for;
     const newVotesAgainst = !support ? proposal.votes_against + weight : proposal.votes_against;
     const newVoterCount = proposal.voter_count + 1;
     const totalVotes = newVotesFor + newVotesAgainst;
-    const quorumReached = totalVotes >= 100; // Simplified threshold
+    const quorumReached = totalVotes >= 100;
 
-    const { error: updateError } = await supabase
-      .from('proposals')
-      .update({
+    await supabaseFetch(`proposals?id=eq.${proposalId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
         votes_for: newVotesFor,
         votes_against: newVotesAgainst,
         voter_count: newVoterCount,
         quorum_reached: quorumReached,
-      })
-      .eq('id', proposalId);
-
-    if (updateError) throw updateError;
+      }),
+    });
 
     return NextResponse.json({
       success: true,
       weight,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error casting vote:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: message,
     }, { status: 500 });
   }
 }

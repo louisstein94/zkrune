@@ -1,16 +1,44 @@
 import { NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabase/client';
+
+// Ceremony contribution type
+interface CeremonyContribution {
+  id: string;
+  contribution_index: number;
+  contributor_name: string;
+  contribution_hash: string;
+  circuits: string[];
+  verified: boolean;
+  created_at: string;
+}
 
 // GET - Fetch ceremony state
 export async function GET() {
   try {
     // Try to fetch from Supabase
-    const { data: contributions, error } = await supabase
-      .from('ceremony_contributions')
-      .select('*')
-      .order('contribution_index', { ascending: true });
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-    if (error) {
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({
+        success: true,
+        data: getDefaultCeremonyState(),
+        source: 'default'
+      });
+    }
+
+    const response = await fetch(
+      `${supabaseUrl}/rest/v1/ceremony_contributions?select=*&order=contribution_index.asc`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json'
+        },
+        next: { revalidate: 60 }
+      }
+    );
+
+    if (!response.ok) {
       // If table doesn't exist, return default state
       console.warn('Ceremony table not found, returning default state');
       return NextResponse.json({
@@ -19,6 +47,8 @@ export async function GET() {
         source: 'default'
       });
     }
+
+    const contributions: CeremonyContribution[] = await response.json();
 
     return NextResponse.json({
       success: true,
@@ -59,30 +89,60 @@ export async function POST(request: Request) {
       }, { status: 400 });
     }
 
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json({
+        success: false,
+        error: 'Supabase not configured'
+      }, { status: 500 });
+    }
+
     // Get current contribution count
-    const { count } = await supabase
-      .from('ceremony_contributions')
-      .select('*', { count: 'exact', head: true });
+    const countResponse = await fetch(
+      `${supabaseUrl}/rest/v1/ceremony_contributions?select=count`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Prefer': 'count=exact'
+        }
+      }
+    );
 
-    const nextIndex = (count || 0) + 1;
+    const countHeader = countResponse.headers.get('content-range');
+    const count = countHeader ? parseInt(countHeader.split('/')[1] || '0') : 0;
+    const nextIndex = count + 1;
 
-    const { data, error } = await supabase
-      .from('ceremony_contributions')
-      .insert({
-        contribution_index: nextIndex,
-        contributor_name: contributorName,
-        contribution_hash: contributionHash
-      })
-      .select()
-      .single();
+    // Insert new contribution
+    const insertResponse = await fetch(
+      `${supabaseUrl}/rest/v1/ceremony_contributions`,
+      {
+        method: 'POST',
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=representation'
+        },
+        body: JSON.stringify({
+          contribution_index: nextIndex,
+          contributor_name: contributorName,
+          contribution_hash: contributionHash
+        })
+      }
+    );
 
-    if (error) {
-      console.error('Error adding contribution:', error);
+    if (!insertResponse.ok) {
+      console.error('Error adding contribution:', await insertResponse.text());
       return NextResponse.json({
         success: false,
         error: 'Failed to add contribution'
       }, { status: 500 });
     }
+
+    const [data]: CeremonyContribution[] = await insertResponse.json();
 
     return NextResponse.json({
       success: true,
