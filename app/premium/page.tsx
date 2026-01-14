@@ -348,7 +348,7 @@ export default function PremiumPage() {
                       {formatTokenAmount(record.amount)} zkRUNE
                     </div>
                     <div className="text-sm text-gray-400">
-                      {new Date(record.timestamp).toLocaleDateString()} - 
+                      {new Date(record.timestamp).toLocaleDateString('en-US', { timeZone: 'UTC' })} - 
                       Unlocked {record.tier}
                     </div>
                   </div>

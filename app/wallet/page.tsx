@@ -41,7 +41,7 @@ export default function WalletPage() {
   const formatBalance = (balance: number, decimals: number = 4): string => {
     if (balance === 0) return '0';
     if (balance < 0.0001) return '< 0.0001';
-    return balance.toLocaleString(undefined, { 
+    return balance.toLocaleString('en-US', { 
       minimumFractionDigits: 0,
       maximumFractionDigits: decimals 
     });
