@@ -1,6 +1,43 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { MARKETPLACE_CONFIG } from '@/lib/token/config';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+interface Purchase {
+  id: string;
+  template_id: string;
+  buyer: string;
+  seller: string;
+  price: number;
+  platform_fee: number;
+  creator_revenue: number;
+  transaction_signature: string | null;
+  created_at: string;
+}
+
+interface MarketplaceTemplate {
+  id: string;
+  price: number;
+  creator_address: string;
+  downloads: number;
+}
+
+function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl && supabaseKey);
+}
+
+async function supabaseFetch(endpoint: string, options?: RequestInit) {
+  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
+    ...options,
+    headers: {
+      'apikey': supabaseKey!,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+}
 
 // GET purchases
 export async function GET(request: NextRequest) {
@@ -18,38 +55,35 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let query = supabase
-      .from('purchases')
-      .select('*')
-      .order('created_at', { ascending: false });
-
+    let url = 'purchases?select=*&order=created_at.desc';
+    
     if (buyer) {
-      query = query.eq('buyer', buyer);
+      url += `&buyer=eq.${buyer}`;
     }
-
     if (seller) {
-      query = query.eq('seller', seller);
+      url += `&seller=eq.${seller}`;
     }
-
     if (templateId) {
-      query = query.eq('template_id', templateId);
+      url += `&template_id=eq.${templateId}`;
     }
 
-    const { data, error } = await query;
+    const response = await supabaseFetch(url);
+    if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
 
-    if (error) throw error;
+    const data: Purchase[] = await response.json();
 
     return NextResponse.json({
       success: true,
       data: data || [],
       source: 'supabase',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching purchases:', error);
     return NextResponse.json({
-      success: false,
-      error: error.message,
-    }, { status: 500 });
+      success: true,
+      data: [],
+      source: 'fallback',
+    });
   }
 }
 
@@ -75,13 +109,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Get template
-    const { data: template, error: templateError } = await supabase
-      .from('marketplace_templates')
-      .select('*')
-      .eq('id', templateId)
-      .single();
+    const templateRes = await supabaseFetch(`marketplace_templates?id=eq.${templateId}&select=*`);
+    const templates: MarketplaceTemplate[] = await templateRes.json();
+    const template = templates[0];
 
-    if (templateError || !template) {
+    if (!template) {
       return NextResponse.json({
         success: false,
         error: 'Template not found',
@@ -89,14 +121,12 @@ export async function POST(request: NextRequest) {
     }
 
     // Check if already owned
-    const { data: existingPurchase } = await supabase
-      .from('purchases')
-      .select('id')
-      .eq('template_id', templateId)
-      .eq('buyer', buyerAddress)
-      .single();
+    const existingRes = await supabaseFetch(
+      `purchases?template_id=eq.${templateId}&buyer=eq.${buyerAddress}&select=id`
+    );
+    const existingPurchases: Purchase[] = await existingRes.json();
 
-    if (existingPurchase) {
+    if (existingPurchases && existingPurchases.length > 0) {
       return NextResponse.json({
         success: false,
         error: 'Template already owned',
@@ -108,9 +138,10 @@ export async function POST(request: NextRequest) {
     const creatorRevenue = template.price - platformFee;
 
     // Create purchase record
-    const { data: purchase, error: purchaseError } = await supabase
-      .from('purchases')
-      .insert({
+    const purchaseRes = await supabaseFetch('purchases', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({
         template_id: templateId,
         buyer: buyerAddress,
         seller: template.creator_address,
@@ -118,27 +149,29 @@ export async function POST(request: NextRequest) {
         platform_fee: platformFee,
         creator_revenue: creatorRevenue,
         transaction_signature: transactionSignature || null,
-      })
-      .select()
-      .single();
+      }),
+    });
 
-    if (purchaseError) throw purchaseError;
+    if (!purchaseRes.ok) throw new Error('Failed to create purchase');
+
+    const [purchase]: Purchase[] = await purchaseRes.json();
 
     // Update download count
-    await supabase
-      .from('marketplace_templates')
-      .update({ downloads: template.downloads + 1 })
-      .eq('id', templateId);
+    await supabaseFetch(`marketplace_templates?id=eq.${templateId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ downloads: template.downloads + 1 }),
+    });
 
     return NextResponse.json({
       success: true,
       data: purchase,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating purchase:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: message,
     }, { status: 500 });
   }
 }

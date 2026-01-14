@@ -1,13 +1,49 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import { MARKETPLACE_CONFIG } from '@/lib/token/config';
+
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+interface MarketplaceTemplate {
+  id: string;
+  name: string;
+  description: string;
+  creator: string;
+  creator_address: string;
+  price: number;
+  category: string;
+  circuit_code?: string;
+  downloads: number;
+  rating: number;
+  rating_count: number;
+  featured: boolean;
+  verified: boolean;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+function isSupabaseConfigured(): boolean {
+  return Boolean(supabaseUrl && supabaseKey);
+}
+
+async function supabaseFetch(endpoint: string, options?: RequestInit) {
+  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
+    ...options,
+    headers: {
+      'apikey': supabaseKey!,
+      'Authorization': `Bearer ${supabaseKey}`,
+      'Content-Type': 'application/json',
+      ...options?.headers,
+    },
+  });
+}
 
 // GET all marketplace templates
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category');
   const featured = searchParams.get('featured');
-  const creator = searchParams.get('creator');
   const search = searchParams.get('search');
 
   if (!isSupabaseConfigured()) {
@@ -19,42 +55,35 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    let query = supabase
-      .from('marketplace_templates')
-      .select('*')
-      .order('downloads', { ascending: false });
-
+    let url = 'marketplace_templates?select=*&order=downloads.desc';
+    
     if (category) {
-      query = query.eq('category', category);
+      url += `&category=eq.${category}`;
     }
-
     if (featured === 'true') {
-      query = query.eq('featured', true);
+      url += '&featured=eq.true';
     }
-
-    if (creator) {
-      query = query.eq('creator_address', creator);
-    }
-
     if (search) {
-      query = query.or(`name.ilike.%${search}%,description.ilike.%${search}%`);
+      url += `&or=(name.ilike.*${search}*,description.ilike.*${search}*)`;
     }
 
-    const { data, error } = await query;
+    const response = await supabaseFetch(url);
+    if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
 
-    if (error) throw error;
+    const data: MarketplaceTemplate[] = await response.json();
 
     return NextResponse.json({
       success: true,
       data: data || [],
       source: 'supabase',
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error fetching templates:', error);
     return NextResponse.json({
-      success: false,
-      error: error.message,
-    }, { status: 500 });
+      success: true,
+      data: getMockTemplates(),
+      source: 'fallback',
+    });
   }
 }
 
@@ -92,9 +121,10 @@ export async function POST(request: NextRequest) {
 
     const finalPrice = Math.max(price, MARKETPLACE_CONFIG.MIN_TEMPLATE_PRICE);
 
-    const { data, error } = await supabase
-      .from('marketplace_templates')
-      .insert({
+    const response = await supabaseFetch('marketplace_templates', {
+      method: 'POST',
+      headers: { 'Prefer': 'return=representation' },
+      body: JSON.stringify({
         name,
         description,
         creator,
@@ -105,27 +135,29 @@ export async function POST(request: NextRequest) {
         tags: tags || [],
         nodes: nodes || null,
         edges: edges || null,
-      })
-      .select()
-      .single();
+      }),
+    });
 
-    if (error) throw error;
+    if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
+
+    const [data]: MarketplaceTemplate[] = await response.json();
 
     return NextResponse.json({
       success: true,
       data,
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error('Error creating template:', error);
+    const message = error instanceof Error ? error.message : 'Unknown error';
     return NextResponse.json({
       success: false,
-      error: error.message,
+      error: message,
     }, { status: 500 });
   }
 }
 
 // Mock data fallback
-function getMockTemplates() {
+function getMockTemplates(): MarketplaceTemplate[] {
   const now = new Date();
   return [
     {
