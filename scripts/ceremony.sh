@@ -38,7 +38,8 @@ sync_to_api() {
     echo -e "${BLUE}🌐 Syncing to zkRune API...${NC}"
     
     # Try to sync - don't fail if API is unavailable
-    local response=$(curl -s -X POST "${API_URL}/api/ceremony" \
+    # -L follows redirects (important for production domains)
+    local response=$(curl -sL -X POST "${API_URL}/api/ceremony" \
         -H "Content-Type: application/json" \
         -d "{\"contributorName\": \"$name\", \"contributionHash\": \"$hash\"}" 2>/dev/null || echo '{"success":false}')
     
