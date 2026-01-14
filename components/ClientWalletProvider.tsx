@@ -3,37 +3,56 @@
 import React, { FC, useMemo } from 'react';
 import { ConnectionProvider, WalletProvider } from '@solana/wallet-adapter-react';
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
-import { PhantomWalletAdapter, SolflareWalletAdapter } from '@solana/wallet-adapter-wallets';
+import { 
+  PhantomWalletAdapter, 
+  SolflareWalletAdapter,
+  TorusWalletAdapter,
+  LedgerWalletAdapter,
+} from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { clusterApiUrl } from '@solana/web3.js';
+import { SOLANA_RPC_ENDPOINT, SOLANA_NETWORK } from '@/lib/solana/config';
 
-// Default styles that can be overridden by your app
-require('@solana/wallet-adapter-react-ui/styles.css');
+// Import wallet adapter styles
+import '@solana/wallet-adapter-react-ui/styles.css';
 
-export const ClientWalletProvider: FC<{ children: React.ReactNode }> = ({ children }) => {
-    // The network can be set to 'devnet', 'testnet', or 'mainnet-beta'.
-    const network = WalletAdapterNetwork.Devnet;
+interface Props {
+  children: React.ReactNode;
+}
 
-    // You can also provide a custom RPC endpoint.
-    const endpoint = useMemo(() => clusterApiUrl(network), [network]);
+export const ClientWalletProvider: FC<Props> = ({ children }) => {
+  // Use configured RPC endpoint
+  const endpoint = useMemo(() => SOLANA_RPC_ENDPOINT, []);
 
-    const wallets = useMemo(
-        () => [
-            new PhantomWalletAdapter(),
-            new SolflareWalletAdapter(),
-        ],
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-        [network]
-    );
+  // Initialize wallet adapters
+  const wallets = useMemo(
+    () => [
+      new PhantomWalletAdapter(),
+      new SolflareWalletAdapter(),
+      new TorusWalletAdapter(),
+      new LedgerWalletAdapter(),
+    ],
+    []
+  );
 
-    return (
-        <ConnectionProvider endpoint={endpoint}>
-            <WalletProvider wallets={wallets} autoConnect>
-                <WalletModalProvider>
-                    {children}
-                </WalletModalProvider>
-            </WalletProvider>
-        </ConnectionProvider>
-    );
+  return (
+    <ConnectionProvider 
+      endpoint={endpoint}
+      config={{ commitment: 'confirmed' }}
+    >
+      <WalletProvider 
+        wallets={wallets} 
+        autoConnect={true}
+        onError={(error) => {
+          console.error('Wallet error:', error);
+        }}
+      >
+        <WalletModalProvider>
+          {children}
+        </WalletModalProvider>
+      </WalletProvider>
+    </ConnectionProvider>
+  );
 };
 
+// Export network info for display
+export { SOLANA_NETWORK };
