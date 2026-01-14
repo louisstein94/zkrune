@@ -1,0 +1,22 @@
+{
+    "contributionIndex": 1,
+    "contributorName": "zkRune Core",
+    "contributionHash": "df2639f626acbc64ad1fba88e96c6c12be97bc74559d07d7beb185d10ae41578",
+    "timestamp": "2026-01-14T08:13:19Z",
+    "circuits": [
+  "age-verification",
+  "anonymous-reputation",
+  "balance-proof",
+  "credential-proof",
+  "hash-preimage",
+  "membership-proof",
+  "nft-ownership",
+  "patience-proof",
+  "private-voting",
+  "quadratic-voting",
+  "range-proof",
+  "signature-verification",
+  "token-swap"
+],
+    "verification": "Run './ceremony.sh verify' to verify this contribution"
+}
