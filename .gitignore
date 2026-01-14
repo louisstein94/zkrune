@@ -83,3 +83,7 @@ IMPROVEMENTS.md
 SEO_GUIDE.md
 MOBILE_UX_GUIDE.md
 public/og-image-template.md
+
+# Ceremony files (too large for git)
+ceremony/*.ptau
+ceremony/zkeys/*.zkey
