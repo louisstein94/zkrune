@@ -34,7 +34,7 @@ cargo install --git https://github.com/iden3/circom.git
 npm install -g snarkjs
 
 # Clone zkRune
-git clone https://github.com/zkrune/zkrune.git
+git clone https://github.com/louisstein94/zkrune.git
 cd zkrune
 npm install
 ```
@@ -65,7 +65,7 @@ After contributing, you'll receive:
 ### Step 4: Share on Social Media
 
 ```
-I contributed to @zkRune trusted setup ceremony! 🔮
+I contributed to @rune_zk trusted setup ceremony! 🔮
 Hash: [your-contribution-hash]
 #SolanaPrivacyHack #ZKProofs
 ```
