@@ -481,7 +481,7 @@ export default function DocsPage() {
                 
                 <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg mb-4">
                   <p className="text-sm text-red-300 mb-2">
-                    ⚠️ <strong>This API endpoint has been removed.</strong>
+                    <strong>Note: This API endpoint has been removed.</strong>
                   </p>
                   <p className="text-xs text-red-200">
                     Migration: Use client-side proof generation with <code className="bg-black/30 px-2 py-1 rounded">generateClientProof()</code> for better privacy.

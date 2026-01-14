@@ -12,10 +12,10 @@ export default function MobileNav() {
 
   const navItems = [
     { label: 'Home', href: '/', icon: '🏠' },
-    { label: 'Templates', href: '/templates', icon: '📋' },
-    { label: 'Builder', href: '/builder', icon: '🔧' },
-    { label: 'Zcash', href: '/zcash', icon: '🔒' },
-    { label: 'Docs', href: '/docs', icon: '📚' },
+    { label: 'Templates', href: '/templates', icon: '' },
+    { label: 'Builder', href: '/builder', icon: '' },
+    { label: 'Zcash', href: '/zcash', icon: '' },
+    { label: 'Docs', href: '/docs', icon: '' },
   ];
 
   return (

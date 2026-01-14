@@ -14,7 +14,7 @@ export default function TemplatesPage() {
           <div className="p-6 bg-gradient-to-r from-purple-500/20 via-purple-500/10 to-zk-primary/20 border border-purple-500/40 rounded-2xl">
             <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-4">
-                <span className="text-3xl">🏆</span>
+                <span className="text-3xl font-bold">SPH</span>
                 <div>
                   <h3 className="text-lg font-bold text-white">Solana Privacy Hack 2026</h3>
                   <p className="text-sm text-zk-gray">Build privacy tooling with real ZK proofs</p>

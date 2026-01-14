@@ -83,11 +83,11 @@ export default function Navigation() {
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <span className="text-zk-primary/60">
-                            {subitem.name === 'Governance' && '🗳️'}
-                            {subitem.name === 'Premium' && '⭐'}
+                            {subitem.name === 'Governance' && ''}
+                            {subitem.name === 'Premium' && ''}
                             {subitem.name === 'Marketplace' && '🏪'}
-                            {subitem.name === 'Staking' && '💰'}
-                            {subitem.name === 'Wallet' && '👛'}
+                            {subitem.name === 'Staking' && ''}
+                            {subitem.name === 'Wallet' && ''}
                           </span>
                           {subitem.name}
                         </a>
@@ -111,7 +111,7 @@ export default function Navigation() {
               href="/ceremony"
               className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all text-sm font-bold uppercase tracking-wider"
             >
-              <span>🔮</span>
+              <span className="font-bold">C</span>
               Ceremony
             </a>
           </nav>
@@ -227,7 +227,7 @@ export default function Navigation() {
               onClick={() => setIsOpen(false)}
               className="text-sm font-medium text-purple-400 hover:text-purple-300 transition-colors uppercase tracking-wider py-2 flex items-center gap-2"
             >
-              🔮 Ceremony
+              Ceremony
             </a>
             <a
               href="https://github.com/louisstein94/zkrune"

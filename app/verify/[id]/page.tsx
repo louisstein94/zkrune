@@ -27,7 +27,7 @@ export default function VerifyPage() {
           {/* Privacy Hack Banner */}
           <div className="mb-8 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
             <div className="flex items-start gap-3">
-              <span className="text-2xl">🏆</span>
+              <span className="text-2xl font-bold">SPH</span>
               <div>
                 <h3 className="text-purple-400 font-medium mb-1">Solana Privacy Hack 2026</h3>
                 <p className="text-sm text-zk-gray">
@@ -112,7 +112,7 @@ export default function VerifyPage() {
           {/* Privacy Notice */}
           <div className="bg-zk-secondary/10 border border-zk-secondary/30 rounded-xl p-6 mb-8">
             <div className="flex items-start gap-4">
-              <div className="text-3xl">🔒</div>
+              <div className="text-3xl font-bold text-purple-400">ZK</div>
               <div>
                 <h3 className="font-medium text-zk-secondary mb-2">
                   Privacy Protected

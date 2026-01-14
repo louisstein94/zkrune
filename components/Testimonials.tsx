@@ -6,19 +6,19 @@ export default function Testimonials() {
       quote: "zkRune made privacy accessible. We integrated ZK proofs into our app in minutes, not months.",
       author: "Alex Chen",
       role: "CTO, PrivacyFirst",
-      avatar: "👨‍💻",
+      avatar: "AC",
     },
     {
       quote: "Finally, a tool that makes zero-knowledge proofs approachable. The templates saved us weeks of development.",
       author: "Sarah Martinez",
       role: "Blockchain Developer",
-      avatar: "👩‍💻",
+      avatar: "SM",
     },
     {
       quote: "The visual interface is game-changing. Our non-technical team can now understand and use ZK proofs.",
       author: "Michael Wong",
       role: "Product Manager, Web3 Startup",
-      avatar: "👨‍💼",
+      avatar: "MW",
     },
   ];
 
@@ -26,19 +26,19 @@ export default function Testimonials() {
     {
       title: "DeFi Protocols",
       description: "Private loan applications without revealing financial details",
-      icon: "🏦",
+      icon: "DF",
       metric: "95% faster integration",
     },
     {
       title: "DAO Governance",
       description: "Anonymous voting with cryptographic verification",
-      icon: "🗳️",
+      icon: "DAO",
       metric: "100% privacy guaranteed",
     },
     {
       title: "Identity Verification",
       description: "Age verification without exposing personal data",
-      icon: "🆔",
+      icon: "ID",
       metric: "GDPR compliant",
     },
   ];
@@ -99,8 +99,8 @@ export default function Testimonials() {
                 className="bg-zk-darker/50 border border-zk-gray/20 rounded-2xl p-6 hover:border-zk-secondary/30 transition-all"
               >
                 <div className="mb-4">
-                  <div className="flex gap-1 text-zk-primary text-xl mb-3">
-                    ⭐⭐⭐⭐⭐
+                  <div className="flex gap-1 text-zk-primary text-xl mb-3 font-bold">
+                    5/5
                   </div>
                   <p className="text-white leading-relaxed italic">
                     "{testimonial.quote}"

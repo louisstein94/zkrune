@@ -164,7 +164,7 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
             console.log("Formatted public inputs:", formattedInputs.length, "signals");
 
             // HYBRID: Verify with snarkjs, record on Solana
-            console.log("🔍 Verifying proof with snarkjs...");
+            console.log("Verifying proof with snarkjs...");
             
             // Get VK for this template
             const VK_MAP_LOCAL: Record<string, any> = {
@@ -185,9 +185,9 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
                 vkModule.default || vkModule
             );
             
-            console.log("✅ snarkjs verification: PASSED");
-            console.log("📦 Record size:", instructionData.length, "bytes (only hash + metadata!)");
-            console.log("   🎯 Full crypto verification done in browser");
+            console.log("snarkjs verification: PASSED");
+            console.log("Record size:", instructionData.length, "bytes (only hash + metadata!)");
+            console.log("Full crypto verification done in browser");
 
             // Create transaction instruction
             const instruction = new TransactionInstruction({
@@ -210,7 +210,7 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
             const signed = await wallet.signTransaction(transaction);
             
             const actualSize = signed.serialize().length;
-            console.log("📊 Actual serialized transaction size:", actualSize, "bytes");
+            console.log("Actual serialized transaction size:", actualSize, "bytes");
             
             if (actualSize > 1232) {
                 throw new Error(`Transaction size (${actualSize} bytes) exceeds Solana limit (1232 bytes). Try a simpler circuit.`);
@@ -239,7 +239,7 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
             <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
                     <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <span className="text-2xl">⚡</span> 
+                        <span className="text-2xl font-bold text-yellow-400">V</span> 
                         Solana Integration
                         <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-purple-600 to-blue-600 text-white uppercase tracking-wider">
                             BETA
@@ -266,14 +266,14 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
 
                 {warningMsg && (
                     <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-500/50 rounded-lg flex items-start gap-2 text-sm text-yellow-200">
-                        <span className="mt-0.5">⚠️</span>
+                        <span className="mt-0.5 text-yellow-500 font-bold">!</span>
                         <div className="break-all">{warningMsg}</div>
                     </div>
                 )}
                 
                 {errorMsg && (
                     <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg flex items-start gap-2 text-sm text-red-200">
-                        <span className="mt-0.5">❌</span>
+                        <span className="mt-0.5 text-red-500 font-bold">X</span>
                         <div className="break-all">{errorMsg}</div>
                     </div>
                 )}

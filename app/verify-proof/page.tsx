@@ -309,7 +309,7 @@ export default function VerifyProofPage() {
                   Verifying...
                 </>
               ) : (
-                <>🔍 Verify Proof</>
+                <>Verify Proof</>
               )}
             </button>
           </div>
