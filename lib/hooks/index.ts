@@ -6,6 +6,7 @@ export { useStaking } from './useStaking';
 export { usePremium } from './usePremium';
 export { useOnChainVerify, TEMPLATE_IDS, serializeProof } from './useOnChainVerify';
 export { useSolana } from './useSolana';
+export { useTokenBurn } from './useTokenBurn';
 
 // Types
 export type { Proposal, Vote, GovernanceStats } from './useGovernance';
