@@ -82,12 +82,36 @@ export default function Navigation() {
                           className="flex items-center gap-3 px-4 py-3 text-sm text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10 transition-all border-b border-white/5 last:border-b-0"
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          <span className="text-zk-primary/60">
-                            {subitem.name === 'Governance' && ''}
-                            {subitem.name === 'Premium' && ''}
-                            {subitem.name === 'Marketplace' && '🏪'}
-                            {subitem.name === 'Staking' && ''}
-                            {subitem.name === 'Wallet' && ''}
+                          <span className="text-zk-primary/60 w-4 h-4">
+                            {subitem.name === 'Governance' && (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                              </svg>
+                            )}
+                            {subitem.name === 'Premium' && (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                              </svg>
+                            )}
+                            {subitem.name === 'Marketplace' && (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
+                                <polyline points="9 22 9 12 15 12 15 22"/>
+                              </svg>
+                            )}
+                            {subitem.name === 'Staking' && (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                              </svg>
+                            )}
+                            {subitem.name === 'Wallet' && (
+                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                                <path d="M21 12V7H5a2 2 0 010-4h14v4"/>
+                                <path d="M3 5v14a2 2 0 002 2h16v-5"/>
+                                <path d="M18 12a2 2 0 100 4 2 2 0 000-4z"/>
+                              </svg>
+                            )}
                           </span>
                           {subitem.name}
                         </a>
@@ -111,7 +135,9 @@ export default function Navigation() {
               href="/ceremony"
               className="flex items-center gap-2 px-4 py-2 bg-purple-500/10 border border-purple-500/30 rounded-lg text-purple-400 hover:bg-purple-500/20 transition-all text-sm font-bold uppercase tracking-wider"
             >
-              <span className="font-bold">C</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <path d="M12 2L9 9l-7 2 5 5-1 7 6-3 6 3-1-7 5-5-7-2-3-7z"/>
+              </svg>
               Ceremony
             </a>
           </nav>
