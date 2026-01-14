@@ -200,7 +200,7 @@ export default function CeremonyPage() {
                       {contrib.hash.slice(0, 16)}...
                     </td>
                     <td className="px-6 py-4 text-sm text-zk-gray">
-                      {new Date(contrib.timestamp).toLocaleString()}
+                      {new Date(contrib.timestamp).toLocaleString('en-US', { timeZone: 'UTC' })}
                     </td>
                   </tr>
                 ))}

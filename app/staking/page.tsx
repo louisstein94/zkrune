@@ -431,7 +431,7 @@ function PositionCard({
             {formatTokenAmount(position.amount)} zkRUNE
           </div>
           <div className="text-gray-400 text-sm">
-            Staked {new Date(position.stakedAt).toLocaleDateString()}
+            Staked {new Date(position.stakedAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}
           </div>
         </div>
         <div className="text-right">
