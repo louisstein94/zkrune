@@ -115,6 +115,9 @@ export async function POST(request: Request) {
     const count = countHeader ? parseInt(countHeader.split('/')[1] || '0') : 0;
     const nextIndex = count + 1;
 
+    // Generate UUID for the contribution
+    const id = crypto.randomUUID();
+
     // Insert new contribution
     const insertResponse = await fetch(
       `${supabaseUrl}/rest/v1/ceremony_contributions`,
@@ -127,9 +130,17 @@ export async function POST(request: Request) {
           'Prefer': 'return=representation'
         },
         body: JSON.stringify({
+          id,
           contribution_index: nextIndex,
           contributor_name: contributorName,
-          contribution_hash: contributionHash
+          contribution_hash: contributionHash,
+          circuits: [
+            'age-verification', 'anonymous-reputation', 'balance-proof',
+            'credential-proof', 'hash-preimage', 'membership-proof',
+            'nft-ownership', 'patience-proof', 'private-voting',
+            'quadratic-voting', 'range-proof', 'signature-verification', 'token-swap'
+          ],
+          verified: true
         })
       }
     );
