@@ -26,6 +26,30 @@ CEREMONY_DIR="ceremony"
 PTAU_FILE="powersOfTau28_hez_final_14.ptau"
 PTAU_URL="https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau"
 
+# API Configuration (for real-time sync)
+API_URL="${ZKRUNE_API_URL:-https://zkrune.io}"
+
+# Sync contribution to API (Supabase)
+sync_to_api() {
+    local index="$1"
+    local name="$2"
+    local hash="$3"
+    
+    echo -e "${BLUE}🌐 Syncing to zkRune API...${NC}"
+    
+    # Try to sync - don't fail if API is unavailable
+    local response=$(curl -s -X POST "${API_URL}/api/ceremony" \
+        -H "Content-Type: application/json" \
+        -d "{\"contributorName\": \"$name\", \"contributionHash\": \"$hash\"}" 2>/dev/null || echo '{"success":false}')
+    
+    if echo "$response" | grep -q '"success":true'; then
+        echo -e "${GREEN}✓ Synced to API - visible at ${API_URL}/ceremony${NC}"
+    else
+        echo -e "${YELLOW}⚠ API sync skipped (offline mode)${NC}"
+        echo -e "   Contribution saved locally. Push to GitHub to share."
+    fi
+}
+
 # All circuits to process
 CIRCUITS=(
     "age-verification"
@@ -245,6 +269,9 @@ contribute() {
     "verification": "Run './ceremony.sh verify' to verify this contribution"
 }
 EOF
+    
+    # Sync to API for real-time tracking
+    sync_to_api "$next_index" "$contributor_name" "$contribution_hash"
     
     echo ""
     echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
