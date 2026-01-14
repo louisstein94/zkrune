@@ -184,7 +184,7 @@ export default function CeremonyPage() {
               <h3 className="text-xl font-bold mb-2">Clone Repository</h3>
               <p className="text-zk-gray mb-4">Get the zkRune codebase and install dependencies.</p>
               <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 overflow-x-auto">
-                git clone https://github.com/zkrune/zkrune.git && cd zkrune && npm i
+                git clone https://github.com/louisstein94/zkrune.git && cd zkrune && npm i
               </code>
             </div>
             
@@ -214,7 +214,7 @@ export default function CeremonyPage() {
               <h3 className="text-xl font-bold mb-2">Share Your Hash</h3>
               <p className="text-zk-gray mb-4">Post your contribution hash on social media.</p>
               <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 overflow-x-auto">
-                &quot;I contributed to @zkRune ceremony!&quot;
+                &quot;I contributed to @rune_zk ceremony!&quot;
               </code>
             </div>
           </div>
