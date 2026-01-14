@@ -19,16 +19,18 @@ import {
 } from '@/lib/token/burn';
 import { PREMIUM_TIERS, type PremiumTier, formatTokenAmount } from '@/lib/token/config';
 import { useTokenStats, formatUsd, formatNumber, calculateDynamicBurnTiers } from '@/lib/hooks/useTokenStats';
+import { useTokenBurn } from '@/lib/hooks/useTokenBurn';
 
 export default function PremiumPage() {
   const { publicKey, connected } = useWallet();
   const { stats: tokenStats, isLoading: statsLoading } = useTokenStats();
+  const { burnTokens, isBurning, result: burnResult } = useTokenBurn();
   const [status, setStatus] = useState<UserPremiumStatus | null>(null);
   const [selectedTier, setSelectedTier] = useState<PremiumTier>('BUILDER');
   const [burnAmount, setBurnAmount] = useState('');
-  const [isProcessing, setIsProcessing] = useState(false);
   const [burnHistory, setBurnHistory] = useState<any[]>([]);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [txSignature, setTxSignature] = useState<string | null>(null);
 
   // Calculate dynamic burn tiers based on current market cap
   const dynamicTiers = calculateDynamicBurnTiers(tokenStats);
@@ -46,30 +48,31 @@ export default function PremiumPage() {
   async function handleBurn() {
     if (!publicKey || !burnAmount) return;
 
-    setIsProcessing(true);
-    
-    // Simulate a small delay for UX
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
     const amount = parseFloat(burnAmount);
     if (isNaN(amount) || amount <= 0) {
       alert('Please enter a valid amount');
-      setIsProcessing(false);
       return;
     }
 
-    const result = simulateBurn(publicKey.toBase58(), amount, selectedTier);
+    // Perform real on-chain burn
+    const result = await burnTokens(amount);
     
     if (result.success) {
       setShowSuccess(true);
+      setTxSignature(result.signature || null);
+      
+      // Also update local state for premium status tracking
+      simulateBurn(publicKey.toBase58(), amount, selectedTier);
       loadUserStatus();
       setBurnAmount('');
-      setTimeout(() => setShowSuccess(false), 3000);
+      
+      setTimeout(() => {
+        setShowSuccess(false);
+        setTxSignature(null);
+      }, 5000);
     } else {
       alert(result.error || 'Burn failed');
     }
-
-    setIsProcessing(false);
   }
 
   function handleTierSelect(tier: PremiumTier) {
@@ -108,8 +111,19 @@ export default function PremiumPage() {
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Success Toast */}
         {showSuccess && (
-          <div className="fixed top-24 right-4 bg-green-500/20 border border-green-500/30 text-green-400 px-6 py-3 rounded-lg z-50 animate-fade-in">
-            Tokens burned successfully! Your tier has been upgraded.
+          <div className="fixed top-24 right-4 bg-green-500/20 border border-green-500/30 text-green-400 px-6 py-4 rounded-lg z-50 animate-fade-in max-w-md">
+            <div className="font-semibold mb-1">Tokens burned successfully!</div>
+            <div className="text-sm text-green-300/80">Your tier has been upgraded.</div>
+            {txSignature && (
+              <a 
+                href={`https://solscan.io/tx/${txSignature}?cluster=devnet`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-green-400 hover:text-green-300 underline mt-2 block"
+              >
+                View on Solscan
+              </a>
+            )}
           </div>
         )}
 
@@ -306,10 +320,10 @@ export default function PremiumPage() {
               
               <button
                 onClick={handleBurn}
-                disabled={isProcessing || !burnAmount}
+                disabled={isBurning || !burnAmount}
                 className="px-8 py-3 bg-gradient-to-r from-red-500 to-orange-500 text-white font-semibold rounded-lg hover:from-red-600 hover:to-orange-600 transition disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {isProcessing ? (
+                {isBurning ? (
                   <span className="flex items-center gap-2">
                     <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Burning...
