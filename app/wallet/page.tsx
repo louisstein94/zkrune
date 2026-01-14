@@ -3,423 +3,295 @@
 import { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useSolana } from '@/lib/hooks/useSolana';
+import { SOLANA_NETWORK } from '@/components/ClientWalletProvider';
+import { ZKRUNE_TOKEN_CONFIG, getExplorerUrl, getSolscanUrl } from '@/lib/solana/config';
+import Navigation from '@/components/Navigation';
 
 const WalletMultiButton = dynamic(
   () => import('@solana/wallet-adapter-react-ui').then((mod) => mod.WalletMultiButton),
   { ssr: false }
 );
-import { ZKRUNE_TOKEN, formatTokenAmount } from '@/lib/token/config';
-import { getUserPremiumStatus } from '@/lib/token/burn';
-import { getUserStakingInfo } from '@/lib/token/staking';
 
-interface WalletBalance {
-  zkrune: number;
-  sol: number;
-  zcash: number;
-}
-
-interface GaslessProof {
-  id: string;
+interface RecentTransaction {
+  signature: string;
   type: string;
-  status: 'pending' | 'completed' | 'failed';
+  status: 'success' | 'pending' | 'failed';
   timestamp: Date;
-  txSignature?: string;
+  amount?: number;
 }
 
 export default function WalletPage() {
-  const { publicKey, connected } = useWallet();
-  const [balance, setBalance] = useState<WalletBalance>({ zkrune: 0, sol: 0, zcash: 0 });
-  const [recentProofs, setRecentProofs] = useState<GaslessProof[]>([]);
-  const [activeTab, setActiveTab] = useState<'overview' | 'gasless' | 'bridge'>('overview');
-  const [isLoading, setIsLoading] = useState(false);
+  const {
+    connected,
+    connecting,
+    publicKey,
+    walletAddress,
+    solBalance,
+    zkruneBalance,
+    isLoadingBalances,
+    refreshBalances,
+    error,
+  } = useSolana();
 
-  useEffect(() => {
-    if (connected && publicKey) {
-      loadWalletData();
-    }
-  }, [connected, publicKey]);
+  const [recentTxs, setRecentTxs] = useState<RecentTransaction[]>([]);
+  const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'settings'>('overview');
 
-  function loadWalletData() {
-    // Demo balances - in production would fetch from RPC
-    setBalance({
-      zkrune: 5000,
-      sol: 2.5,
-      zcash: 0.75,
+  // Format balance for display
+  const formatBalance = (balance: number, decimals: number = 4): string => {
+    if (balance === 0) return '0';
+    if (balance < 0.0001) return '< 0.0001';
+    return balance.toLocaleString(undefined, { 
+      minimumFractionDigits: 0,
+      maximumFractionDigits: decimals 
     });
+  };
 
-    // Demo recent proofs
-    setRecentProofs([
-      {
-        id: 'proof_1',
-        type: 'Age Verification',
-        status: 'completed',
-        timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-        txSignature: 'abc123...',
-      },
-      {
-        id: 'proof_2',
-        type: 'Balance Proof',
-        status: 'completed',
-        timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-        txSignature: 'def456...',
-      },
-    ]);
-  }
+  // Truncate address for display
+  const truncateAddress = (address: string): string => {
+    return `${address.slice(0, 4)}...${address.slice(-4)}`;
+  };
 
-  const premiumStatus = getUserPremiumStatus(publicKey?.toBase58());
-  const stakingInfo = publicKey ? getUserStakingInfo(publicKey.toBase58()) : null;
-  const hasGaslessAccess = premiumStatus.tier === 'PRO' || premiumStatus.tier === 'ENTERPRISE';
+  // Copy address to clipboard
+  const copyAddress = () => {
+    if (walletAddress) {
+      navigator.clipboard.writeText(walletAddress);
+    }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
-      {/* Header */}
-      <header className="border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#00FFA3]">
-            zkRune
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/governance" className="text-gray-400 hover:text-white transition">
-              Governance
-            </Link>
-            <Link href="/premium" className="text-gray-400 hover:text-white transition">
-              Premium
-            </Link>
-            <Link href="/staking" className="text-gray-400 hover:text-white transition">
-              Staking
-            </Link>
-            <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
-          </div>
-        </div>
-      </header>
+    <div className="min-h-screen bg-zk-dark">
+      <Navigation />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Page Title */}
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
+        {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
-            Mobile ZK Wallet
+            Wallet Dashboard
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Your unified wallet for zkRune, Solana, and Zcash. Generate gasless proofs 
-            and bridge assets between chains.
+          <p className="text-zk-gray text-lg max-w-2xl mx-auto">
+            Manage your zkRUNE tokens, view balances, and track transactions.
           </p>
+          
+          {/* Network Badge */}
+          <div className="mt-4 inline-flex items-center gap-2 px-3 py-1 bg-zk-darker rounded-full border border-white/10">
+            <span className={`w-2 h-2 rounded-full ${
+              SOLANA_NETWORK === 'mainnet-beta' ? 'bg-green-400' : 'bg-yellow-400'
+            }`} />
+            <span className="text-sm text-zk-gray">
+              {SOLANA_NETWORK === 'mainnet-beta' ? 'Mainnet' : SOLANA_NETWORK}
+            </span>
+          </div>
         </div>
 
+        {/* Error Display */}
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400">
+            {error}
+          </div>
+        )}
+
         {!connected ? (
-          <div className="bg-white/5 border border-white/10 rounded-xl p-12 text-center">
-            <div className="text-6xl mb-6">wallet</div>
+          /* Not Connected State */
+          <div className="bg-zk-darker border border-white/10 rounded-xl p-12 text-center">
+            <div className="w-20 h-20 bg-zk-primary/20 rounded-full flex items-center justify-center mx-auto mb-6">
+              <svg className="w-10 h-10 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+              </svg>
+            </div>
             <h2 className="text-2xl font-bold text-white mb-4">Connect Your Wallet</h2>
-            <p className="text-gray-400 mb-6">
-              Connect your Solana wallet to access the zkRune Mobile Wallet features
+            <p className="text-zk-gray mb-6 max-w-md mx-auto">
+              Connect your Solana wallet to view your zkRUNE balance and manage your tokens.
             </p>
-            <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
+            <WalletMultiButton className="!bg-zk-primary !text-zk-dark hover:!bg-zk-primary/90" />
           </div>
         ) : (
+          /* Connected State */
           <>
-            {/* Wallet Overview */}
-            <div className="grid md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-gradient-to-br from-[#6B4CFF]/20 to-transparent border border-[#6B4CFF]/30 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#6B4CFF]/20 rounded-full flex items-center justify-center text-[#6B4CFF]">
-                    zk
+            {/* Balance Cards */}
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+              {/* zkRUNE Balance */}
+              <div className="bg-gradient-to-br from-purple-500/20 to-transparent border border-purple-500/30 rounded-xl p-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-12 h-12 bg-purple-500/20 rounded-full flex items-center justify-center">
+                      <span className="text-purple-400 font-bold">zk</span>
+                    </div>
+                    <div>
+                      <div className="text-white font-medium">{ZKRUNE_TOKEN_CONFIG.SYMBOL}</div>
+                      <div className="text-sm text-zk-gray">{ZKRUNE_TOKEN_CONFIG.NAME}</div>
+                    </div>
                   </div>
-                  <div className="text-gray-400">zkRUNE</div>
+                  <button 
+                    onClick={refreshBalances}
+                    disabled={isLoadingBalances}
+                    className="p-2 hover:bg-white/5 rounded-lg transition"
+                  >
+                    <svg className={`w-5 h-5 text-zk-gray ${isLoadingBalances ? 'animate-spin' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </button>
                 </div>
                 <div className="text-3xl font-bold text-white mb-1">
-                  {formatTokenAmount(balance.zkrune)}
-                </div>
-                <div className="text-gray-500 text-sm">
-                  + {formatTokenAmount(stakingInfo?.totalStaked || 0)} staked
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-[#00FFA3]/20 to-transparent border border-[#00FFA3]/30 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-[#00FFA3]/20 rounded-full flex items-center justify-center text-[#00FFA3]">
-                    SOL
-                  </div>
-                  <div className="text-gray-400">Solana</div>
-                </div>
-                <div className="text-3xl font-bold text-white">
-                  {balance.sol.toFixed(4)}
-                </div>
-              </div>
-
-              <div className="bg-gradient-to-br from-orange-500/20 to-transparent border border-orange-500/30 rounded-xl p-6">
-                <div className="flex items-center gap-3 mb-4">
-                  <div className="w-10 h-10 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-400">
-                    ZEC
-                  </div>
-                  <div className="text-gray-400">Zcash</div>
-                </div>
-                <div className="text-3xl font-bold text-white">
-                  {balance.zcash.toFixed(4)}
-                </div>
-              </div>
-            </div>
-
-            {/* Status Banner */}
-            <div className={`mb-8 p-4 rounded-xl border ${
-              hasGaslessAccess
-                ? 'bg-[#00FFA3]/10 border-[#00FFA3]/30'
-                : 'bg-white/5 border-white/10'
-            }`}>
-              <div className="flex flex-wrap items-center justify-between gap-4">
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className={`w-2 h-2 rounded-full ${hasGaslessAccess ? 'bg-[#00FFA3]' : 'bg-gray-500'}`} />
-                    <span className="text-white font-medium">
-                      {hasGaslessAccess ? 'Gasless Proofs Active' : 'Gasless Proofs Locked'}
-                    </span>
-                  </div>
-                  <p className="text-gray-400 text-sm">
-                    {hasGaslessAccess
-                      ? 'Generate ZK proofs without paying gas fees'
-                      : 'Upgrade to Pro tier to unlock gasless proof generation'}
-                  </p>
-                </div>
-                {!hasGaslessAccess && (
-                  <Link
-                    href="/premium"
-                    className="px-4 py-2 bg-[#6B4CFF] text-white font-medium rounded-lg hover:bg-[#5a3de6] transition"
-                  >
-                    Upgrade to Pro
-                  </Link>
-                )}
-              </div>
-            </div>
-
-            {/* Tabs */}
-            <div className="flex gap-2 mb-8">
-              <button
-                onClick={() => setActiveTab('overview')}
-                className={`px-6 py-2 rounded-lg font-medium transition ${
-                  activeTab === 'overview'
-                    ? 'bg-[#00FFA3] text-black'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
-              >
-                Overview
-              </button>
-              <button
-                onClick={() => setActiveTab('gasless')}
-                className={`px-6 py-2 rounded-lg font-medium transition ${
-                  activeTab === 'gasless'
-                    ? 'bg-[#00FFA3] text-black'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
-              >
-                Gasless Proofs
-              </button>
-              <button
-                onClick={() => setActiveTab('bridge')}
-                className={`px-6 py-2 rounded-lg font-medium transition ${
-                  activeTab === 'bridge'
-                    ? 'bg-[#00FFA3] text-black'
-                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
-                }`}
-              >
-                Zcash Bridge
-              </button>
-            </div>
-
-            {/* Tab Content */}
-            {activeTab === 'overview' && (
-              <div className="grid lg:grid-cols-2 gap-8">
-                {/* Account Info */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Account</h3>
-                  <div className="space-y-4">
-                    <div>
-                      <div className="text-sm text-gray-400 mb-1">Address</div>
-                      <div className="font-mono text-white text-sm break-all">
-                        {publicKey?.toBase58()}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-400 mb-1">Premium Tier</div>
-                      <div className="text-white flex items-center gap-2">
-                        {premiumStatus.tier}
-                        {premiumStatus.tier !== 'FREE' && (
-                          <span className="px-2 py-0.5 bg-[#00FFA3]/20 text-[#00FFA3] text-xs rounded">
-                            ACTIVE
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                    <div>
-                      <div className="text-sm text-gray-400 mb-1">Total Burned</div>
-                      <div className="text-[#00FFA3] font-semibold">
-                        {formatTokenAmount(premiumStatus.totalBurned)} zkRUNE
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Recent Activity */}
-                <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                  <h3 className="text-lg font-semibold text-white mb-4">Recent Proofs</h3>
-                  {recentProofs.length === 0 ? (
-                    <p className="text-gray-400">No recent proofs</p>
+                  {isLoadingBalances ? (
+                    <span className="animate-pulse">Loading...</span>
                   ) : (
-                    <div className="space-y-3">
-                      {recentProofs.map((proof) => (
-                        <div
-                          key={proof.id}
-                          className="flex items-center justify-between py-3 border-b border-white/5 last:border-0"
-                        >
-                          <div>
-                            <div className="text-white">{proof.type}</div>
-                            <div className="text-sm text-gray-400">
-                              {proof.timestamp.toLocaleString()}
-                            </div>
-                          </div>
-                          <span className={`px-2 py-1 text-xs rounded ${
-                            proof.status === 'completed'
-                              ? 'bg-green-500/20 text-green-400'
-                              : proof.status === 'pending'
-                              ? 'bg-yellow-500/20 text-yellow-400'
-                              : 'bg-red-500/20 text-red-400'
-                          }`}>
-                            {proof.status}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                    formatBalance(zkruneBalance?.uiAmount || 0, 2)
                   )}
                 </div>
-
-                {/* Quick Actions */}
-                <div className="lg:col-span-2 grid sm:grid-cols-3 gap-4">
+                <div className="flex items-center gap-4 mt-4">
                   <Link
-                    href="/templates"
-                    className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-[#00FFA3]/50 transition text-center"
+                    href={`https://pump.fun/coin/${ZKRUNE_TOKEN_CONFIG.MINT_ADDRESS}`}
+                    target="_blank"
+                    className="text-sm text-purple-400 hover:text-purple-300 transition"
                   >
-                    <div className="text-3xl mb-3">proof</div>
-                    <div className="text-white font-medium">Generate Proof</div>
-                    <div className="text-gray-400 text-sm">Create new ZK proof</div>
-                  </Link>
-                  <Link
-                    href="/staking"
-                    className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-[#6B4CFF]/50 transition text-center"
-                  >
-                    <div className="text-3xl mb-3">stake</div>
-                    <div className="text-white font-medium">Stake Tokens</div>
-                    <div className="text-gray-400 text-sm">Earn up to 36% APY</div>
-                  </Link>
-                  <Link
-                    href="/governance"
-                    className="bg-white/5 border border-white/10 rounded-xl p-6 hover:border-purple-500/50 transition text-center"
-                  >
-                    <div className="text-3xl mb-3">vote</div>
-                    <div className="text-white font-medium">Governance</div>
-                    <div className="text-gray-400 text-sm">Vote on proposals</div>
+                    Buy on Pump.fun →
                   </Link>
                 </div>
               </div>
-            )}
 
-            {activeTab === 'gasless' && (
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">Gasless Proof Generation</h3>
-                
-                {hasGaslessAccess ? (
-                  <div className="space-y-6">
-                    <p className="text-gray-400">
-                      Generate ZK proofs without paying gas fees. Your proofs are sponsored by 
-                      the zkRune relayer network.
-                    </p>
-                    
-                    <div className="grid sm:grid-cols-2 gap-4">
-                      <div className="bg-white/5 rounded-lg p-4">
-                        <div className="text-sm text-gray-400 mb-1">Proofs Available</div>
-                        <div className="text-2xl font-bold text-white">Unlimited</div>
-                      </div>
-                      <div className="bg-white/5 rounded-lg p-4">
-                        <div className="text-sm text-gray-400 mb-1">Gas Saved</div>
-                        <div className="text-2xl font-bold text-[#00FFA3]">0.125 SOL</div>
-                      </div>
-                    </div>
-
-                    <Link
-                      href="/templates"
-                      className="inline-block px-6 py-3 bg-[#00FFA3] text-black font-semibold rounded-lg hover:bg-[#00cc82] transition"
-                    >
-                      Generate Gasless Proof
-                    </Link>
+              {/* SOL Balance */}
+              <div className="bg-gradient-to-br from-green-500/20 to-transparent border border-green-500/30 rounded-xl p-6">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-full flex items-center justify-center">
+                    <span className="text-green-400 font-bold">◎</span>
                   </div>
-                ) : (
-                  <div className="text-center py-8">
-                    <div className="text-5xl mb-4 opacity-50">lock</div>
-                    <h4 className="text-xl font-semibold text-white mb-2">Pro Feature</h4>
-                    <p className="text-gray-400 mb-6 max-w-md mx-auto">
-                      Gasless proof generation is available for Pro and Enterprise tier members. 
-                      Burn 500 zkRUNE to unlock.
-                    </p>
-                    <Link
-                      href="/premium"
-                      className="inline-block px-6 py-3 bg-[#6B4CFF] text-white font-semibold rounded-lg hover:bg-[#5a3de6] transition"
-                    >
-                      Upgrade to Pro
-                    </Link>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {activeTab === 'bridge' && (
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                <h3 className="text-xl font-semibold text-white mb-6">Zcash Bridge</h3>
-                
-                <div className="text-center py-8">
-                  <div className="flex justify-center gap-8 mb-6">
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center text-orange-400 text-2xl mx-auto mb-2">
-                        ZEC
-                      </div>
-                      <div className="text-white">Zcash</div>
-                    </div>
-                    <div className="flex items-center text-gray-500 text-2xl">
-                      bridge
-                    </div>
-                    <div className="text-center">
-                      <div className="w-16 h-16 bg-[#00FFA3]/20 rounded-full flex items-center justify-center text-[#00FFA3] text-2xl mx-auto mb-2">
-                        SOL
-                      </div>
-                      <div className="text-white">Solana</div>
-                    </div>
-                  </div>
-
-                  <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-4 max-w-md mx-auto mb-6">
-                    <div className="text-yellow-400 font-medium mb-1">Coming Soon</div>
-                    <p className="text-gray-400 text-sm">
-                      Bridge assets between Zcash and Solana with zero-knowledge proofs 
-                      for privacy-preserving cross-chain transfers.
-                    </p>
-                  </div>
-
-                  <div className="grid sm:grid-cols-3 gap-4 max-w-2xl mx-auto text-sm">
-                    <div className="bg-white/5 rounded-lg p-4">
-                      <div className="text-[#00FFA3] font-medium mb-1">Privacy</div>
-                      <p className="text-gray-400">Shielded transfers between chains</p>
-                    </div>
-                    <div className="bg-white/5 rounded-lg p-4">
-                      <div className="text-[#6B4CFF] font-medium mb-1">Fast</div>
-                      <p className="text-gray-400">Optimistic bridging with ZK fallback</p>
-                    </div>
-                    <div className="bg-white/5 rounded-lg p-4">
-                      <div className="text-orange-400 font-medium mb-1">Secure</div>
-                      <p className="text-gray-400">Verified by ZK proofs</p>
-                    </div>
+                  <div>
+                    <div className="text-white font-medium">SOL</div>
+                    <div className="text-sm text-zk-gray">Solana</div>
                   </div>
                 </div>
+                <div className="text-3xl font-bold text-white">
+                  {isLoadingBalances ? (
+                    <span className="animate-pulse">Loading...</span>
+                  ) : (
+                    formatBalance(solBalance, 4)
+                  )}
+                </div>
               </div>
-            )}
+
+              {/* Wallet Info */}
+              <div className="bg-zk-darker border border-white/10 rounded-xl p-6">
+                <div className="text-sm text-zk-gray mb-2">Connected Wallet</div>
+                <div className="flex items-center gap-2 mb-4">
+                  <code className="text-white font-mono text-sm">
+                    {truncateAddress(walletAddress || '')}
+                  </code>
+                  <button 
+                    onClick={copyAddress}
+                    className="p-1 hover:bg-white/5 rounded transition"
+                    title="Copy address"
+                  >
+                    <svg className="w-4 h-4 text-zk-gray" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                    </svg>
+                  </button>
+                </div>
+                <div className="flex gap-2">
+                  <a
+                    href={getSolscanUrl(walletAddress || '', 'account')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-zk-gray hover:text-white transition"
+                  >
+                    Solscan →
+                  </a>
+                  <a
+                    href={getExplorerUrl(walletAddress || '', 'address')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-xs text-zk-gray hover:text-white transition"
+                  >
+                    Explorer →
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Actions */}
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+              <Link
+                href="/templates"
+                className="bg-zk-darker border border-white/10 rounded-xl p-6 hover:border-zk-primary/50 transition group"
+              >
+                <div className="w-12 h-12 bg-zk-primary/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-zk-primary/20 transition">
+                  <svg className="w-6 h-6 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                  </svg>
+                </div>
+                <div className="text-white font-medium mb-1">Generate Proof</div>
+                <div className="text-sm text-zk-gray">Create ZK proofs</div>
+              </Link>
+
+              <Link
+                href="/premium"
+                className="bg-zk-darker border border-white/10 rounded-xl p-6 hover:border-purple-500/50 transition group"
+              >
+                <div className="w-12 h-12 bg-purple-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-purple-500/20 transition">
+                  <svg className="w-6 h-6 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17.657 18.657A8 8 0 016.343 7.343S7 9 9 10c0-2 .5-5 2.986-7C14 5 16.09 5.777 17.656 7.343A7.975 7.975 0 0120 13a7.975 7.975 0 01-2.343 5.657z" />
+                  </svg>
+                </div>
+                <div className="text-white font-medium mb-1">Burn & Upgrade</div>
+                <div className="text-sm text-zk-gray">Premium features</div>
+              </Link>
+
+              <Link
+                href="/staking"
+                className="bg-zk-darker border border-white/10 rounded-xl p-6 hover:border-yellow-500/50 transition group"
+              >
+                <div className="w-12 h-12 bg-yellow-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-yellow-500/20 transition">
+                  <svg className="w-6 h-6 text-yellow-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div className="text-white font-medium mb-1">Staking</div>
+                <div className="text-sm text-zk-gray">Earn rewards</div>
+              </Link>
+
+              <Link
+                href="/governance"
+                className="bg-zk-darker border border-white/10 rounded-xl p-6 hover:border-blue-500/50 transition group"
+              >
+                <div className="w-12 h-12 bg-blue-500/10 rounded-lg flex items-center justify-center mb-4 group-hover:bg-blue-500/20 transition">
+                  <svg className="w-6 h-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
+                  </svg>
+                </div>
+                <div className="text-white font-medium mb-1">Governance</div>
+                <div className="text-sm text-zk-gray">Vote on proposals</div>
+              </Link>
+            </div>
+
+            {/* Token Info */}
+            <div className="bg-zk-darker border border-white/10 rounded-xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Token Information</h3>
+              <div className="grid md:grid-cols-2 gap-4">
+                <div>
+                  <div className="text-sm text-zk-gray mb-1">Token Address</div>
+                  <code className="text-white text-sm font-mono break-all">
+                    {ZKRUNE_TOKEN_CONFIG.MINT_ADDRESS}
+                  </code>
+                </div>
+                <div>
+                  <div className="text-sm text-zk-gray mb-1">Decimals</div>
+                  <div className="text-white">{ZKRUNE_TOKEN_CONFIG.DECIMALS}</div>
+                </div>
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/10">
+                <a
+                  href={`https://solscan.io/token/${ZKRUNE_TOKEN_CONFIG.MINT_ADDRESS}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-zk-primary hover:text-zk-primary/80 transition text-sm"
+                >
+                  View on Solscan →
+                </a>
+              </div>
+            </div>
           </>
         )}
       </main>
     </div>
   );
 }
-
