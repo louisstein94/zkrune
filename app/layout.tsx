@@ -62,7 +62,7 @@ export const metadata: Metadata = {
   // Twitter
   twitter: {
     card: "summary_large_image",
-    title: "zkRune - Privacy Tooling for Solana 🔐",
+    title: "zkRune - Privacy Tooling for Solana",
     description: "Solana Privacy Hack 2026: 13 real Groth16 circuits. 100% client-side ZK proofs. Private payments, credentials, voting.",
     creator: "@rune_zk",
     site: "@rune_zk",

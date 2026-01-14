@@ -274,7 +274,7 @@ console.log(data.proof);`}
 
               <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg mb-4">
                 <p className="text-sm text-red-300">
-                  ⚠️ This endpoint has been removed. Use client-side generation for better privacy and security.
+                  Note: This endpoint has been removed. Use client-side generation for better privacy and security.
                 </p>
               </div>
 

@@ -87,3 +87,20 @@ public/og-image-template.md
 # Ceremony files (too large for git)
 ceremony/*.ptau
 ceremony/zkeys/*.zkey
+
+# Cargo lock (Solana program)
+solana-groth16-verifier/Cargo.lock
+
+# IDE
+.idea/
+.vscode/
+
+# OS files
+Thumbs.db
+
+# Log files
+*.log
+
+# Temporary files
+*.tmp
+*.temp

@@ -83,7 +83,7 @@ export default function CeremonyPage() {
             
             <h1 className="text-5xl md:text-6xl font-bold mb-6">
               <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                🔮 Trusted Setup Ceremony
+                Trusted Setup Ceremony
               </span>
             </h1>
             
@@ -117,8 +117,8 @@ export default function CeremonyPage() {
           
           <div className="grid md:grid-cols-3 gap-8 mb-12">
             <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl mb-4">
-                1️⃣
+              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
+                1
               </div>
               <h3 className="text-xl font-bold mb-2">Clone Repository</h3>
               <p className="text-zk-gray mb-4">Get the zkRune codebase and install dependencies.</p>
@@ -128,8 +128,8 @@ export default function CeremonyPage() {
             </div>
             
             <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl mb-4">
-                2️⃣
+              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
+                2
               </div>
               <h3 className="text-xl font-bold mb-2">Run Contribution</h3>
               <p className="text-zk-gray mb-4">Execute the ceremony script with your name.</p>
@@ -141,19 +141,19 @@ export default function CeremonyPage() {
                   onClick={copyCommand}
                   className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded transition-colors"
                 >
-                  {copied ? "✓" : "📋"}
+                  {copied ? "OK" : "Copy"}
                 </button>
               </div>
             </div>
             
             <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl mb-4">
-                3️⃣
+              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
+                3
               </div>
               <h3 className="text-xl font-bold mb-2">Share Your Hash</h3>
               <p className="text-zk-gray mb-4">Post your contribution hash on social media.</p>
               <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 overflow-x-auto">
-                &quot;I contributed to @zkRune ceremony! 🔮&quot;
+                &quot;I contributed to @zkRune ceremony!&quot;
               </code>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default function CeremonyPage() {
               target="_blank"
               className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold transition-colors"
             >
-              📖 Full Documentation
+              Full Documentation
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
@@ -207,7 +207,7 @@ export default function CeremonyPage() {
                 {state.contributions.length === 0 && (
                   <tr>
                     <td colSpan={4} className="px-6 py-12 text-center text-zk-gray">
-                      No contributions yet. Be the first! 🚀
+                      No contributions yet. Be the first!
                     </td>
                   </tr>
                 )}
@@ -257,7 +257,7 @@ export default function CeremonyPage() {
           
           <div className="grid md:grid-cols-2 gap-8">
             <div className="bg-gradient-to-br from-green-500/10 to-transparent p-6 rounded-xl border border-green-500/20">
-              <h3 className="text-xl font-bold text-green-400 mb-4">✅ What Makes This Secure</h3>
+              <h3 className="text-xl font-bold text-green-400 mb-4">What Makes This Secure</h3>
               <ul className="space-y-3 text-zk-gray">
                 <li className="flex items-start gap-2">
                   <span className="text-green-400 mt-1">•</span>
@@ -283,7 +283,7 @@ export default function CeremonyPage() {
             </div>
             
             <div className="bg-gradient-to-br from-red-500/10 to-transparent p-6 rounded-xl border border-red-500/20">
-              <h3 className="text-xl font-bold text-red-400 mb-4">⚠️ What If Someone Is Malicious?</h3>
+              <h3 className="text-xl font-bold text-red-400 mb-4">What If Someone Is Malicious?</h3>
               <ul className="space-y-3 text-zk-gray">
                 <li className="flex items-start gap-2">
                   <span className="text-red-400 mt-1">•</span>

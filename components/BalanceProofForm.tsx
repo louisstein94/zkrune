@@ -174,7 +174,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
                 ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40' 
                 : 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
             }`}>
-              {addressType === 'shielded' ? '🛡️ Shielded Address' : '🔓 Transparent Address'}
+              {addressType === 'shielded' ? 'Shielded Address' : 'Transparent Address'}
             </span>
           </div>
         )}

@@ -164,7 +164,7 @@ export default function Dashboard() {
               href="/docs"
               className="bg-gradient-to-br from-zk-secondary/10 to-zk-accent/10 border border-zk-secondary/30 rounded-2xl p-6 hover:border-zk-secondary/50 transition-all group"
             >
-              <div className="text-4xl mb-3">📚</div>
+              <div className="text-4xl font-bold text-purple-400 mb-3">Docs</div>
               <h3 className="font-hatton text-xl text-white mb-2 group-hover:text-zk-secondary transition-colors">
                 Documentation
               </h3>
@@ -179,7 +179,7 @@ export default function Dashboard() {
               rel="noopener noreferrer"
               className="bg-gradient-to-br from-zk-accent/10 to-zk-primary/10 border border-zk-accent/30 rounded-2xl p-6 hover:border-zk-accent/50 transition-all group"
             >
-              <div className="text-4xl mb-3">💻</div>
+              <div className="text-4xl font-bold text-purple-400 mb-3">ZK</div>
               <h3 className="font-hatton text-xl text-white mb-2 group-hover:text-zk-accent transition-colors">
                 GitHub
               </h3>

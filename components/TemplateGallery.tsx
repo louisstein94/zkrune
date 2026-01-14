@@ -257,7 +257,7 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
       <div className="max-w-7xl mx-auto mb-16">
         <div className="flex flex-wrap items-center gap-3 mb-6">
           <div className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/50 rounded-full">
-            <span className="text-lg">🏆</span>
+            <span className="text-lg font-bold">SPH</span>
             <span className="text-xs font-medium text-purple-400 uppercase tracking-wider">
               Solana Privacy Hack 2026
             </span>
@@ -363,7 +363,7 @@ export default function TemplateGallery({ highlightTemplateId }: TemplateGallery
                   ? "bg-zk-primary/20 border border-zk-primary/40"
                   : "bg-amber-500/20 border border-amber-500/40"
               }`}>
-                <span className="text-xs">🏆</span>
+                <span className="text-xs font-bold">SPH</span>
                 <span className={`text-xs font-medium ${
                   template.hackathonTrack === "Private Payments" 
                     ? "text-purple-400" 

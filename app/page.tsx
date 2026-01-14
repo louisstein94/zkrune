@@ -47,7 +47,7 @@ export default function Home() {
           {/* Solana Privacy Hack Badge */}
           <div className="flex flex-wrap items-center gap-3 mb-2">
             <div className="inline-flex items-center gap-2 px-4 py-2 border border-purple-500/40 bg-purple-500/10 rounded-full backdrop-blur-sm">
-              <span className="text-lg">🏆</span>
+              <span className="text-lg font-bold">SPH</span>
               <span className="text-xs font-bold text-purple-400 uppercase tracking-wider">
                 Solana Privacy Hack 2026
               </span>
@@ -514,7 +514,7 @@ export default function Home() {
                 </svg>
               </div>
               <div>
-                <h4 className="text-sm font-bold text-white mb-1">🏆 Solana Privacy Hack 2026</h4>
+                <h4 className="text-sm font-bold text-white mb-1">Solana Privacy Hack 2026</h4>
                 <p className="text-sm text-zk-gray leading-relaxed">
                   zkRune is building privacy tooling for Solana. Generate real ZK proofs in your browser - no server, no data leakage. 100% client-side Groth16 zk-SNARKs for privacy-preserving applications.
                 </p>
