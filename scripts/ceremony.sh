@@ -27,7 +27,7 @@ PTAU_FILE="powersOfTau28_hez_final_14.ptau"
 PTAU_URL="https://hermez.s3-eu-west-1.amazonaws.com/powersOfTau28_hez_final_14.ptau"
 
 # API Configuration (for real-time sync)
-API_URL="${ZKRUNE_API_URL:-https://zkrune.io}"
+API_URL="${ZKRUNE_API_URL:-https://zkrune.com}"
 
 # Sync contribution to API (Supabase)
 sync_to_api() {
