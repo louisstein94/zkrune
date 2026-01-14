@@ -175,9 +175,9 @@ public/circuits/
 
 ## Contact
 
-- **GitHub**: https://github.com/zkrune/zkrune
-- **Twitter**: @zkRune
-- **Discord**: [Join our server]
+- **GitHub**: https://github.com/louisstein94/zkrune
+- **Twitter**: @rune_zk
+- **Telegram**: t.me/rune_zk
 
 ---
 
