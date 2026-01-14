@@ -160,7 +160,7 @@ export default function CeremonyPage() {
 
           <div className="text-center">
             <Link
-              href="https://github.com/zkrune/zkrune/blob/main/CEREMONY.md"
+              href="https://github.com/louisstein94/zkrune/blob/main/CEREMONY.md"
               target="_blank"
               className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold transition-colors"
             >
@@ -321,7 +321,7 @@ export default function CeremonyPage() {
           
           <div className="flex flex-wrap justify-center gap-4">
             <Link
-              href="https://github.com/zkrune/zkrune"
+              href="https://github.com/louisstein94/zkrune"
               target="_blank"
               className="inline-flex items-center gap-2 px-6 py-3 bg-white text-black rounded-lg font-semibold hover:bg-gray-200 transition-colors"
             >
@@ -350,9 +350,9 @@ export default function CeremonyPage() {
           <p className="mt-2">
             <Link href="/docs" className="hover:text-white transition-colors">Documentation</Link>
             {" • "}
-            <Link href="https://github.com/zkrune/zkrune" target="_blank" className="hover:text-white transition-colors">GitHub</Link>
+            <Link href="https://github.com/louisstein94/zkrune" target="_blank" className="hover:text-white transition-colors">GitHub</Link>
             {" • "}
-            <Link href="https://twitter.com/zkRune" target="_blank" className="hover:text-white transition-colors">Twitter</Link>
+            <Link href="https://twitter.com/rune_zk" target="_blank" className="hover:text-white transition-colors">Twitter</Link>
           </p>
         </div>
       </footer>
