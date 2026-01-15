@@ -48,8 +48,13 @@ npm install
 ### Step 2: Add Your Contribution
 
 ```bash
-./scripts/ceremony.sh contribute "Your Name or Pseudonym"
+./scripts/ceremony.sh contribute-remote "Your Name or Pseudonym"
 ```
+
+This command:
+1. Downloads the latest zkeys from the server
+2. Adds your random entropy to each circuit
+3. Uploads your contribution back to the server
 
 During contribution:
 - 🖱️ Move your mouse randomly
