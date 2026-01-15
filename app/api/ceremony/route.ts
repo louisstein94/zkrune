@@ -11,12 +11,11 @@ interface CeremonyContribution {
   created_at: string;
 }
 
-// GET - Fetch ceremony state
+// GET - Fetch ceremony state (storage-based for real contribution count)
 export async function GET() {
   try {
-    // Try to fetch from Supabase
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
       return NextResponse.json({
@@ -26,7 +25,33 @@ export async function GET() {
       });
     }
 
-    const response = await fetch(
+    // Get real contribution count from storage (check one circuit)
+    const storageResponse = await fetch(
+      `${supabaseUrl}/storage/v1/object/list/ceremony-zkeys/age-verification`,
+      {
+        headers: {
+          'apikey': supabaseKey,
+          'Authorization': `Bearer ${supabaseKey}`,
+        },
+      }
+    );
+
+    let realContributionCount = 0;
+    if (storageResponse.ok) {
+      const files = await storageResponse.json();
+      const zkeyFiles = files.filter((f: { name: string }) => f.name.endsWith('.zkey'));
+      if (zkeyFiles.length > 0) {
+        // Find highest index
+        const indices = zkeyFiles.map((f: { name: string }) => {
+          const match = f.name.match(/_(\d+)\.zkey$/);
+          return match ? parseInt(match[1]) : 0;
+        });
+        realContributionCount = Math.max(...indices);
+      }
+    }
+
+    // Get contributions from DB
+    const dbResponse = await fetch(
       `${supabaseUrl}/rest/v1/ceremony_contributions?select=*&order=contribution_index.asc`,
       {
         headers: {
@@ -38,22 +63,15 @@ export async function GET() {
       }
     );
 
-    if (!response.ok) {
-      // If table doesn't exist, return default state
-      console.warn('Ceremony table not found, returning default state');
-      return NextResponse.json({
-        success: true,
-        data: getDefaultCeremonyState(),
-        source: 'default'
-      });
+    let contributions: CeremonyContribution[] = [];
+    if (dbResponse.ok) {
+      contributions = await dbResponse.json();
     }
-
-    const contributions: CeremonyContribution[] = await response.json();
 
     return NextResponse.json({
       success: true,
       data: {
-        phase: contributions.length >= 3 ? 'finalized' : 'contribution',
+        phase: realContributionCount >= 5 ? 'ready_to_finalize' : 'contribution',
         startedAt: '2026-01-14T00:00:00Z',
         contributions: contributions.map(c => ({
           index: c.contribution_index,
@@ -62,9 +80,11 @@ export async function GET() {
           timestamp: c.created_at
         })),
         circuits: getCircuitList(),
-        currentContributionIndex: contributions.length
+        currentContributionIndex: realContributionCount,
+        realZkeyCount: realContributionCount,
+        dbRecordCount: contributions.length
       },
-      source: 'supabase'
+      source: 'storage+db'
     });
   } catch (error) {
     console.error('Error fetching ceremony state:', error);
