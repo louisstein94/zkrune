@@ -19,6 +19,9 @@ interface CeremonyState {
   contributions: Contribution[];
   circuits: string[];
   currentContributionIndex: number;
+  beacon?: string;
+  beaconSource?: string;
+  status?: string;
 }
 
 const CIRCUITS = [
@@ -78,6 +81,7 @@ export default function CeremonyPage() {
   const contributionCount = state?.contributions?.length || 0;
   const progress = Math.min((contributionCount / REQUIRED_CONTRIBUTIONS) * 100, 100);
   const isComplete = contributionCount >= REQUIRED_CONTRIBUTIONS;
+  const isFinalized = state?.status === "FINALIZED" || state?.phase === "finalized";
 
   if (loading) {
     return (
@@ -104,40 +108,93 @@ export default function CeremonyPage() {
         
         <div className="relative max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
-            <div className={`inline-flex items-center gap-2 px-4 py-2 ${isComplete ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'bg-purple-500/20 border-purple-500/30 text-purple-400'} border rounded-full text-sm mb-6`}>
-              <span className={`w-2 h-2 ${isComplete ? 'bg-green-400' : 'bg-yellow-400'} rounded-full animate-pulse`} />
-              {isComplete ? "Ceremony Complete - Ready for Finalization" : `Accepting Contributions (${contributionCount}/${REQUIRED_CONTRIBUTIONS})`}
-            </div>
-            
-            <h1 className="text-5xl md:text-6xl font-bold mb-6">
-              <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
-                Trusted Setup Ceremony
-              </span>
-            </h1>
-            
-            <p className="text-xl text-zk-gray max-w-3xl mx-auto mb-8">
-              Contribute to zkRune&apos;s security by participating in our multi-party computation ceremony.
-              Your contribution adds entropy that makes the system cryptographically secure.
-            </p>
+            {isFinalized ? (
+              <>
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 border-green-500/30 text-green-400 border rounded-full text-sm mb-6">
+                  <span className="w-2 h-2 bg-green-400 rounded-full" />
+                  Ceremony Finalized
+                </div>
+                
+                <h1 className="text-5xl md:text-6xl font-bold mb-6">
+                  <span className="bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 bg-clip-text text-transparent">
+                    Ceremony Complete!
+                  </span>
+                </h1>
+                
+                <p className="text-xl text-zk-gray max-w-3xl mx-auto mb-8">
+                  The zkRune trusted setup ceremony has been successfully finalized with {contributionCount} community contributions.
+                  All 13 circuits now have production-ready verification keys.
+                </p>
 
-            {/* Progress Bar */}
-            <div className="max-w-md mx-auto mb-8">
-              <div className="flex justify-between text-sm mb-2">
-                <span className="text-zk-gray">Progress</span>
-                <span className={isComplete ? 'text-green-400' : 'text-purple-400'}>{contributionCount} / {REQUIRED_CONTRIBUTIONS} contributions</span>
-              </div>
-              <div className="h-3 bg-zk-darker rounded-full overflow-hidden border border-white/10">
-                <div 
-                  className={`h-full transition-all duration-500 ${isComplete ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
-                  style={{ width: `${progress}%` }}
-                />
-              </div>
-              <p className="text-xs text-zk-gray mt-2">
-                {isComplete 
-                  ? "Minimum contributions reached! Ceremony can be finalized."
-                  : `${REQUIRED_CONTRIBUTIONS - contributionCount} more contributions needed for minimum security`}
-              </p>
-            </div>
+                {/* Finalized Stats */}
+                <div className="max-w-2xl mx-auto mb-8 p-6 bg-gradient-to-br from-green-500/10 to-transparent rounded-xl border border-green-500/20">
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+                    <div>
+                      <div className="text-3xl font-bold text-green-400">{contributionCount}</div>
+                      <div className="text-sm text-zk-gray">Contributors</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-green-400">13</div>
+                      <div className="text-sm text-zk-gray">Circuits</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-green-400">54+</div>
+                      <div className="text-sm text-zk-gray">Phase 1 (Hermez)</div>
+                    </div>
+                    <div>
+                      <div className="text-3xl font-bold text-green-400">drand</div>
+                      <div className="text-sm text-zk-gray">Beacon Source</div>
+                    </div>
+                  </div>
+                  
+                  {state?.beacon && (
+                    <div className="mt-4 pt-4 border-t border-green-500/20">
+                      <p className="text-xs text-zk-gray mb-1">Final Beacon (drand.cloudflare.com)</p>
+                      <code className="text-xs text-green-400 font-mono break-all">
+                        {state.beacon}
+                      </code>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <>
+                <div className={`inline-flex items-center gap-2 px-4 py-2 ${isComplete ? 'bg-green-500/20 border-green-500/30 text-green-400' : 'bg-purple-500/20 border-purple-500/30 text-purple-400'} border rounded-full text-sm mb-6`}>
+                  <span className={`w-2 h-2 ${isComplete ? 'bg-green-400' : 'bg-yellow-400'} rounded-full animate-pulse`} />
+                  {isComplete ? "Ceremony Complete - Ready for Finalization" : `Accepting Contributions (${contributionCount}/${REQUIRED_CONTRIBUTIONS})`}
+                </div>
+                
+                <h1 className="text-5xl md:text-6xl font-bold mb-6">
+                  <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-purple-400 bg-clip-text text-transparent">
+                    Trusted Setup Ceremony
+                  </span>
+                </h1>
+                
+                <p className="text-xl text-zk-gray max-w-3xl mx-auto mb-8">
+                  Contribute to zkRune&apos;s security by participating in our multi-party computation ceremony.
+                  Your contribution adds entropy that makes the system cryptographically secure.
+                </p>
+
+                {/* Progress Bar */}
+                <div className="max-w-md mx-auto mb-8">
+                  <div className="flex justify-between text-sm mb-2">
+                    <span className="text-zk-gray">Progress</span>
+                    <span className={isComplete ? 'text-green-400' : 'text-purple-400'}>{contributionCount} / {REQUIRED_CONTRIBUTIONS} contributions</span>
+                  </div>
+                  <div className="h-3 bg-zk-darker rounded-full overflow-hidden border border-white/10">
+                    <div 
+                      className={`h-full transition-all duration-500 ${isComplete ? 'bg-gradient-to-r from-green-500 to-emerald-400' : 'bg-gradient-to-r from-purple-500 to-pink-500'}`}
+                      style={{ width: `${progress}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-zk-gray mt-2">
+                    {isComplete 
+                      ? "Minimum contributions reached! Ceremony can be finalized."
+                      : `${REQUIRED_CONTRIBUTIONS - contributionCount} more contributions needed for minimum security`}
+                  </p>
+                </div>
+              </>
+            )}
 
             <div className="flex flex-wrap justify-center gap-6 text-sm">
               <div className="flex items-center gap-2 px-4 py-2 bg-zk-darker rounded-lg border border-white/10">
@@ -146,16 +203,24 @@ export default function CeremonyPage() {
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-zk-darker rounded-lg border border-white/10">
                 <span className="text-zk-gray">Phase 2:</span>
-                <span className="text-purple-400">{contributionCount} contributions</span>
+                <span className={isFinalized ? 'text-green-400' : 'text-purple-400'}>
+                  {isFinalized ? `[OK] ${contributionCount} contributions` : `${contributionCount} contributions`}
+                </span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2 bg-zk-darker rounded-lg border border-white/10">
                 <span className="text-zk-gray">Circuits:</span>
                 <span className="text-white">{CIRCUITS.length} total</span>
               </div>
+              {isFinalized && (
+                <div className="flex items-center gap-2 px-4 py-2 bg-zk-darker rounded-lg border border-white/10">
+                  <span className="text-zk-gray">Beacon:</span>
+                  <span className="text-green-400">[OK] drand</span>
+                </div>
+              )}
             </div>
 
             {/* GitHub Verification Link */}
-            <div className="mt-6">
+            <div className="mt-6 flex flex-wrap justify-center gap-4">
               <Link
                 href="https://github.com/louisstein94/zkrune/blob/main/ceremony/state.json"
                 target="_blank"
@@ -164,68 +229,139 @@ export default function CeremonyPage() {
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                   <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" />
                 </svg>
-                Verify on GitHub (ceremony/state.json)
+                Verify on GitHub
               </Link>
+              {isFinalized && (
+                <Link
+                  href="https://github.com/louisstein94/zkrune/blob/main/ceremony/CEREMONY_REPORT.md"
+                  target="_blank"
+                  className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 transition-colors"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                  </svg>
+                  View Full Report
+                </Link>
+              )}
             </div>
           </div>
         </div>
       </section>
 
-      {/* How to Participate */}
+      {/* How to Participate / Verify */}
       <section className="py-20 bg-zk-darker/50">
         <div className="max-w-7xl mx-auto px-6">
-          <h2 className="text-3xl font-bold text-center mb-12">How to Participate</h2>
+          <h2 className="text-3xl font-bold text-center mb-12">
+            {isFinalized ? "How to Verify" : "How to Participate"}
+          </h2>
           
-          <div className="grid md:grid-cols-3 gap-8 mb-12">
-            <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
-                1
+          {isFinalized ? (
+            <>
+              <div className="grid md:grid-cols-3 gap-8 mb-12">
+                <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-green-400 mb-4">
+                    1
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Clone Repository</h3>
+                  <p className="text-zk-gray mb-4">Get the zkRune codebase with finalized keys.</p>
+                  <code className="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">
+                    git clone https://github.com/louisstein94/zkrune.git
+                  </code>
+                </div>
+                
+                <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-green-400 mb-4">
+                    2
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Verify Ceremony</h3>
+                  <p className="text-zk-gray mb-4">Check all contributions are valid.</p>
+                  <code className="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">
+                    ./scripts/ceremony.sh verify
+                  </code>
+                </div>
+                
+                <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
+                  <div className="w-12 h-12 bg-green-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-green-400 mb-4">
+                    3
+                  </div>
+                  <h3 className="text-xl font-bold mb-2">Use the Keys</h3>
+                  <p className="text-zk-gray mb-4">Final zkeys are ready for production use.</p>
+                  <code className="block bg-black/50 p-3 rounded-lg text-sm text-green-400 overflow-x-auto">
+                    circuits/*/circuit_final.zkey
+                  </code>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-2">Clone Repository</h3>
-              <p className="text-zk-gray mb-4">Get the zkRune codebase and install dependencies.</p>
-              <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 overflow-x-auto">
-                git clone https://github.com/louisstein94/zkrune.git && cd zkrune && npm i
-              </code>
-            </div>
-            
-            <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
-                2
+              
+              <div className="max-w-2xl mx-auto bg-zk-dark p-6 rounded-xl border border-green-500/20 mb-8">
+                <h3 className="text-lg font-bold text-green-400 mb-4">Verification Commands</h3>
+                <div className="space-y-3">
+                  <div>
+                    <p className="text-sm text-zk-gray mb-1">Verify a specific circuit:</p>
+                    <code className="block bg-black/50 p-2 rounded text-xs text-green-400 overflow-x-auto">
+                      snarkjs zkey verify circuits/age-verification/circuit.r1cs ceremony/powersOfTau28_hez_final_14.ptau circuits/age-verification/circuit_final.zkey
+                    </code>
+                  </div>
+                  <div>
+                    <p className="text-sm text-zk-gray mb-1">Check beacon value (drand):</p>
+                    <code className="block bg-black/50 p-2 rounded text-xs text-green-400 overflow-x-auto">
+                      cat ceremony/beacon.txt
+                    </code>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-xl font-bold mb-2">Run Contribution</h3>
-              <p className="text-zk-gray mb-4">Downloads zkeys, adds your entropy, uploads back.</p>
-              <div className="relative">
-                <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 pr-12 overflow-x-auto">
-                  ./scripts/ceremony.sh contribute-remote &quot;Your Name&quot;
+            </>
+          ) : (
+            <div className="grid md:grid-cols-3 gap-8 mb-12">
+              <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
+                  1
+                </div>
+                <h3 className="text-xl font-bold mb-2">Clone Repository</h3>
+                <p className="text-zk-gray mb-4">Get the zkRune codebase and install dependencies.</p>
+                <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 overflow-x-auto">
+                  git clone https://github.com/louisstein94/zkrune.git && cd zkrune && npm i
                 </code>
-                <button
-                  onClick={copyCommand}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded transition-colors"
-                >
-                  {copied ? "OK" : "Copy"}
-                </button>
+              </div>
+              
+              <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
+                  2
+                </div>
+                <h3 className="text-xl font-bold mb-2">Run Contribution</h3>
+                <p className="text-zk-gray mb-4">Downloads zkeys, adds your entropy, uploads back.</p>
+                <div className="relative">
+                  <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 pr-12 overflow-x-auto">
+                    ./scripts/ceremony.sh contribute-remote &quot;Your Name&quot;
+                  </code>
+                  <button
+                    onClick={copyCommand}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 p-2 hover:bg-white/10 rounded transition-colors"
+                  >
+                    {copied ? "OK" : "Copy"}
+                  </button>
+                </div>
+              </div>
+              
+              <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
+                <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
+                  3
+                </div>
+                <h3 className="text-xl font-bold mb-2">Share Your Hash</h3>
+                <p className="text-zk-gray mb-4">Post your contribution hash on social media.</p>
+                <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 overflow-x-auto">
+                  &quot;I contributed to @rune_zk ceremony!&quot;
+                </code>
               </div>
             </div>
-            
-            <div className="bg-zk-dark p-6 rounded-xl border border-white/10">
-              <div className="w-12 h-12 bg-purple-500/20 rounded-lg flex items-center justify-center text-2xl font-bold text-purple-400 mb-4">
-                3
-              </div>
-              <h3 className="text-xl font-bold mb-2">Share Your Hash</h3>
-              <p className="text-zk-gray mb-4">Post your contribution hash on social media.</p>
-              <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 overflow-x-auto">
-                &quot;I contributed to @rune_zk ceremony!&quot;
-              </code>
-            </div>
-          </div>
+          )}
 
           <div className="text-center">
             <Link
-              href="https://github.com/louisstein94/zkrune/blob/main/CEREMONY.md"
+              href={isFinalized ? "https://github.com/louisstein94/zkrune/blob/main/ceremony/CEREMONY_REPORT.md" : "https://github.com/louisstein94/zkrune/blob/main/CEREMONY.md"}
               target="_blank"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold transition-colors"
+              className={`inline-flex items-center gap-2 px-6 py-3 ${isFinalized ? 'bg-green-600 hover:bg-green-500' : 'bg-purple-600 hover:bg-purple-500'} rounded-lg font-semibold transition-colors`}
             >
-              Full Documentation
+              {isFinalized ? "View Ceremony Report" : "Full Documentation"}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
               </svg>
@@ -278,7 +414,9 @@ export default function CeremonyPage() {
           </div>
           
           <p className="text-center text-sm text-zk-gray mt-4">
-            Be the next contributor! Your entropy strengthens the ceremony.
+            {isFinalized 
+              ? "Thank you to all contributors for securing zkRune!" 
+              : "Be the next contributor! Your entropy strengthens the ceremony."}
           </p>
         </div>
       </section>
@@ -374,12 +512,24 @@ export default function CeremonyPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-20 bg-gradient-to-t from-purple-900/20 to-transparent">
+      <section className={`py-20 bg-gradient-to-t ${isFinalized ? 'from-green-900/20' : 'from-purple-900/20'} to-transparent`}>
         <div className="max-w-3xl mx-auto px-6 text-center">
-          <h2 className="text-3xl font-bold mb-6">Ready to Contribute?</h2>
-          <p className="text-zk-gray mb-8">
-            Your contribution takes about 2-5 minutes and helps secure zkRune for everyone.
-          </p>
+          {isFinalized ? (
+            <>
+              <h2 className="text-3xl font-bold mb-6">Start Building with zkRune</h2>
+              <p className="text-zk-gray mb-8">
+                The ceremony is complete. All 13 circuits are production-ready. 
+                Start building privacy-preserving applications on Solana today.
+              </p>
+            </>
+          ) : (
+            <>
+              <h2 className="text-3xl font-bold mb-6">Ready to Contribute?</h2>
+              <p className="text-zk-gray mb-8">
+                Your contribution takes about 2-5 minutes and helps secure zkRune for everyone.
+              </p>
+            </>
+          )}
           
           <div className="flex flex-wrap justify-center gap-4">
             <Link
@@ -390,13 +540,13 @@ export default function CeremonyPage() {
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                 <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.477 2 12c0 4.42 2.87 8.17 6.84 9.5.5.08.66-.23.66-.5v-1.69c-2.77.6-3.36-1.34-3.36-1.34-.46-1.16-1.11-1.47-1.11-1.47-.91-.62.07-.6.07-.6 1 .07 1.53 1.03 1.53 1.03.87 1.52 2.34 1.07 2.91.83.09-.65.35-1.09.63-1.34-2.22-.25-4.55-1.11-4.55-4.92 0-1.11.38-2 1.03-2.71-.1-.25-.45-1.29.1-2.64 0 0 .84-.27 2.75 1.02.79-.22 1.65-.33 2.5-.33.85 0 1.71.11 2.5.33 1.91-1.29 2.75-1.02 2.75-1.02.55 1.35.2 2.39.1 2.64.65.71 1.03 1.6 1.03 2.71 0 3.82-2.34 4.66-4.57 4.91.36.31.69.92.69 1.85V21c0 .27.16.59.67.5C19.14 20.16 22 16.42 22 12A10 10 0 0012 2z" />
               </svg>
-              Clone on GitHub
+              {isFinalized ? "View on GitHub" : "Clone on GitHub"}
             </Link>
             <Link
               href="/templates"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-purple-600 hover:bg-purple-500 rounded-lg font-semibold transition-colors"
+              className={`inline-flex items-center gap-2 px-6 py-3 ${isFinalized ? 'bg-green-600 hover:bg-green-500' : 'bg-purple-600 hover:bg-purple-500'} rounded-lg font-semibold transition-colors`}
             >
-              Explore Templates
+              {isFinalized ? "Start Building" : "Explore Templates"}
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
               </svg>
