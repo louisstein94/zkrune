@@ -574,7 +574,7 @@ upload_zkey() {
     local contributor_name="$3"
     local contribution_hash="$4"
     
-    echo -e "   Uploading ${CYAN}$circuit${NC} to server..."
+    echo -e "   Uploading ${CYAN}$circuit${NC} to server..." >&2
     
     local response=$(curl -sL -X POST "${API_URL}/api/ceremony/zkey" \
         -F "circuit=$circuit" \
@@ -583,11 +583,11 @@ upload_zkey() {
         -F "zkey=@$zkey_file")
     
     if echo "$response" | grep -qE '"success"\s*:\s*true'; then
-        echo -e "${GREEN}   ✓ $circuit uploaded${NC}"
+        echo -e "${GREEN}   ✓ $circuit uploaded${NC}" >&2
         return 0
     else
-        echo -e "${RED}   ✗ Upload failed for $circuit${NC}"
-        echo "   Response: $response"
+        echo -e "${RED}   ✗ Upload failed for $circuit${NC}" >&2
+        echo "   Response: $response" >&2
         return 1
     fi
 }
@@ -691,6 +691,42 @@ contribute_remote() {
     fi
 }
 
+# Sync database with storage
+sync_db() {
+    print_banner
+    
+    echo -e "${BLUE}🔄 Syncing database with storage...${NC}"
+    echo ""
+    
+    # First clean old records
+    echo -e "   Cleaning old DB records..."
+    local clean_response=$(curl -sL -X POST "${API_URL}/api/ceremony/sync" \
+        -H "Content-Type: application/json" \
+        -d '{"action": "clean"}')
+    
+    if echo "$clean_response" | grep -qE '"success"\s*:\s*true'; then
+        echo -e "${GREEN}   ✓ Old records cleaned${NC}"
+    else
+        echo -e "${YELLOW}   ⚠ Clean failed: $clean_response${NC}"
+    fi
+    
+    # Then sync with storage
+    echo -e "   Syncing with storage..."
+    local sync_response=$(curl -sL -X POST "${API_URL}/api/ceremony/sync" \
+        -H "Content-Type: application/json" \
+        -d '{"action": "sync"}')
+    
+    if echo "$sync_response" | grep -qE '"success"\s*:\s*true'; then
+        local count=$(echo "$sync_response" | jq -r '.contributions // 0')
+        echo -e "${GREEN}   ✓ Synced $count contributions${NC}"
+    else
+        echo -e "${RED}   ✗ Sync failed: $sync_response${NC}"
+    fi
+    
+    echo ""
+    echo -e "${GREEN}✓ Database sync complete${NC}"
+}
+
 # Upload initial zkeys to server (admin only)
 upload_init() {
     print_banner
@@ -747,6 +783,9 @@ case "${1:-}" in
     upload-init)
         upload_init
         ;;
+    sync-db)
+        sync_db
+        ;;
     verify)
         verify_contributions
         ;;
@@ -767,6 +806,7 @@ case "${1:-}" in
         echo "Admin Commands:"
         echo "  init                     Initialize ceremony locally"
         echo "  upload-init              Upload initial zkeys to server"
+        echo "  sync-db                  Sync database with storage"
         echo "  contribute <name>        Add local contribution"
         echo "  verify                   Verify all contributions"
         echo "  finalize                 Finalize and export keys"
