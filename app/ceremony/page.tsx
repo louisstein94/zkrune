@@ -62,7 +62,7 @@ export default function CeremonyPage() {
   }, []);
 
   const copyCommand = () => {
-    navigator.clipboard.writeText('./scripts/ceremony.sh contribute "Your Name"');
+    navigator.clipboard.writeText('./scripts/ceremony.sh contribute-remote "Your Name"');
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -193,10 +193,10 @@ export default function CeremonyPage() {
                 2
               </div>
               <h3 className="text-xl font-bold mb-2">Run Contribution</h3>
-              <p className="text-zk-gray mb-4">Execute the ceremony script with your name.</p>
+              <p className="text-zk-gray mb-4">Downloads zkeys, adds your entropy, uploads back.</p>
               <div className="relative">
                 <code className="block bg-black/50 p-3 rounded-lg text-sm text-purple-400 pr-12 overflow-x-auto">
-                  ./scripts/ceremony.sh contribute &quot;Your Name&quot;
+                  ./scripts/ceremony.sh contribute-remote &quot;Your Name&quot;
                 </code>
                 <button
                   onClick={copyCommand}
