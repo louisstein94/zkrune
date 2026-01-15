@@ -538,12 +538,12 @@ download_zkey() {
     local circuit="$1"
     local output_dir="$2"
     
-    echo -e "   Downloading ${CYAN}$circuit${NC} from server..."
+    echo -e "   Downloading ${CYAN}$circuit${NC} from server..." >&2
     
     local response=$(curl -sL "${API_URL}/api/ceremony/zkey?circuit=$circuit")
     
     if ! echo "$response" | grep -qE '"success"\s*:\s*true'; then
-        echo -e "${RED}   ✗ Failed to get download URL for $circuit${NC}"
+        echo -e "${RED}   ✗ Failed to get download URL for $circuit${NC}" >&2
         return 1
     fi
     
@@ -552,7 +552,7 @@ download_zkey() {
     local file_name=$(echo "$response" | jq -r '.data.fileName')
     
     if [ "$download_url" == "null" ] || [ -z "$download_url" ]; then
-        echo -e "${RED}   ✗ No zkey found for $circuit${NC}"
+        echo -e "${RED}   ✗ No zkey found for $circuit${NC}" >&2
         return 1
     fi
     
@@ -560,7 +560,7 @@ download_zkey() {
     curl -sL "$download_url" -o "$output_dir/${file_name}"
     
     if [ ! -f "$output_dir/${file_name}" ]; then
-        echo -e "${RED}   ✗ Download failed for $circuit${NC}"
+        echo -e "${RED}   ✗ Download failed for $circuit${NC}" >&2
         return 1
     fi
     
