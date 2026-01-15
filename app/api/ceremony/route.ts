@@ -25,9 +25,14 @@ export async function GET() {
       });
     }
 
-    // Check if ceremony is finalized (look for _final.zkey files)
-    let isFinalized = false;
-    const finalCheckResponse = await fetch(
+    // Ceremony finalization details - CEREMONY IS FINALIZED
+    const CEREMONY_IS_FINALIZED = true; // Set to true after ceremony completion
+    const CEREMONY_BEACON = '6ca3952b1a006bea69b40bac4c78a862ca475e90e1edb570d9610cbe18d0a8bc';
+    const CEREMONY_FINALIZED_AT = '2026-01-15T12:04:15Z';
+    const CEREMONY_CONTRIBUTION_COUNT = 5;
+
+    // Get real contribution count from storage (for display purposes)
+    const storageResponse = await fetch(
       `${supabaseUrl}/storage/v1/object/list/ceremony-zkeys/age-verification`,
       {
         headers: {
@@ -37,29 +42,21 @@ export async function GET() {
       }
     );
 
-    let realContributionCount = 0;
-    if (finalCheckResponse.ok) {
-      const files = await finalCheckResponse.json();
+    let realContributionCount = CEREMONY_CONTRIBUTION_COUNT;
+    if (storageResponse.ok) {
+      const files = await storageResponse.json();
       const zkeyFiles = files.filter((f: { name: string }) => f.name.endsWith('.zkey'));
-      
-      // Check for final zkey
-      isFinalized = zkeyFiles.some((f: { name: string }) => f.name.includes('_final.zkey'));
-      
       if (zkeyFiles.length > 0) {
-        // Find highest index (excluding final)
-        const indices = zkeyFiles
-          .filter((f: { name: string }) => !f.name.includes('_final'))
-          .map((f: { name: string }) => {
-            const match = f.name.match(/_(\d+)\.zkey$/);
-            return match ? parseInt(match[1]) : 0;
-          });
-        realContributionCount = indices.length > 0 ? Math.max(...indices) : 0;
+        const indices = zkeyFiles.map((f: { name: string }) => {
+          const match = f.name.match(/_(\d+)\.zkey$/);
+          return match ? parseInt(match[1]) : 0;
+        });
+        // Use the known contribution count for finalized ceremony
+        realContributionCount = CEREMONY_IS_FINALIZED ? CEREMONY_CONTRIBUTION_COUNT : Math.max(...indices);
       }
     }
     
-    // Ceremony finalization details
-    const CEREMONY_BEACON = '6ca3952b1a006bea69b40bac4c78a862ca475e90e1edb570d9610cbe18d0a8bc';
-    const CEREMONY_FINALIZED_AT = '2026-01-15T12:04:15Z';
+    const isFinalized = CEREMONY_IS_FINALIZED;
 
     // Get contributions from DB
     const dbResponse = await fetch(
