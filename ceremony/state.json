@@ -1,5 +1,5 @@
 {
-  "phase": "contribution",
+  "phase": "finalized",
   "startedAt": "2026-01-14T11:15:00Z",
   "contributions": [
     {
@@ -7,12 +7,6 @@
       "name": "zkRune Core",
       "hash": "df2639f626acbc64ad1fba88e96c6c12be97bc74559d07d7beb185d10ae41578",
       "timestamp": "2026-01-14T08:13:19Z"
-    },
-    {
-      "index": 2,
-      "name": "Community Contributor",
-      "hash": "60e0c92c8636d1070e6579681661f15a3bdc5bc0168d6d14d4d716f56f6be718",
-      "timestamp": "2026-01-14T20:11:26Z"
     }
   ],
   "circuits": [
@@ -31,7 +25,9 @@
     "token-swap"
   ],
   "ptauFile": "powersOfTau28_hez_final_14.ptau",
-  "currentContributionIndex": 2,
+  "currentContributionIndex": 1,
   "requiredContributions": 5,
-  "status": "ACCEPTING_CONTRIBUTIONS"
+  "status": "ACCEPTING_CONTRIBUTIONS",
+  "finalizedAt": 1768464433.522382,
+  "beacon": "e71d288584a3ee53c914aef6f66bb2ca88539f2fd7e1734ad50cc87161fda83c"
 }

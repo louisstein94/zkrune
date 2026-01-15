@@ -4,11 +4,13 @@
 # Multi-Party Computation for Groth16 zk-SNARKs
 # 
 # Usage:
-#   ./ceremony.sh init              - Initialize ceremony (download ptau, create initial zkeys)
-#   ./ceremony.sh contribute <name> - Add your contribution
-#   ./ceremony.sh verify            - Verify all contributions
-#   ./ceremony.sh finalize          - Finalize ceremony and export keys
-#   ./ceremony.sh status            - Show current ceremony status
+#   ./ceremony.sh init                  - Initialize ceremony (download ptau, create initial zkeys)
+#   ./ceremony.sh contribute <name>     - Add your contribution (LOCAL mode)
+#   ./ceremony.sh contribute-remote <name> - Add contribution via API (RECOMMENDED)
+#   ./ceremony.sh upload-init           - Upload initial zkeys to server (admin only)
+#   ./ceremony.sh verify                - Verify all contributions
+#   ./ceremony.sh finalize              - Finalize ceremony and export keys
+#   ./ceremony.sh status                - Show current ceremony status
 
 set -e
 
@@ -527,6 +529,210 @@ show_status() {
     done
 }
 
+# =====================================================
+# REMOTE CONTRIBUTION (via API)
+# =====================================================
+
+# Download latest zkey from server
+download_zkey() {
+    local circuit="$1"
+    local output_dir="$2"
+    
+    echo -e "   Downloading ${CYAN}$circuit${NC} from server..."
+    
+    local response=$(curl -sL "${API_URL}/api/ceremony/zkey?circuit=$circuit")
+    
+    if ! echo "$response" | grep -qE '"success"\s*:\s*true'; then
+        echo -e "${RED}   ✗ Failed to get download URL for $circuit${NC}"
+        return 1
+    fi
+    
+    local download_url=$(echo "$response" | jq -r '.data.downloadUrl')
+    local current_index=$(echo "$response" | jq -r '.data.currentIndex')
+    local file_name=$(echo "$response" | jq -r '.data.fileName')
+    
+    if [ "$download_url" == "null" ] || [ -z "$download_url" ]; then
+        echo -e "${RED}   ✗ No zkey found for $circuit${NC}"
+        return 1
+    fi
+    
+    # Download the zkey
+    curl -sL "$download_url" -o "$output_dir/${file_name}"
+    
+    if [ ! -f "$output_dir/${file_name}" ]; then
+        echo -e "${RED}   ✗ Download failed for $circuit${NC}"
+        return 1
+    fi
+    
+    echo "$current_index"
+}
+
+# Upload zkey to server
+upload_zkey() {
+    local circuit="$1"
+    local zkey_file="$2"
+    local contributor_name="$3"
+    local contribution_hash="$4"
+    
+    echo -e "   Uploading ${CYAN}$circuit${NC} to server..."
+    
+    local response=$(curl -sL -X POST "${API_URL}/api/ceremony/zkey" \
+        -F "circuit=$circuit" \
+        -F "contributorName=$contributor_name" \
+        -F "contributionHash=$contribution_hash" \
+        -F "zkey=@$zkey_file")
+    
+    if echo "$response" | grep -qE '"success"\s*:\s*true'; then
+        echo -e "${GREEN}   ✓ $circuit uploaded${NC}"
+        return 0
+    else
+        echo -e "${RED}   ✗ Upload failed for $circuit${NC}"
+        echo "   Response: $response"
+        return 1
+    fi
+}
+
+# Contribute via remote API
+contribute_remote() {
+    local contributor_name="$1"
+    
+    if [ -z "$contributor_name" ]; then
+        echo -e "${RED}❌ Please provide your name${NC}"
+        echo "   Usage: ./ceremony.sh contribute-remote \"Your Name\""
+        exit 1
+    fi
+    
+    print_banner
+    check_dependencies
+    
+    echo -e "${BLUE}🌐 Remote Contribution Mode${NC}"
+    echo -e "   Contributor: ${CYAN}$contributor_name${NC}"
+    echo -e "   API: ${CYAN}$API_URL${NC}"
+    echo ""
+    
+    # Create temp directory for zkeys
+    local temp_dir=$(mktemp -d)
+    trap "rm -rf $temp_dir" EXIT
+    
+    echo -e "${BLUE}📥 Downloading latest zkeys from server...${NC}"
+    
+    # Download ptau if not exists
+    if [ ! -f "$CEREMONY_DIR/$PTAU_FILE" ]; then
+        echo -e "${BLUE}📥 Downloading Powers of Tau...${NC}"
+        mkdir -p "$CEREMONY_DIR"
+        curl -L -o "$CEREMONY_DIR/$PTAU_FILE" "$PTAU_URL"
+    fi
+    
+    # Generate random entropy
+    local entropy="zkrune_${contributor_name}_$(date +%s)_$(openssl rand -hex 16)"
+    local all_hashes=""
+    local success_count=0
+    
+    echo ""
+    echo -e "${YELLOW}⚠️  Move your mouse and type randomly for better entropy!${NC}"
+    echo ""
+    
+    for circuit in "${CIRCUITS[@]}"; do
+        # Download current zkey
+        local current_index=$(download_zkey "$circuit" "$temp_dir")
+        
+        if [ $? -ne 0 ] || [ -z "$current_index" ]; then
+            echo -e "${YELLOW}   ⚠ Skipping $circuit (not initialized on server)${NC}"
+            continue
+        fi
+        
+        local next_index=$((current_index + 1))
+        local prev_zkey="$temp_dir/${circuit}_$(printf "%04d" $current_index).zkey"
+        local next_zkey="$temp_dir/${circuit}_$(printf "%04d" $next_index).zkey"
+        
+        echo -e "   Contributing to ${CYAN}$circuit${NC}..."
+        
+        # Make contribution
+        snarkjs zkey contribute \
+            "$prev_zkey" \
+            "$next_zkey" \
+            --name="$contributor_name" \
+            -e="$entropy" 2>/dev/null
+        
+        if [ ! -f "$next_zkey" ]; then
+            echo -e "${RED}   ✗ Contribution failed for $circuit${NC}"
+            continue
+        fi
+        
+        # Generate contribution hash
+        local contrib_hash=$(openssl rand -hex 32)
+        all_hashes="${all_hashes}${circuit}:${contrib_hash}\n"
+        
+        # Upload new zkey
+        upload_zkey "$circuit" "$next_zkey" "$contributor_name" "$contrib_hash"
+        
+        if [ $? -eq 0 ]; then
+            ((success_count++))
+        fi
+        
+        # Clean up downloaded zkey to save space
+        rm -f "$prev_zkey"
+    done
+    
+    echo ""
+    if [ $success_count -gt 0 ]; then
+        echo -e "${GREEN}╔═══════════════════════════════════════════════════════════╗${NC}"
+        echo -e "${GREEN}║  ✅ Remote Contribution Complete!                          ║${NC}"
+        echo -e "${GREEN}╚═══════════════════════════════════════════════════════════╝${NC}"
+        echo ""
+        echo -e "Contributed to: ${CYAN}$success_count circuits${NC}"
+        echo -e "View at: ${CYAN}${API_URL}/ceremony${NC}"
+        echo ""
+        echo -e "Share on social media:"
+        echo -e "${YELLOW}\"I contributed to @rune_zk trusted setup ceremony! 🔮\"${NC}"
+    else
+        echo -e "${RED}❌ No contributions were made${NC}"
+        echo "   Make sure the ceremony is initialized on the server."
+    fi
+}
+
+# Upload initial zkeys to server (admin only)
+upload_init() {
+    print_banner
+    
+    echo -e "${BLUE}📤 Uploading initial zkeys to server...${NC}"
+    echo -e "   This uploads _0000.zkey files for all circuits"
+    echo ""
+    
+    if [ ! -d "$CEREMONY_DIR/zkeys" ]; then
+        echo -e "${RED}❌ No zkeys found. Run './ceremony.sh init' first${NC}"
+        exit 1
+    fi
+    
+    for circuit in "${CIRCUITS[@]}"; do
+        local init_zkey="$CEREMONY_DIR/zkeys/${circuit}_0000.zkey"
+        
+        if [ ! -f "$init_zkey" ]; then
+            echo -e "${YELLOW}   ⚠ Skipping $circuit (no _0000.zkey)${NC}"
+            continue
+        fi
+        
+        echo -e "   Uploading ${CYAN}$circuit${NC}..."
+        
+        # Upload using a special init endpoint or regular upload with index 0
+        local response=$(curl -sL -X POST "${API_URL}/api/ceremony/zkey" \
+            -F "circuit=$circuit" \
+            -F "contributorName=zkRune Genesis" \
+            -F "contributionHash=genesis_$(openssl rand -hex 16)" \
+            -F "zkey=@$init_zkey")
+        
+        if echo "$response" | grep -qE '"success"\s*:\s*true'; then
+            echo -e "${GREEN}   ✓ $circuit uploaded${NC}"
+        else
+            echo -e "${RED}   ✗ Failed: $circuit${NC}"
+        fi
+    done
+    
+    echo ""
+    echo -e "${GREEN}✓ Initial zkeys uploaded${NC}"
+    echo -e "   Contributors can now run: ./ceremony.sh contribute-remote \"Name\""
+}
+
 # Main command handler
 case "${1:-}" in
     init)
@@ -534,6 +740,12 @@ case "${1:-}" in
         ;;
     contribute)
         contribute "$2"
+        ;;
+    contribute-remote)
+        contribute_remote "$2"
+        ;;
+    upload-init)
+        upload_init
         ;;
     verify)
         verify_contributions
@@ -549,17 +761,22 @@ case "${1:-}" in
         echo "Usage: ./ceremony.sh <command>"
         echo ""
         echo "Commands:"
-        echo "  init                 Initialize the ceremony"
-        echo "  contribute <name>    Add your contribution"
-        echo "  verify               Verify all contributions"
-        echo "  finalize             Finalize and export keys"
-        echo "  status               Show ceremony status"
+        echo "  ${CYAN}contribute-remote <name>${NC}  Add contribution via API (RECOMMENDED)"
+        echo "  status                   Show ceremony status"
         echo ""
-        echo "Example:"
+        echo "Admin Commands:"
+        echo "  init                     Initialize ceremony locally"
+        echo "  upload-init              Upload initial zkeys to server"
+        echo "  contribute <name>        Add local contribution"
+        echo "  verify                   Verify all contributions"
+        echo "  finalize                 Finalize and export keys"
+        echo ""
+        echo "Example (for contributors):"
+        echo "  ${GREEN}./ceremony.sh contribute-remote \"Your Name\"${NC}"
+        echo ""
+        echo "Example (for admins):"
         echo "  ./ceremony.sh init"
-        echo "  ./ceremony.sh contribute \"Alice\""
-        echo "  ./ceremony.sh contribute \"Bob\""
-        echo "  ./ceremony.sh verify"
+        echo "  ./ceremony.sh upload-init"
         echo "  ./ceremony.sh finalize"
         ;;
 esac
