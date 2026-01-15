@@ -188,6 +188,7 @@ zkrune/
 │   ├── token/              # Token utility functions
 │   └── hooks/              # React hooks
 ├── public/circuits/         # Compiled WASM & keys
+├── ceremony/                # Trusted setup ceremony files
 └── packages/
     ├── zkrune-sdk/         # NPM SDK
     └── zkrune-cli/         # CLI tool
@@ -197,12 +198,18 @@ zkrune/
 
 ## 🔐 Security Notes
 
-### Trusted Setup (Hackathon Demo)
-Proving keys generated via single-party ceremony with timestamp entropy. This is standard for hackathon projects.
+### Trusted Setup Ceremony ✅ COMPLETED
 
-**For Production:**
-- Replace with multi-party ceremony (10+ contributors)
-- Use [snarkjs ceremony](https://github.com/iden3/snarkjs#trusted-setup)
+Multi-party computation ceremony successfully completed on **January 15, 2026**.
+
+| Property | Value |
+|----------|-------|
+| Phase 1 | Hermez Network Powers of Tau (54 participants) |
+| Phase 2 | zkRune Community Ceremony (5 contributors) |
+| Finalized | 2026-01-15T12:04:03Z |
+| Beacon | drand.cloudflare.com |
+
+The ceremony is cryptographically secure as long as **at least one participant** was honest. See [`ceremony/CEREMONY_REPORT.md`](ceremony/CEREMONY_REPORT.md) for full details and verification instructions.
 
 ### Client-Side Only
 - ✅ All proofs generated in browser
@@ -230,7 +237,7 @@ Proving keys generated via single-party ceremony with timestamp entropy. This is
 - [x] Staking with APY calculator
 
 ### Developer Tools
-- [x] NPM SDK (`zkrune-sdk@1.2.0`)
+- [x] NPM SDK (`zkrune-sdk@1.2.1`)
 - [x] CLI tool (`zkrune-cli@1.0.0`)
 - [x] TypeScript support
 - [x] API reference
