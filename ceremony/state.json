@@ -1,33 +1,23 @@
 {
   "phase": "finalized",
-  "startedAt": "2026-01-14T11:15:00Z",
+  "startedAt": "2026-01-14T00:00:00Z",
+  "finalizedAt": "2026-01-15T12:04:15Z",
   "contributions": [
-    {
-      "index": 1,
-      "name": "zkRune Core",
-      "hash": "df2639f626acbc64ad1fba88e96c6c12be97bc74559d07d7beb185d10ae41578",
-      "timestamp": "2026-01-14T08:13:19Z"
-    }
+    {"index": 1, "name": "zkRune Genesis", "timestamp": "2026-01-15T09:44:33Z"},
+    {"index": 2, "name": "MikeJ", "timestamp": "2026-01-15T09:44:33Z"},
+    {"index": 3, "name": "iCrypto", "timestamp": "2026-01-15T10:41:24Z"},
+    {"index": 4, "name": "0xMert", "timestamp": "2026-01-15T11:50:26Z"},
+    {"index": 5, "name": "LizardKing", "timestamp": "2026-01-15T11:54:45Z"}
   ],
   "circuits": [
-    "age-verification",
-    "anonymous-reputation",
-    "balance-proof",
-    "credential-proof",
-    "hash-preimage",
-    "membership-proof",
-    "nft-ownership",
-    "patience-proof",
-    "private-voting",
-    "quadratic-voting",
-    "range-proof",
-    "signature-verification",
-    "token-swap"
+    "age-verification", "anonymous-reputation", "balance-proof", "credential-proof",
+    "hash-preimage", "membership-proof", "nft-ownership", "patience-proof",
+    "private-voting", "quadratic-voting", "range-proof", "signature-verification", "token-swap"
   ],
   "ptauFile": "powersOfTau28_hez_final_14.ptau",
-  "currentContributionIndex": 1,
+  "currentContributionIndex": 5,
   "requiredContributions": 5,
-  "status": "ACCEPTING_CONTRIBUTIONS",
-  "finalizedAt": 1768464433.522382,
-  "beacon": "e71d288584a3ee53c914aef6f66bb2ca88539f2fd7e1734ad50cc87161fda83c"
+  "status": "FINALIZED",
+  "beacon": "6ca3952b1a006bea69b40bac4c78a862ca475e90e1edb570d9610cbe18d0a8bc",
+  "beaconSource": "drand.cloudflare.com"
 }
