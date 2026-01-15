@@ -25,8 +25,9 @@ export async function GET() {
       });
     }
 
-    // Get real contribution count from storage (check one circuit)
-    const storageResponse = await fetch(
+    // Check if ceremony is finalized (look for _final.zkey files)
+    let isFinalized = false;
+    const finalCheckResponse = await fetch(
       `${supabaseUrl}/storage/v1/object/list/ceremony-zkeys/age-verification`,
       {
         headers: {
@@ -37,18 +38,28 @@ export async function GET() {
     );
 
     let realContributionCount = 0;
-    if (storageResponse.ok) {
-      const files = await storageResponse.json();
+    if (finalCheckResponse.ok) {
+      const files = await finalCheckResponse.json();
       const zkeyFiles = files.filter((f: { name: string }) => f.name.endsWith('.zkey'));
+      
+      // Check for final zkey
+      isFinalized = zkeyFiles.some((f: { name: string }) => f.name.includes('_final.zkey'));
+      
       if (zkeyFiles.length > 0) {
-        // Find highest index
-        const indices = zkeyFiles.map((f: { name: string }) => {
-          const match = f.name.match(/_(\d+)\.zkey$/);
-          return match ? parseInt(match[1]) : 0;
-        });
-        realContributionCount = Math.max(...indices);
+        // Find highest index (excluding final)
+        const indices = zkeyFiles
+          .filter((f: { name: string }) => !f.name.includes('_final'))
+          .map((f: { name: string }) => {
+            const match = f.name.match(/_(\d+)\.zkey$/);
+            return match ? parseInt(match[1]) : 0;
+          });
+        realContributionCount = indices.length > 0 ? Math.max(...indices) : 0;
       }
     }
+    
+    // Ceremony finalization details
+    const CEREMONY_BEACON = '6ca3952b1a006bea69b40bac4c78a862ca475e90e1edb570d9610cbe18d0a8bc';
+    const CEREMONY_FINALIZED_AT = '2026-01-15T12:04:15Z';
 
     // Get contributions from DB
     const dbResponse = await fetch(
@@ -68,11 +79,25 @@ export async function GET() {
       contributions = await dbResponse.json();
     }
 
+    // Determine phase
+    let phase: string;
+    if (isFinalized) {
+      phase = 'finalized';
+    } else if (realContributionCount >= 5) {
+      phase = 'ready_to_finalize';
+    } else {
+      phase = 'contribution';
+    }
+
     return NextResponse.json({
       success: true,
       data: {
-        phase: realContributionCount >= 5 ? 'ready_to_finalize' : 'contribution',
+        phase,
+        status: isFinalized ? 'FINALIZED' : 'ACCEPTING_CONTRIBUTIONS',
         startedAt: '2026-01-14T00:00:00Z',
+        finalizedAt: isFinalized ? CEREMONY_FINALIZED_AT : undefined,
+        beacon: isFinalized ? CEREMONY_BEACON : undefined,
+        beaconSource: isFinalized ? 'drand.cloudflare.com' : undefined,
         contributions: contributions.map(c => ({
           index: c.contribution_index,
           name: c.contributor_name,
@@ -82,7 +107,8 @@ export async function GET() {
         circuits: getCircuitList(),
         currentContributionIndex: realContributionCount,
         realZkeyCount: realContributionCount,
-        dbRecordCount: contributions.length
+        dbRecordCount: contributions.length,
+        requiredContributions: 5
       },
       source: 'storage+db'
     });
