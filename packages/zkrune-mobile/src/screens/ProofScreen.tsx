@@ -1,6 +1,6 @@
 /**
  * zkRune Proof Generation Screen
- * Generate ZK proofs with beautiful UI
+ * Generate ZK proofs with real service integration
  */
 
 import React, { useState } from 'react';
@@ -11,44 +11,191 @@ import {
   ScrollView,
   TouchableOpacity,
   TextInput,
-  ActivityIndicator,
+  Alert,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { colors, typography, spacing, layout } from '../theme';
 import { Button, Card, GradientText } from '../components/ui';
+import { useZkProof, useWallet } from '../hooks';
+import { ProofType, ProofInput } from '../services';
 
-interface ProofTemplate {
-  id: string;
-  name: string;
-  description: string;
-  icon: string;
-  color: string;
-}
-
-const templates: ProofTemplate[] = [
-  { id: 'age', name: 'Age Verification', description: 'Prove you are over 18', icon: 'person', color: colors.brand.primary },
-  { id: 'balance', name: 'Balance Proof', description: 'Prove minimum balance', icon: 'wallet', color: colors.accent.emerald },
-  { id: 'membership', name: 'Membership', description: 'Prove group membership', icon: 'people', color: colors.accent.cyan },
-  { id: 'credential', name: 'Credential', description: 'Prove credentials', icon: 'ribbon', color: colors.accent.pink },
-];
-
-export function ProofScreen({ navigation, route }: any) {
-  const [selectedTemplate, setSelectedTemplate] = useState<string | null>(null);
-  const [isGenerating, setIsGenerating] = useState(false);
-  const [inputValue, setInputValue] = useState('');
+export function ProofScreen({ navigation }: any) {
+  const { 
+    templates, 
+    isGenerating, 
+    progress, 
+    currentProof, 
+    error,
+    generateProof,
+    exportProof,
+    getShareableUrl,
+    clearCurrentProof,
+  } = useZkProof();
   
-  // Check if we can go back (came from stack, not tab)
+  const { isConnected, connection } = useWallet();
+  
+  const [selectedTemplate, setSelectedTemplate] = useState<ProofType | null>(null);
+  const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  
   const canGoBack = navigation.canGoBack();
 
-  const handleGenerate = async () => {
-    setIsGenerating(true);
-    // Simulate proof generation
-    await new Promise(resolve => setTimeout(resolve, 3000));
-    setIsGenerating(false);
-    // Navigate to result
+  const selectedTemplateData = selectedTemplate 
+    ? templates.find(t => t.type === selectedTemplate) 
+    : null;
+
+  const handleInputChange = (field: string, value: string) => {
+    setInputValues(prev => ({ ...prev, [field]: value }));
   };
+
+  const handleGenerate = async () => {
+    if (!selectedTemplate || !selectedTemplateData) return;
+
+    // Validate inputs
+    const missingFields = selectedTemplateData.fields
+      .filter(f => f.required && !inputValues[f.name])
+      .map(f => f.label);
+
+    if (missingFields.length > 0) {
+      Alert.alert('Missing Fields', `Please fill in: ${missingFields.join(', ')}`);
+      return;
+    }
+
+    // Separate private and public inputs
+    const privateInputs: Record<string, any> = {};
+    const publicInputs: Record<string, any> = {};
+
+    selectedTemplateData.fields.forEach(field => {
+      const value = inputValues[field.name];
+      if (field.type === 'secret') {
+        privateInputs[field.name] = value;
+      } else {
+        publicInputs[field.name] = value;
+      }
+    });
+
+    const input: ProofInput = {
+      type: selectedTemplate,
+      privateInputs,
+      publicInputs,
+    };
+
+    await generateProof(input);
+  };
+
+  const handleCopyProof = async () => {
+    if (!currentProof) return;
+    const json = exportProof(currentProof);
+    await Clipboard.setStringAsync(json);
+    Alert.alert('Copied', 'Proof copied to clipboard');
+  };
+
+  const handleShareProof = () => {
+    if (!currentProof) return;
+    const url = getShareableUrl(currentProof);
+    Alert.alert('Share URL', url);
+  };
+
+  const handleNewProof = () => {
+    clearCurrentProof();
+    setSelectedTemplate(null);
+    setInputValues({});
+  };
+
+  // Show result screen if proof is generated
+  if (currentProof) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <View style={styles.header}>
+          <TouchableOpacity onPress={handleNewProof} style={styles.backButton}>
+            <Ionicons name="arrow-back" size={24} color={colors.text.primary} />
+          </TouchableOpacity>
+          <GradientText style={styles.title}>Proof Ready</GradientText>
+          <View style={{ width: 40 }} />
+        </View>
+
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
+          {/* Success Card */}
+          <LinearGradient
+            colors={[colors.status.success + '20', 'transparent']}
+            style={styles.successCard}
+          >
+            <View style={styles.successIcon}>
+              <Ionicons name="checkmark-circle" size={64} color={colors.status.success} />
+            </View>
+            <Text style={styles.successTitle}>Proof Generated Successfully!</Text>
+            <Text style={styles.successSubtitle}>
+              Your zero-knowledge proof is ready to use
+            </Text>
+          </LinearGradient>
+
+          {/* Proof Details */}
+          <Card style={styles.detailsCard}>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Proof ID</Text>
+              <Text style={styles.detailValue}>{currentProof.proofId}</Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Type</Text>
+              <Text style={styles.detailValue}>
+                {templates.find(t => t.type === currentProof.type)?.name}
+              </Text>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Verified</Text>
+              <View style={[
+                styles.verifiedBadge,
+                currentProof.verified && styles.verifiedBadgeSuccess
+              ]}>
+                <Ionicons 
+                  name={currentProof.verified ? 'checkmark' : 'close'} 
+                  size={14} 
+                  color={currentProof.verified ? colors.status.success : colors.status.error} 
+                />
+                <Text style={[
+                  styles.verifiedText,
+                  currentProof.verified && styles.verifiedTextSuccess
+                ]}>
+                  {currentProof.verified ? 'Valid' : 'Invalid'}
+                </Text>
+              </View>
+            </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Protocol</Text>
+              <Text style={styles.detailValue}>{currentProof.proof.protocol}</Text>
+            </View>
+          </Card>
+
+          {/* Actions */}
+          <View style={styles.actionButtons}>
+            <Button
+              title="Copy Proof"
+              onPress={handleCopyProof}
+              variant="secondary"
+              icon={<Ionicons name="copy-outline" size={18} color={colors.brand.primary} />}
+            />
+            <Button
+              title="Share"
+              onPress={handleShareProof}
+              variant="secondary"
+              icon={<Ionicons name="share-outline" size={18} color={colors.brand.primary} />}
+            />
+          </View>
+
+          <Button
+            title="Generate Another Proof"
+            onPress={handleNewProof}
+            size="lg"
+            style={styles.newProofButton}
+          />
+
+          <View style={{ height: 40 }} />
+        </ScrollView>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -73,18 +220,33 @@ export function ProofScreen({ navigation, route }: any) {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
       >
+        {/* Wallet Connection Warning */}
+        {!isConnected && (
+          <Card style={styles.warningCard}>
+            <View style={styles.warningRow}>
+              <Ionicons name="warning" size={20} color={colors.status.warning} />
+              <Text style={styles.warningText}>
+                Connect a wallet to verify proofs on-chain
+              </Text>
+            </View>
+          </Card>
+        )}
+
         {/* Template Selection */}
         <Text style={styles.sectionTitle}>Select Proof Type</Text>
         
         <View style={styles.templates}>
           {templates.map((template) => (
             <TouchableOpacity
-              key={template.id}
+              key={template.type}
               style={[
                 styles.templateCard,
-                selectedTemplate === template.id && styles.templateCardSelected,
+                selectedTemplate === template.type && styles.templateCardSelected,
               ]}
-              onPress={() => setSelectedTemplate(template.id)}
+              onPress={() => {
+                setSelectedTemplate(template.type);
+                setInputValues({});
+              }}
             >
               <View 
                 style={[
@@ -101,7 +263,7 @@ export function ProofScreen({ navigation, route }: any) {
               <Text style={styles.templateName}>{template.name}</Text>
               <Text style={styles.templateDescription}>{template.description}</Text>
               
-              {selectedTemplate === template.id && (
+              {selectedTemplate === template.type && (
                 <View style={styles.selectedIndicator}>
                   <Ionicons name="checkmark-circle" size={24} color={colors.brand.primary} />
                 </View>
@@ -111,31 +273,29 @@ export function ProofScreen({ navigation, route }: any) {
         </View>
 
         {/* Input Section */}
-        {selectedTemplate && (
+        {selectedTemplateData && (
           <>
             <Text style={styles.sectionTitle}>Enter Details</Text>
             
             <Card style={styles.inputCard}>
-              <Text style={styles.inputLabel}>
-                {selectedTemplate === 'age' && 'Your Birth Year'}
-                {selectedTemplate === 'balance' && 'Minimum Balance (zkRUNE)'}
-                {selectedTemplate === 'membership' && 'Group ID'}
-                {selectedTemplate === 'credential' && 'Credential Hash'}
-              </Text>
-              
-              <TextInput
-                style={styles.input}
-                value={inputValue}
-                onChangeText={setInputValue}
-                placeholder={
-                  selectedTemplate === 'age' ? '1990' :
-                  selectedTemplate === 'balance' ? '1000' :
-                  selectedTemplate === 'membership' ? 'group_123' :
-                  '0x...'
-                }
-                placeholderTextColor={colors.text.tertiary}
-                keyboardType={['age', 'balance'].includes(selectedTemplate) ? 'numeric' : 'default'}
-              />
+              {selectedTemplateData.fields.map((field) => (
+                <View key={field.name} style={styles.inputGroup}>
+                  <Text style={styles.inputLabel}>
+                    {field.label}
+                    {field.required && <Text style={styles.requiredMark}> *</Text>}
+                  </Text>
+                  
+                  <TextInput
+                    style={styles.input}
+                    value={inputValues[field.name] || ''}
+                    onChangeText={(value) => handleInputChange(field.name, value)}
+                    placeholder={field.placeholder}
+                    placeholderTextColor={colors.text.tertiary}
+                    keyboardType={field.type === 'number' ? 'numeric' : 'default'}
+                    secureTextEntry={field.type === 'secret'}
+                  />
+                </View>
+              ))}
               
               <View style={styles.inputInfo}>
                 <Ionicons name="shield-checkmark" size={16} color={colors.brand.primary} />
@@ -147,15 +307,33 @@ export function ProofScreen({ navigation, route }: any) {
           </>
         )}
 
+        {/* Error Display */}
+        {error && (
+          <Card style={styles.errorCard}>
+            <Ionicons name="alert-circle" size={20} color={colors.status.error} />
+            <Text style={styles.errorText}>{error}</Text>
+          </Card>
+        )}
+
         {/* Generate Button */}
         {selectedTemplate && (
           <View style={styles.generateSection}>
+            {isGenerating && (
+              <View style={styles.progressContainer}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${progress}%` }]} />
+                </View>
+                <Text style={styles.progressText}>{progress}%</Text>
+              </View>
+            )}
+            
             <Button
               title={isGenerating ? 'Generating...' : 'Generate Proof'}
               onPress={handleGenerate}
               loading={isGenerating}
-              disabled={!inputValue}
+              disabled={isGenerating}
               size="lg"
+              icon={!isGenerating ? <Ionicons name="flash" size={20} color={colors.text.primary} /> : undefined}
             />
             
             {isGenerating && (
@@ -183,7 +361,7 @@ export function ProofScreen({ navigation, route }: any) {
           </Text>
         </Card>
 
-        <View style={{ height: 40 }} />
+        <View style={{ height: 100 }} />
       </ScrollView>
     </SafeAreaView>
   );
@@ -221,6 +399,21 @@ const styles = StyleSheet.create({
     ...typography.styles.h3,
     color: colors.text.primary,
     marginBottom: spacing[4],
+  },
+  warningCard: {
+    backgroundColor: colors.status.warning + '15',
+    borderColor: colors.status.warning + '30',
+    marginBottom: spacing[4],
+  },
+  warningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  warningText: {
+    ...typography.styles.bodySmall,
+    color: colors.status.warning,
+    flex: 1,
   },
   templates: {
     flexDirection: 'row',
@@ -266,10 +459,16 @@ const styles = StyleSheet.create({
   inputCard: {
     marginBottom: spacing[6],
   },
+  inputGroup: {
+    marginBottom: spacing[4],
+  },
   inputLabel: {
     ...typography.styles.label,
     color: colors.text.secondary,
     marginBottom: spacing[2],
+  },
+  requiredMark: {
+    color: colors.status.error,
   },
   input: {
     height: layout.input.height,
@@ -278,19 +477,56 @@ const styles = StyleSheet.create({
     paddingHorizontal: layout.input.paddingHorizontal,
     color: colors.text.primary,
     fontSize: 16,
-    marginBottom: spacing[3],
   },
   inputInfo: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
+    marginTop: spacing[2],
   },
   inputInfoText: {
     ...typography.styles.bodySmall,
     color: colors.text.secondary,
   },
+  errorCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: colors.status.error + '15',
+    borderColor: colors.status.error + '30',
+    marginBottom: spacing[4],
+  },
+  errorText: {
+    ...typography.styles.bodySmall,
+    color: colors.status.error,
+    flex: 1,
+  },
   generateSection: {
     marginBottom: spacing[6],
+  },
+  progressContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    marginBottom: spacing[4],
+  },
+  progressBar: {
+    flex: 1,
+    height: 8,
+    backgroundColor: colors.background.tertiary,
+    borderRadius: 4,
+    overflow: 'hidden',
+  },
+  progressFill: {
+    height: '100%',
+    backgroundColor: colors.brand.primary,
+    borderRadius: 4,
+  },
+  progressText: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    width: 40,
+    textAlign: 'right',
   },
   generatingInfo: {
     alignItems: 'center',
@@ -324,5 +560,74 @@ const styles = StyleSheet.create({
     ...typography.styles.bodySmall,
     color: colors.text.secondary,
     lineHeight: 20,
+  },
+  // Success screen styles
+  successCard: {
+    borderRadius: layout.radius.xl,
+    padding: spacing[8],
+    alignItems: 'center',
+    marginBottom: spacing[6],
+  },
+  successIcon: {
+    marginBottom: spacing[4],
+  },
+  successTitle: {
+    ...typography.styles.h2,
+    color: colors.text.primary,
+    marginBottom: spacing[2],
+    textAlign: 'center',
+  },
+  successSubtitle: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  detailsCard: {
+    marginBottom: spacing[4],
+  },
+  detailRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: spacing[3],
+    borderBottomWidth: 1,
+    borderBottomColor: colors.border.subtle,
+  },
+  detailLabel: {
+    ...typography.styles.body,
+    color: colors.text.secondary,
+  },
+  detailValue: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    fontWeight: '500',
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+    paddingHorizontal: spacing[2],
+    paddingVertical: spacing[1],
+    backgroundColor: colors.status.error + '20',
+    borderRadius: 6,
+  },
+  verifiedBadgeSuccess: {
+    backgroundColor: colors.status.success + '20',
+  },
+  verifiedText: {
+    ...typography.styles.bodySmall,
+    color: colors.status.error,
+    fontWeight: '500',
+  },
+  verifiedTextSuccess: {
+    color: colors.status.success,
+  },
+  actionButtons: {
+    flexDirection: 'row',
+    gap: spacing[3],
+    marginBottom: spacing[4],
+  },
+  newProofButton: {
+    marginTop: spacing[2],
   },
 });
