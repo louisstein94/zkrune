@@ -1,23 +1,23 @@
 /**
  * zkRune Mobile Color Palette
- * Elegant dark theme with purple accents
+ * Mystical metallic theme with cyan/teal zkRune accent
  */
 
 export const colors = {
-  // Base colors
+  // Base colors - Deep mystical backgrounds
   background: {
-    primary: '#0A0A0F',      // Deep space black
-    secondary: '#12121A',    // Card background
-    tertiary: '#1A1A24',     // Elevated surfaces
-    glass: 'rgba(18, 18, 26, 0.8)', // Glassmorphism
+    primary: '#06080F',      // Deep space black
+    secondary: '#0A0E18',    // Card background
+    tertiary: '#101624',     // Elevated surfaces
+    glass: 'rgba(10, 14, 24, 0.85)', // Glassmorphism
   },
 
-  // Brand colors
+  // Brand colors - zkRune Cyan/Teal theme
   brand: {
-    primary: '#8B5CF6',      // Vibrant purple
-    secondary: '#A78BFA',    // Light purple
-    tertiary: '#C4B5FD',     // Pale purple
-    gradient: ['#8B5CF6', '#EC4899'] as [string, string], // Purple to pink
+    primary: '#06B6D4',      // zkRune Cyan
+    secondary: '#0EA5E9',    // Sky blue
+    tertiary: '#22D3EE',     // Light cyan
+    gradient: ['#0EA5E9', '#14B8A6'] as [string, string], // Cyan to Teal
   },
 
   // Accent colors
@@ -27,6 +27,8 @@ export const colors = {
     cyan: '#06B6D4',
     emerald: '#10B981',
     amber: '#F59E0B',
+    teal: '#14B8A6',        // zkRune teal
+    rune: '#5EEAD4',        // Mystical rune glow
   },
 
   // Text colors

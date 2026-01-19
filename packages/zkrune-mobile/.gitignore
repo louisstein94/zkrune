@@ -28,11 +28,13 @@ yarn-error.*
 *.pem
 
 # Local env files
-.env*.local
+.env
+.env.*
+!env.example
 
 # TypeScript
 *.tsbuildinfo
 
-# Build outputs
-android/app/build/
-ios/build/
+# Build outputs - Expo prebuild generates these
+android/
+ios/
