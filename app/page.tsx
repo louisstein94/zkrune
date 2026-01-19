@@ -623,6 +623,16 @@ export default function Home() {
                 Developer
               </a>
             </div>
+            
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Legal</h4>
+              <a href="/terms" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Terms of Service
+              </a>
+              <a href="/privacy" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Privacy Policy
+              </a>
+            </div>
           </div>
 
           {/* Scroll Indicator */}
