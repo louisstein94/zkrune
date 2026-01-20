@@ -12,7 +12,7 @@ import CTAShowcase from "@/components/CTAShowcase";
 import WhatIsZkRune from "@/components/WhatIsZkRune";
 import InteractiveHeroDemo from "@/components/InteractiveHeroDemo";
 import FirstProofSection from "@/components/FirstProofSection";
-import TutorialOverlay from "@/components/TutorialOverlay";
+// import TutorialOverlay from "@/components/TutorialOverlay";
 import TrustBadges from "@/components/TrustBadges";
 import TokenStatsBanner from "@/components/TokenStatsBanner";
 
@@ -548,8 +548,7 @@ export default function Home() {
       {/* Final CTA */}
       <CTAShowcase />
 
-      {/* Tutorial Overlay */}
-      <TutorialOverlay />
+      {/* Tutorial Overlay removed for cleaner UX */}
 
       {/* Footer */}
       <footer className="relative z-10 border-t border-white/5 px-6 md:px-12 lg:px-16 py-6">
@@ -600,7 +599,18 @@ export default function Home() {
               <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Product</h4>
               <a href="/templates" className="text-zk-gray hover:text-zk-primary transition-colors">Templates</a>
               <a href="/builder" className="text-zk-gray hover:text-zk-primary transition-colors">Builder</a>
-              <a href="/install" className="text-zk-gray hover:text-zk-primary transition-colors">Install App</a>
+              <a href="/install" className="text-zk-gray hover:text-zk-primary transition-colors">Install PWA</a>
+              <a 
+                href="https://drive.google.com/uc?export=download&id=10ddRtnd_6KuC-I890FSBC8etkeoMpyGm" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="text-green-400 hover:text-green-300 transition-colors font-medium flex items-center gap-1"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+                Android APK
+              </a>
               <a href="/zcash" className="text-[#F4B728] hover:text-[#F4B728]/80 transition-colors font-medium">Zcash Integration</a>
             </div>
             
