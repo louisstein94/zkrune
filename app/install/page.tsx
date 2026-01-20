@@ -138,6 +138,43 @@ export default function InstallPage() {
             <h2 className="font-hatton text-3xl text-white">Android Installation</h2>
           </div>
 
+          {/* Native APK Download */}
+          <div className="mb-8 p-6 bg-gradient-to-br from-green-500/10 to-emerald-500/10 border-2 border-green-500/30 rounded-xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-2 bg-green-500/20 rounded-lg">
+                <svg className="w-6 h-6 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-white font-bold text-lg">Native Android App (Recommended)</h3>
+                <p className="text-green-300 text-sm">Full native experience with wallet integration</p>
+              </div>
+            </div>
+            <p className="text-zk-gray text-sm mb-4">
+              Download the native Android app for the best experience. Includes Solana wallet, 
+              real ZK proof generation with snarkjs, and works completely offline.
+            </p>
+            <a
+              href="https://drive.google.com/uc?export=download&id=10ddRtnd_6KuC-I890FSBC8etkeoMpyGm"
+              className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-all hover:scale-105"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+              </svg>
+              Download APK (v0.2.0)
+            </a>
+            <p className="text-xs text-zk-gray mt-3">
+              * You may need to enable &quot;Install from unknown sources&quot; in your Android settings.
+            </p>
+          </div>
+
+          <div className="mb-4 text-center">
+            <span className="text-zk-gray text-sm">— or install as PWA —</span>
+          </div>
+
           <div className="space-y-6">
             <div className="flex gap-4">
               <div className="flex-shrink-0 w-8 h-8 rounded-full bg-zk-secondary/20 flex items-center justify-center border border-zk-secondary/30">

@@ -6,8 +6,8 @@
 import Constants from 'expo-constants';
 import { secureStorage, STORAGE_KEYS } from './secureStorage';
 
-// Get API key from environment
-const HELIUS_API_KEY = Constants.expoConfig?.extra?.heliusApiKey || '';
+// Get API key from environment (with fallback for development)
+const HELIUS_API_KEY = Constants.expoConfig?.extra?.heliusApiKey || 'bd23840a-c606-4c7d-a300-805af20fbb84';
 
 // Build RPC endpoints dynamically
 const buildHeliusUrl = (network: 'mainnet' | 'devnet') => {

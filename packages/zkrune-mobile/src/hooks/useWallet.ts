@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { Linking } from 'react-native';
+import { Linking, AppState } from 'react-native';
 import { 
   walletService, 
   WalletProvider, 
@@ -13,9 +13,19 @@ import {
 } from '../services/walletService';
 import { solanaRpc } from '../services/solanaRpc';
 
+// Global state for wallet connection (shared across all hook instances)
+let globalConnection: WalletConnection | null = null;
+let globalListeners: Set<(conn: WalletConnection | null) => void> = new Set();
+
+function notifyListeners(conn: WalletConnection | null) {
+  globalConnection = conn;
+  globalListeners.forEach(listener => listener(conn));
+}
+
 export interface UseWalletReturn {
   // State
   connection: WalletConnection | null;
+  nativeWallet: NativeWallet | null;
   isConnected: boolean;
   isConnecting: boolean;
   balance: number;
@@ -42,19 +52,34 @@ export interface UseWalletReturn {
 }
 
 export function useWallet(): UseWalletReturn {
-  const [connection, setConnection] = useState<WalletConnection | null>(null);
+  const [connection, setConnection] = useState<WalletConnection | null>(globalConnection);
+  const [nativeWallet, setNativeWallet] = useState<NativeWallet | null>(null);
   const [isConnecting, setIsConnecting] = useState(false);
   const [balance, setBalance] = useState(0);
   const [zkRuneBalance, setZkRuneBalance] = useState(0);
   const [availableWallets, setAvailableWallets] = useState<WalletProvider[]>([]);
   const [hasNativeWallet, setHasNativeWallet] = useState(false);
 
+  // Update connection and notify all listeners
+  const updateConnection = useCallback((conn: WalletConnection | null) => {
+    setConnection(conn);
+    notifyListeners(conn);
+  }, []);
+
   // Check for existing connection on mount
   useEffect(() => {
     const checkConnection = async () => {
+      // Use global connection if available
+      if (globalConnection) {
+        setConnection(globalConnection);
+        await refreshBalances(globalConnection.publicKey);
+        return;
+      }
+      
       const existingConnection = await walletService.getConnection();
       if (existingConnection) {
         setConnection(existingConnection);
+        notifyListeners(existingConnection);
         await refreshBalances(existingConnection.publicKey);
       }
     };
@@ -67,11 +92,36 @@ export function useWallet(): UseWalletReturn {
     const checkNativeWallet = async () => {
       const hasNative = await walletService.hasNativeWallet();
       setHasNativeWallet(hasNative);
+      if (hasNative) {
+        const wallet = await walletService.getNativeWalletAsync();
+        setNativeWallet(wallet);
+      }
     };
 
     checkConnection();
     checkAvailableWallets();
     checkNativeWallet();
+
+    // Subscribe to global connection changes
+    const listener = (conn: WalletConnection | null) => {
+      setConnection(conn);
+      if (conn) {
+        refreshBalances(conn.publicKey);
+      }
+    };
+    globalListeners.add(listener);
+
+    // Check connection when app comes to foreground
+    const subscription = AppState.addEventListener('change', (state) => {
+      if (state === 'active') {
+        checkConnection();
+      }
+    });
+
+    return () => {
+      globalListeners.delete(listener);
+      subscription.remove();
+    };
   }, []);
 
   // Handle deep link callbacks
@@ -81,6 +131,7 @@ export function useWallet(): UseWalletReturn {
         const newConnection = await walletService.handleCallback(event.url);
         if (newConnection) {
           setConnection(newConnection);
+          notifyListeners(newConnection);
           await refreshBalances(newConnection.publicKey);
         }
         setIsConnecting(false);
@@ -137,8 +188,10 @@ export function useWallet(): UseWalletReturn {
   const disconnect = useCallback(async (): Promise<void> => {
     await walletService.disconnect();
     setConnection(null);
+    notifyListeners(null);
     setBalance(0);
     setZkRuneBalance(0);
+    setHasNativeWallet(false);
   }, []);
 
   // Refresh balance
@@ -160,12 +213,14 @@ export function useWallet(): UseWalletReturn {
   const createNativeWallet = useCallback(async (name?: string) => {
     const result = await walletService.createWallet(name);
     if (result) {
-      setConnection({
+      const newConnection: WalletConnection = {
         publicKey: result.wallet.publicKey,
         provider: WalletProvider.NATIVE,
         walletType: result.wallet.walletType,
         name: result.wallet.name,
-      });
+      };
+      setConnection(newConnection);
+      notifyListeners(newConnection); // Notify all hook instances
       setHasNativeWallet(true);
       await refreshBalances(result.wallet.publicKey);
     }
@@ -176,12 +231,14 @@ export function useWallet(): UseWalletReturn {
   const importFromSeedPhrase = useCallback(async (mnemonic: string, name?: string) => {
     const wallet = await walletService.importFromSeedPhrase(mnemonic, name);
     if (wallet) {
-      setConnection({
+      const newConnection: WalletConnection = {
         publicKey: wallet.publicKey,
         provider: WalletProvider.NATIVE,
         walletType: wallet.walletType,
         name: wallet.name,
-      });
+      };
+      setConnection(newConnection);
+      notifyListeners(newConnection);
       setHasNativeWallet(true);
       await refreshBalances(wallet.publicKey);
     }
@@ -192,12 +249,14 @@ export function useWallet(): UseWalletReturn {
   const importFromPrivateKey = useCallback(async (privateKey: string | number[], name?: string) => {
     const wallet = await walletService.importFromPrivateKey(privateKey, name);
     if (wallet) {
-      setConnection({
+      const newConnection: WalletConnection = {
         publicKey: wallet.publicKey,
         provider: WalletProvider.NATIVE,
         walletType: wallet.walletType,
         name: wallet.name,
-      });
+      };
+      setConnection(newConnection);
+      notifyListeners(newConnection);
       setHasNativeWallet(true);
       await refreshBalances(wallet.publicKey);
     }
@@ -225,6 +284,7 @@ export function useWallet(): UseWalletReturn {
 
   return {
     connection,
+    nativeWallet,
     isConnected: connection !== null,
     isConnecting,
     balance,

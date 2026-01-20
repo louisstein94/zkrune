@@ -6,10 +6,12 @@
 // Polyfills for Node.js crypto libraries
 import 'react-native-get-random-values';
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { StatusBar, View, Text, StyleSheet } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Navigation } from './src/navigation';
+import { ZkProofEngine, ZkProofEngineRef } from './src/components/ZkProofEngine';
+import { zkProofService } from './src/services';
 
 // Error Boundary for catching crashes
 class ErrorBoundary extends React.Component<
@@ -49,12 +51,29 @@ class ErrorBoundary extends React.Component<
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
+  const zkEngineRef = useRef<ZkProofEngineRef>(null);
 
   useEffect(() => {
     // Small delay to ensure everything is loaded
     const timer = setTimeout(() => setIsReady(true), 100);
     return () => clearTimeout(timer);
   }, []);
+
+  // Connect ZK Engine to service when ready
+  useEffect(() => {
+    if (isReady) {
+      // Small delay to ensure ZkProofEngine is mounted
+      const timer = setTimeout(() => {
+        if (zkEngineRef.current) {
+          zkProofService.setEngineRef(zkEngineRef.current);
+          console.log('[App] ZK Proof Engine connected to service');
+        } else {
+          console.warn('[App] ZK Engine ref not available');
+        }
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [isReady]);
 
   if (!isReady) {
     return (
@@ -69,6 +88,11 @@ export default function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <Navigation />
+        {/* Hidden ZK Proof Engine - runs snarkjs in WebView */}
+        <ZkProofEngine 
+          ref={zkEngineRef}
+          onReady={() => console.log('[App] ZK Engine ready')}
+        />
       </SafeAreaProvider>
     </ErrorBoundary>
   );

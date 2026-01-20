@@ -6,8 +6,8 @@
 import Constants from 'expo-constants';
 import { ZKRUNE_TOKEN, DEFAULT_MAINNET_RPC } from './solanaRpc';
 
-// Helius API key from environment
-const HELIUS_API_KEY = Constants.expoConfig?.extra?.heliusApiKey || '';
+// Helius API key from environment (with fallback for development)
+const HELIUS_API_KEY = Constants.expoConfig?.extra?.heliusApiKey || 'bd23840a-c606-4c7d-a300-805af20fbb84';
 const HELIUS_API_BASE = HELIUS_API_KEY 
   ? `https://mainnet.helius-rpc.com/?api-key=${HELIUS_API_KEY}`
   : DEFAULT_MAINNET_RPC;

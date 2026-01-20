@@ -63,8 +63,9 @@ export default {
       "expo-font"
     ],
     extra: {
-      // Environment variables - loaded from .env or defaults
-      heliusApiKey: process.env.HELIUS_API_KEY || '',
+      // Helius API key for faster RPC
+      // In production, use: process.env.HELIUS_API_KEY
+      heliusApiKey: process.env.HELIUS_API_KEY || 'bd23840a-c606-4c7d-a300-805af20fbb84',
       eas: {
         projectId: "your-project-id"
       }

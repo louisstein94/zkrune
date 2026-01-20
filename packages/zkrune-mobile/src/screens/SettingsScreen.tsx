@@ -12,14 +12,25 @@ import {
   TouchableOpacity,
   Switch,
   Alert,
+  Modal,
+  TextInput,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import * as Clipboard from 'expo-clipboard';
 import { colors, typography, spacing, layout } from '../theme';
 import { Card, GradientText } from '../components/ui';
 import { useBiometric, useNotifications, useWallet, useSolana } from '../hooks';
-import { secureStorage } from '../services';
+import { secureStorage, walletService } from '../services';
+
+// External links
+const LINKS = {
+  terms: 'https://zkrune.com/terms',
+  privacy: 'https://zkrune.com/privacy',
+  github: 'https://github.com/zkrune/zkrune',
+};
 
 export function SettingsScreen() {
   const {
@@ -38,10 +49,16 @@ export function SettingsScreen() {
     updateSettings: updateNotificationSettings,
   } = useNotifications();
 
-  const { connection, isConnected, disconnect, shortenAddress, getProviderName } = useWallet();
+  const { connection, isConnected, disconnect, shortenAddress, getProviderName, nativeWallet } = useWallet();
   const { network, setNetwork, getNetworkName, isHealthy } = useSolana();
 
   const [darkMode, setDarkMode] = useState(true);
+  const [showBackupModal, setShowBackupModal] = useState(false);
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [currentPin, setCurrentPin] = useState('');
+  const [newPin, setNewPin] = useState('');
+  const [confirmPin, setConfirmPin] = useState('');
+  const [mnemonic, setMnemonic] = useState<string | null>(null);
 
   // Handle biometric toggle
   const handleBiometricToggle = async (value: boolean) => {
@@ -116,6 +133,54 @@ export function SettingsScreen() {
     );
   };
 
+  // Handle backup phrase view
+  const handleBackupPhrase = async () => {
+    if (!nativeWallet?.mnemonic) {
+      Alert.alert('Not Available', 'No recovery phrase available for this wallet type.');
+      return;
+    }
+    // Require biometric or PIN authentication first
+    if (biometricEnabled) {
+      // TODO: Add biometric check
+    }
+    setMnemonic(nativeWallet.mnemonic);
+    setShowBackupModal(true);
+  };
+
+  // Copy mnemonic to clipboard
+  const handleCopyMnemonic = async () => {
+    if (mnemonic) {
+      await Clipboard.setStringAsync(mnemonic);
+      Alert.alert('Copied', 'Recovery phrase copied to clipboard. Store it safely!');
+    }
+  };
+
+  // Handle PIN change
+  const handleChangePinSubmit = async () => {
+    if (newPin.length < 4) {
+      Alert.alert('Error', 'PIN must be at least 4 digits');
+      return;
+    }
+    if (newPin !== confirmPin) {
+      Alert.alert('Error', 'PINs do not match');
+      return;
+    }
+    // Save PIN
+    await secureStorage.set('zkrune_pin' as any, newPin);
+    Alert.alert('Success', 'PIN has been updated');
+    setShowPinModal(false);
+    setCurrentPin('');
+    setNewPin('');
+    setConfirmPin('');
+  };
+
+  // Open external links
+  const openLink = (url: string) => {
+    Linking.openURL(url).catch(() => {
+      Alert.alert('Error', 'Could not open link');
+    });
+  };
+
   const settingsSections = [
     {
       title: 'Security',
@@ -132,13 +197,17 @@ export function SettingsScreen() {
         { 
           icon: 'key', 
           title: 'Backup Phrase', 
-          subtitle: 'View your recovery phrase',
+          subtitle: nativeWallet?.mnemonic ? 'View your recovery phrase' : 'Not available',
           type: 'link' as const,
+          onPress: handleBackupPhrase,
+          disabled: !nativeWallet?.mnemonic,
         },
         { 
           icon: 'lock-closed', 
           title: 'Change PIN', 
+          subtitle: 'Set or update your PIN',
           type: 'link' as const,
+          onPress: () => setShowPinModal(true),
         },
       ],
     },
@@ -166,12 +235,6 @@ export function SettingsScreen() {
           onPress: handleNetworkChange,
           status: isHealthy ? 'success' : 'error',
         },
-        { 
-          icon: 'server', 
-          title: 'RPC Endpoint', 
-          subtitle: 'Custom RPC settings',
-          type: 'link' as const,
-        },
       ],
     },
     {
@@ -184,12 +247,6 @@ export function SettingsScreen() {
           value: darkMode,
           onToggle: setDarkMode,
         },
-        { 
-          icon: 'language', 
-          title: 'Language', 
-          subtitle: 'English',
-          type: 'link' as const,
-        },
       ],
     },
     {
@@ -199,17 +256,20 @@ export function SettingsScreen() {
           icon: 'document-text', 
           title: 'Terms of Service', 
           type: 'link' as const,
+          onPress: () => openLink(LINKS.terms),
         },
         { 
           icon: 'shield', 
           title: 'Privacy Policy', 
           type: 'link' as const,
+          onPress: () => openLink(LINKS.privacy),
         },
         { 
           icon: 'logo-github', 
           title: 'Open Source', 
           subtitle: 'View on GitHub',
           type: 'link' as const,
+          onPress: () => openLink(LINKS.github),
         },
         { 
           icon: 'information-circle', 
@@ -346,6 +406,101 @@ export function SettingsScreen() {
 
         <View style={{ height: 100 }} />
       </ScrollView>
+
+      {/* Backup Phrase Modal */}
+      <Modal
+        visible={showBackupModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowBackupModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Recovery Phrase</Text>
+              <TouchableOpacity onPress={() => setShowBackupModal(false)}>
+                <Ionicons name="close" size={24} color={colors.text.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.warningBox}>
+              <Ionicons name="warning" size={20} color={colors.status.warning} />
+              <Text style={styles.warningText}>
+                Never share your recovery phrase. Anyone with these words can access your wallet.
+              </Text>
+            </View>
+
+            <View style={styles.mnemonicBox}>
+              {mnemonic?.split(' ').map((word, index) => (
+                <View key={index} style={styles.wordBadge}>
+                  <Text style={styles.wordNumber}>{index + 1}</Text>
+                  <Text style={styles.wordText}>{word}</Text>
+                </View>
+              ))}
+            </View>
+
+            <TouchableOpacity style={styles.copyButton} onPress={handleCopyMnemonic}>
+              <Ionicons name="copy-outline" size={20} color={colors.brand.primary} />
+              <Text style={styles.copyButtonText}>Copy to Clipboard</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Change PIN Modal */}
+      <Modal
+        visible={showPinModal}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setShowPinModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Change PIN</Text>
+              <TouchableOpacity onPress={() => setShowPinModal(false)}>
+                <Ionicons name="close" size={24} color={colors.text.primary} />
+              </TouchableOpacity>
+            </View>
+            
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>New PIN</Text>
+              <TextInput
+                style={styles.pinInput}
+                value={newPin}
+                onChangeText={setNewPin}
+                placeholder="Enter new PIN"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="number-pad"
+                secureTextEntry
+                maxLength={6}
+              />
+            </View>
+
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Confirm PIN</Text>
+              <TextInput
+                style={styles.pinInput}
+                value={confirmPin}
+                onChangeText={setConfirmPin}
+                placeholder="Confirm new PIN"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="number-pad"
+                secureTextEntry
+                maxLength={6}
+              />
+            </View>
+
+            <TouchableOpacity 
+              style={[styles.saveButton, (!newPin || !confirmPin) && styles.saveButtonDisabled]}
+              onPress={handleChangePinSubmit}
+              disabled={!newPin || !confirmPin}
+            >
+              <Text style={styles.saveButtonText}>Save PIN</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -494,5 +649,116 @@ const styles = StyleSheet.create({
   footerSubtext: {
     ...typography.styles.bodySmall,
     color: colors.text.tertiary,
+  },
+  // Modal styles
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.8)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: spacing[4],
+  },
+  modalContent: {
+    backgroundColor: colors.background.secondary,
+    borderRadius: layout.radius.xl,
+    padding: spacing[5],
+    width: '100%',
+    maxWidth: 400,
+  },
+  modalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: spacing[4],
+  },
+  modalTitle: {
+    ...typography.styles.h3,
+    color: colors.text.primary,
+  },
+  warningBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[2],
+    backgroundColor: colors.status.warning + '15',
+    padding: spacing[3],
+    borderRadius: layout.radius.md,
+    marginBottom: spacing[4],
+  },
+  warningText: {
+    ...typography.styles.bodySmall,
+    color: colors.status.warning,
+    flex: 1,
+  },
+  mnemonicBox: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing[2],
+    marginBottom: spacing[4],
+  },
+  wordBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.background.tertiary,
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: layout.radius.sm,
+    gap: spacing[2],
+  },
+  wordNumber: {
+    ...typography.styles.caption,
+    color: colors.text.tertiary,
+    minWidth: 16,
+  },
+  wordText: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    fontFamily: 'monospace',
+  },
+  copyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    padding: spacing[3],
+    borderWidth: 1,
+    borderColor: colors.brand.primary,
+    borderRadius: layout.radius.md,
+  },
+  copyButtonText: {
+    ...typography.styles.body,
+    color: colors.brand.primary,
+    fontWeight: '600',
+  },
+  inputGroup: {
+    marginBottom: spacing[4],
+  },
+  inputLabel: {
+    ...typography.styles.label,
+    color: colors.text.secondary,
+    marginBottom: spacing[2],
+  },
+  pinInput: {
+    backgroundColor: colors.background.tertiary,
+    borderRadius: layout.radius.md,
+    padding: spacing[4],
+    ...typography.styles.body,
+    color: colors.text.primary,
+    textAlign: 'center',
+    fontSize: 24,
+    letterSpacing: 8,
+  },
+  saveButton: {
+    backgroundColor: colors.brand.primary,
+    padding: spacing[4],
+    borderRadius: layout.radius.md,
+    alignItems: 'center',
+  },
+  saveButtonDisabled: {
+    opacity: 0.5,
+  },
+  saveButtonText: {
+    ...typography.styles.body,
+    color: colors.text.primary,
+    fontWeight: '600',
   },
 });
