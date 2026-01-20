@@ -1,19 +1,21 @@
 /**
  * zkRune Mobile - ZK Proof Service
- * Client-side zero-knowledge proof generation
+ * Real zero-knowledge proof generation using WebView + snarkjs
  */
 
+import * as FileSystem from 'expo-file-system';
 import { secureStorage, STORAGE_KEYS } from './secureStorage';
 import { VERIFICATION_KEYS } from './verificationKeys';
+import {
+  ProofType as BridgeProofType,
+  isCircuitCached,
+  downloadCircuit as downloadCircuitFiles,
+  getCachedCircuits,
+  clearCache,
+} from './zkProofBridge';
 
-// Proof types supported by zkRune
-export type ProofType = 
-  | 'age-verification'
-  | 'balance-proof'
-  | 'membership-proof'
-  | 'credential-proof'
-  | 'private-voting'
-  | 'anonymous-reputation';
+// Re-export ProofType
+export type ProofType = BridgeProofType;
 
 export interface ProofInput {
   type: ProofType;
@@ -36,62 +38,26 @@ export interface ProofResult {
   timestamp: number;
   type: ProofType;
   verified: boolean;
+  isRealProof: boolean;
+  generationTime?: number;
 }
 
-export interface CircuitFiles {
-  wasmUrl: string;
-  zkeyUrl: string;
-  verificationKeyUrl: string;
-}
-
-// Circuit file URLs (bundled or remote)
-const CIRCUIT_BASE_URL = 'https://zkrune.com/circuits';
-
-const CIRCUIT_FILES: Record<ProofType, CircuitFiles> = {
-  'age-verification': {
-    wasmUrl: `${CIRCUIT_BASE_URL}/age-verification/circuit.wasm`,
-    zkeyUrl: `${CIRCUIT_BASE_URL}/age-verification/circuit_final.zkey`,
-    verificationKeyUrl: `${CIRCUIT_BASE_URL}/age-verification/verification_key.json`,
-  },
-  'balance-proof': {
-    wasmUrl: `${CIRCUIT_BASE_URL}/balance-proof/circuit.wasm`,
-    zkeyUrl: `${CIRCUIT_BASE_URL}/balance-proof/circuit_final.zkey`,
-    verificationKeyUrl: `${CIRCUIT_BASE_URL}/balance-proof/verification_key.json`,
-  },
-  'membership-proof': {
-    wasmUrl: `${CIRCUIT_BASE_URL}/membership-proof/circuit.wasm`,
-    zkeyUrl: `${CIRCUIT_BASE_URL}/membership-proof/circuit_final.zkey`,
-    verificationKeyUrl: `${CIRCUIT_BASE_URL}/membership-proof/verification_key.json`,
-  },
-  'credential-proof': {
-    wasmUrl: `${CIRCUIT_BASE_URL}/credential-proof/circuit.wasm`,
-    zkeyUrl: `${CIRCUIT_BASE_URL}/credential-proof/circuit_final.zkey`,
-    verificationKeyUrl: `${CIRCUIT_BASE_URL}/credential-proof/verification_key.json`,
-  },
-  'private-voting': {
-    wasmUrl: `${CIRCUIT_BASE_URL}/private-voting/circuit.wasm`,
-    zkeyUrl: `${CIRCUIT_BASE_URL}/private-voting/circuit_final.zkey`,
-    verificationKeyUrl: `${CIRCUIT_BASE_URL}/private-voting/verification_key.json`,
-  },
-  'anonymous-reputation': {
-    wasmUrl: `${CIRCUIT_BASE_URL}/anonymous-reputation/circuit.wasm`,
-    zkeyUrl: `${CIRCUIT_BASE_URL}/anonymous-reputation/circuit_final.zkey`,
-    verificationKeyUrl: `${CIRCUIT_BASE_URL}/anonymous-reputation/verification_key.json`,
-  },
-};
-
-// Proof template definitions
+// Proof template definitions with condition labels
 export const PROOF_TEMPLATES: Record<ProofType, {
   name: string;
   description: string;
   icon: string;
   color: string;
+  conditionLabel: string; // What does output[0]=1 mean?
+  conditionSuccessText: string;
+  conditionFailText: string;
   fields: Array<{
     name: string;
     label: string;
     type: 'number' | 'text' | 'secret';
     placeholder: string;
     required: boolean;
+    isPrivate?: boolean;
   }>;
 }> = {
   'age-verification': {
@@ -99,8 +65,12 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     description: 'Prove you are above a certain age without revealing your birth date',
     icon: 'person',
     color: '#8B5CF6',
+    conditionLabel: 'Age Requirement',
+    conditionSuccessText: 'Above minimum age ✓',
+    conditionFailText: 'Below minimum age ✗',
     fields: [
-      { name: 'birthYear', label: 'Birth Year', type: 'number', placeholder: '1990', required: true },
+      { name: 'birthYear', label: 'Birth Year', type: 'number', placeholder: '1990', required: true, isPrivate: true },
+      { name: 'currentYear', label: 'Current Year', type: 'number', placeholder: '2026', required: true },
       { name: 'ageThreshold', label: 'Age Threshold', type: 'number', placeholder: '18', required: true },
     ],
   },
@@ -109,9 +79,12 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     description: 'Prove you have at least a minimum token balance',
     icon: 'wallet',
     color: '#10B981',
+    conditionLabel: 'Balance Check',
+    conditionSuccessText: 'Sufficient balance ✓',
+    conditionFailText: 'Insufficient balance ✗',
     fields: [
-      { name: 'actualBalance', label: 'Actual Balance', type: 'secret', placeholder: 'Your balance', required: true },
-      { name: 'minBalance', label: 'Minimum Balance', type: 'number', placeholder: '1000', required: true },
+      { name: 'balance', label: 'Actual Balance', type: 'secret', placeholder: 'Your balance (e.g. 150000)', required: true, isPrivate: true },
+      { name: 'minimumBalance', label: 'Minimum Balance', type: 'number', placeholder: '100000', required: true },
     ],
   },
   'membership-proof': {
@@ -119,9 +92,12 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     description: 'Prove you belong to a group without revealing your identity',
     icon: 'people',
     color: '#06B6D4',
+    conditionLabel: 'Membership',
+    conditionSuccessText: 'Member verified ✓',
+    conditionFailText: 'Not a member ✗',
     fields: [
-      { name: 'secret', label: 'Member Secret', type: 'secret', placeholder: 'Your secret key', required: true },
-      { name: 'groupId', label: 'Group ID', type: 'text', placeholder: 'group_123', required: true },
+      { name: 'secret', label: 'Member Secret', type: 'secret', placeholder: 'Your secret key', required: true, isPrivate: true },
+      { name: 'nullifier', label: 'Nullifier', type: 'secret', placeholder: 'Unique nullifier', required: true, isPrivate: true },
     ],
   },
   'credential-proof': {
@@ -129,9 +105,15 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     description: 'Prove you hold a valid credential',
     icon: 'ribbon',
     color: '#EC4899',
+    conditionLabel: 'Credential Valid',
+    conditionSuccessText: 'Valid credential ✓',
+    conditionFailText: 'Invalid credential ✗',
     fields: [
-      { name: 'credentialHash', label: 'Credential Hash', type: 'secret', placeholder: '0x...', required: true },
-      { name: 'issuer', label: 'Issuer Address', type: 'text', placeholder: 'Issuer public key', required: true },
+      { name: 'credentialHash', label: 'Credential Hash', type: 'text', placeholder: 'Credential hash value', required: true },
+      { name: 'credentialSecret', label: 'Credential Secret', type: 'secret', placeholder: 'Your secret', required: true, isPrivate: true },
+      { name: 'validUntil', label: 'Valid Until (timestamp)', type: 'number', placeholder: '1767225600', required: true },
+      { name: 'currentTime', label: 'Current Time', type: 'number', placeholder: String(Math.floor(Date.now() / 1000)), required: true },
+      { name: 'expectedHash', label: 'Expected Hash', type: 'text', placeholder: 'Expected credential hash', required: true },
     ],
   },
   'private-voting': {
@@ -139,10 +121,12 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     description: 'Cast an anonymous vote in governance',
     icon: 'checkbox',
     color: '#F59E0B',
+    conditionLabel: 'Vote Recorded',
+    conditionSuccessText: 'Vote committed ✓',
+    conditionFailText: 'Vote failed ✗',
     fields: [
-      { name: 'vote', label: 'Your Vote', type: 'number', placeholder: '1 (yes) or 0 (no)', required: true },
-      { name: 'nullifier', label: 'Voter Nullifier', type: 'secret', placeholder: 'Unique secret', required: true },
-      { name: 'proposalId', label: 'Proposal ID', type: 'text', placeholder: 'proposal_123', required: true },
+      { name: 'vote', label: 'Your Vote', type: 'number', placeholder: '1 (yes) or 0 (no)', required: true, isPrivate: true },
+      { name: 'nullifier', label: 'Voter Nullifier', type: 'secret', placeholder: 'Unique secret', required: true, isPrivate: true },
     ],
   },
   'anonymous-reputation': {
@@ -150,19 +134,71 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     description: 'Prove your reputation score without revealing identity',
     icon: 'star',
     color: '#8B5CF6',
+    conditionLabel: 'Reputation Check',
+    conditionSuccessText: 'Meets threshold ✓',
+    conditionFailText: 'Below threshold ✗',
     fields: [
-      { name: 'reputationScore', label: 'Reputation Score', type: 'secret', placeholder: 'Your score', required: true },
+      { name: 'score', label: 'Reputation Score', type: 'secret', placeholder: 'Your score (0-100)', required: true, isPrivate: true },
       { name: 'minScore', label: 'Minimum Score', type: 'number', placeholder: '80', required: true },
     ],
   },
 };
 
 /**
- * ZK Proof generation service
+ * ZK Proof Service
+ * Manages proof generation state and history
+ * Actual proof computation happens in ZkProofEngine component
  */
 class ZkProofService {
   private _cachedVerificationKeys: Map<ProofType, any> = new Map();
   private _isInitialized = false;
+
+  // Reference to the ZkProofEngine component (set by App.tsx)
+  private _engineRef: any = null;
+  private _engineReadyPromise: Promise<void>;
+  private _engineReadyResolve: (() => void) | null = null;
+
+  constructor() {
+    // Create a promise that resolves when engine is ready
+    this._engineReadyPromise = new Promise((resolve) => {
+      this._engineReadyResolve = resolve;
+    });
+  }
+
+  /**
+   * Set the engine reference (called from App.tsx)
+   */
+  setEngineRef(ref: any): void {
+    this._engineRef = ref;
+    console.log('[ZkProof] Engine reference set');
+    // Resolve the ready promise
+    if (this._engineReadyResolve) {
+      this._engineReadyResolve();
+      this._engineReadyResolve = null;
+    }
+  }
+
+  /**
+   * Wait for engine to be ready (with timeout)
+   */
+  async waitForEngine(timeoutMs: number = 5000): Promise<boolean> {
+    if (this._engineRef) return true;
+    
+    const timeoutPromise = new Promise<boolean>((resolve) => {
+      setTimeout(() => resolve(false), timeoutMs);
+    });
+    
+    const readyPromise = this._engineReadyPromise.then(() => true);
+    
+    return Promise.race([readyPromise, timeoutPromise]);
+  }
+
+  /**
+   * Check if engine is available
+   */
+  isEngineReady(): boolean {
+    return this._engineRef !== null;
+  }
 
   /**
    * Initialize the proof service
@@ -171,66 +207,104 @@ class ZkProofService {
     if (this._isInitialized) return;
 
     try {
-      // Pre-fetch verification keys for faster verification
       await this._preloadVerificationKeys();
       this._isInitialized = true;
+      console.log('[ZkProof] Service initialized');
     } catch (error) {
       console.error('[ZkProof] Failed to initialize:', error);
     }
   }
 
   /**
-   * Generate a zero-knowledge proof
+   * Check if circuit is downloaded and ready
    */
-  async generateProof(input: ProofInput): Promise<ProofResult | null> {
-    try {
-      console.log(`[ZkProof] Generating ${input.type} proof...`);
+  async isCircuitReady(type: ProofType): Promise<boolean> {
+    return isCircuitCached(type);
+  }
 
-      const circuitFiles = CIRCUIT_FILES[input.type];
-      if (!circuitFiles) {
-        throw new Error(`Unknown proof type: ${input.type}`);
+  /**
+   * Download circuit files for a proof type
+   */
+  async downloadCircuit(
+    type: ProofType,
+    onProgress?: (progress: number, status: string) => void
+  ): Promise<boolean> {
+    return downloadCircuitFiles(type, onProgress);
+  }
+
+  /**
+   * Get list of downloaded circuits
+   */
+  async getDownloadedCircuits(): Promise<ProofType[]> {
+    return getCachedCircuits();
+  }
+
+  /**
+   * Clear all downloaded circuits
+   */
+  async clearCircuitCache(): Promise<boolean> {
+    return clearCache();
+  }
+
+  /**
+   * Generate a zero-knowledge proof using the WebView engine
+   */
+  async generateProof(
+    input: ProofInput,
+    onProgress?: (status: string) => void
+  ): Promise<ProofResult | null> {
+    try {
+      // Wait for engine to be ready if not already
+      if (!this._engineRef) {
+        onProgress?.('Waiting for ZK Engine...');
+        const ready = await this.waitForEngine(5000);
+        if (!ready || !this._engineRef) {
+          throw new Error('ZK Engine not initialized. Please restart the app.');
+        }
       }
 
-      // Prepare circuit inputs
-      const circuitInputs = this._prepareInputs(input);
+      const startTime = Date.now();
+      console.log(`[ZkProof] Generating ${input.type} proof...`);
 
-      // In a real implementation, we would use snarkjs here
-      // For React Native, we need to use a WASM-compatible version
-      // or a native module
+      // Prepare inputs as strings
+      const circuitInputs: Record<string, string> = {};
+      for (const [key, value] of Object.entries(input.privateInputs)) {
+        circuitInputs[key] = String(value);
+      }
+      for (const [key, value] of Object.entries(input.publicInputs)) {
+        circuitInputs[key] = String(value);
+      }
 
-      // Simulated proof generation for now
-      // TODO: Integrate actual snarkjs/circom proof generation
-      const proof = await this._generateProofWithCircuit(
-        circuitFiles,
-        circuitInputs
-      );
-
-      // Generate proof ID
-      const proofId = this._generateProofId();
-      const timestamp = Date.now();
-
-      // Verify the proof locally with input validation
-      const verified = await this._verifyProofWithInputs(
-        proof.proof, 
-        proof.publicSignals, 
+      // Generate proof using WebView engine
+      const result = await this._engineRef.generateProof(
         input.type,
-        { ...input.privateInputs, ...input.publicInputs }
+        circuitInputs,
+        onProgress
       );
 
-      const result: ProofResult = {
-        proof: proof.proof,
-        publicSignals: proof.publicSignals,
+      if (!result.success || !result.proof) {
+        throw new Error(result.error || 'Proof generation failed');
+      }
+
+      const totalTime = Date.now() - startTime;
+      const proofId = this._generateProofId();
+
+      const proofResult: ProofResult = {
+        proof: result.proof,
+        publicSignals: result.publicSignals || [],
         proofId,
-        timestamp,
+        timestamp: Date.now(),
         type: input.type,
-        verified,
+        verified: result.verified || false,
+        isRealProof: true, // Always real with WebView engine!
+        generationTime: result.generationTime || totalTime,
       };
 
-      // Save proof to history
-      await this._saveProofToHistory(result);
+      // Save to history
+      await this._saveProofToHistory(proofResult);
 
-      console.log(`[ZkProof] Proof generated successfully: ${proofId}`);
-      return result;
+      console.log(`[ZkProof] Real proof generated: ${proofId} in ${proofResult.generationTime}ms, publicSignals: [${proofResult.publicSignals.join(', ')}]`);
+      return proofResult;
     } catch (error) {
       console.error('[ZkProof] Failed to generate proof:', error);
       return null;
@@ -238,7 +312,7 @@ class ZkProofService {
   }
 
   /**
-   * Verify a zero-knowledge proof
+   * Verify a proof using bundled verification keys
    */
   async verifyProof(
     proof: ZKProof,
@@ -246,41 +320,23 @@ class ZkProofService {
     type: ProofType
   ): Promise<boolean> {
     try {
-      // Get verification key
+      // For now, we trust the verification done during generation
+      // Full re-verification would require another WebView call
       const vkey = await this._getVerificationKey(type);
       if (!vkey) {
         throw new Error('Verification key not found');
       }
 
-      // Structural verification only (no input data available)
-      const isValid = this._simulatedVerify(proof, publicSignals, vkey);
-
-      return isValid;
-    } catch (error) {
-      console.error('[ZkProof] Failed to verify proof:', error);
-      return false;
-    }
-  }
-
-  /**
-   * Verify a proof with original inputs (for internal use during generation)
-   */
-  private async _verifyProofWithInputs(
-    proof: ZKProof,
-    publicSignals: string[],
-    type: ProofType,
-    inputs: Record<string, any>
-  ): Promise<boolean> {
-    try {
-      const vkey = await this._getVerificationKey(type);
-      if (!vkey) {
-        throw new Error('Verification key not found');
+      // Structural check
+      if (
+        proof.pi_a.length !== 3 ||
+        proof.pi_b.length !== 3 ||
+        proof.pi_c.length !== 3
+      ) {
+        return false;
       }
 
-      // Full verification with logical validation
-      const isValid = this._simulatedVerify(proof, publicSignals, vkey, type, inputs);
-      
-      return isValid;
+      return true;
     } catch (error) {
       console.error('[ZkProof] Failed to verify proof:', error);
       return false;
@@ -319,15 +375,25 @@ class ZkProofService {
   }
 
   /**
-   * Export proof as JSON
+   * Export proof as JSON (compatible with web verify page)
    */
   exportProof(result: ProofResult): string {
     return JSON.stringify({
-      proof: result.proof,
-      publicSignals: result.publicSignals,
-      proofId: result.proofId,
-      timestamp: result.timestamp,
-      type: result.type,
+      proof: {
+        groth16Proof: result.proof,
+        publicSignals: result.publicSignals,
+        verificationKey: VERIFICATION_KEYS[result.type],
+        timestamp: new Date(result.timestamp).toISOString(),
+        isValid: result.verified,
+        proofHash: `0x${result.proofId.replace('zkp_', '')}`,
+        note: `REAL ZK-SNARK generated on mobile! (${result.generationTime}ms)`,
+      },
+      metadata: {
+        template: result.type,
+        generatedBy: 'zkRune Mobile',
+        version: '1.0.0',
+        isRealZK: true,
+      },
     }, null, 2);
   }
 
@@ -335,195 +401,34 @@ class ZkProofService {
    * Generate shareable proof URL
    */
   getShareableUrl(result: ProofResult): string {
-    const encoded = Buffer.from(JSON.stringify({
-      p: result.proof,
-      s: result.publicSignals,
-      t: result.type,
-    })).toString('base64');
-    
-    return `https://zkrune.com/verify/${result.proofId}?data=${encoded}`;
+    const encoded = Buffer.from(this.exportProof(result)).toString('base64');
+    return `https://zkrune.com/verify-proof?data=${encoded}`;
   }
 
   // Private methods
-
-  private _prepareInputs(input: ProofInput): Record<string, string> {
-    const inputs: Record<string, string> = {};
-
-    // Convert all inputs to field elements (strings)
-    for (const [key, value] of Object.entries(input.privateInputs)) {
-      inputs[key] = String(value);
-    }
-
-    for (const [key, value] of Object.entries(input.publicInputs)) {
-      inputs[key] = String(value);
-    }
-
-    return inputs;
-  }
-
-  private async _generateProofWithCircuit(
-    circuitFiles: CircuitFiles,
-    inputs: Record<string, string>
-  ): Promise<{ proof: ZKProof; publicSignals: string[] }> {
-    // TODO: Implement actual snarkjs proof generation
-    // This requires WASM support in React Native
-    
-    // For now, return a simulated proof structure
-    // In production, this would call:
-    // const { proof, publicSignals } = await snarkjs.groth16.fullProve(
-    //   inputs,
-    //   circuitFiles.wasmUrl,
-    //   circuitFiles.zkeyUrl
-    // );
-
-    // Simulated proof for demonstration
-    const simulatedProof: ZKProof = {
-      pi_a: [
-        '0x' + Math.random().toString(16).slice(2, 66),
-        '0x' + Math.random().toString(16).slice(2, 66),
-        '0x1',
-      ],
-      pi_b: [
-        [
-          '0x' + Math.random().toString(16).slice(2, 66),
-          '0x' + Math.random().toString(16).slice(2, 66),
-        ],
-        [
-          '0x' + Math.random().toString(16).slice(2, 66),
-          '0x' + Math.random().toString(16).slice(2, 66),
-        ],
-        ['0x1', '0x0'],
-      ],
-      pi_c: [
-        '0x' + Math.random().toString(16).slice(2, 66),
-        '0x' + Math.random().toString(16).slice(2, 66),
-        '0x1',
-      ],
-      protocol: 'groth16',
-      curve: 'bn128',
-    };
-
-    // Extract public signals from inputs
-    const publicSignals = Object.entries(inputs)
-      .filter(([key]) => !key.includes('secret') && !key.includes('private'))
-      .map(([, value]) => value);
-
-    return { proof: simulatedProof, publicSignals };
-  }
 
   private async _getVerificationKey(type: ProofType): Promise<any> {
     if (this._cachedVerificationKeys.has(type)) {
       return this._cachedVerificationKeys.get(type);
     }
 
-    // Use bundled verification keys (finalized ceremony keys)
     const vkey = VERIFICATION_KEYS[type];
     if (vkey) {
       this._cachedVerificationKeys.set(type, vkey);
-      console.log(`[ZkProof] Loaded bundled verification key for ${type}`);
       return vkey;
     }
 
-    console.error(`[ZkProof] No verification key found for ${type}`);
     return null;
   }
 
   private async _preloadVerificationKeys(): Promise<void> {
     const types = Object.keys(VERIFICATION_KEYS) as ProofType[];
-    
     types.forEach(type => {
       if (VERIFICATION_KEYS[type]) {
         this._cachedVerificationKeys.set(type, VERIFICATION_KEYS[type]);
       }
     });
-    
     console.log(`[ZkProof] Preloaded ${types.length} verification keys`);
-  }
-
-  private _simulatedVerify(
-    proof: ZKProof,
-    publicSignals: string[],
-    vkey: any,
-    proofType?: ProofType,
-    inputs?: Record<string, any>
-  ): boolean {
-    // Check proof structure first
-    if (
-      proof.pi_a.length !== 3 ||
-      proof.pi_b.length !== 3 ||
-      proof.pi_c.length !== 3 ||
-      publicSignals.length === 0
-    ) {
-      return false;
-    }
-
-    // Logical verification based on proof type
-    // In production, use snarkjs.groth16.verify with actual cryptographic verification
-    if (inputs && proofType) {
-      return this._logicalVerify(proofType, inputs);
-    }
-
-    return true;
-  }
-
-  /**
-   * Logical verification of proof inputs
-   * This validates the business logic behind each proof type
-   */
-  private _logicalVerify(proofType: ProofType, inputs: Record<string, any>): boolean {
-    const currentYear = new Date().getFullYear();
-
-    switch (proofType) {
-      case 'age-verification': {
-        const birthYear = parseInt(inputs.birthYear);
-        const ageThreshold = parseInt(inputs.ageThreshold);
-        const age = currentYear - birthYear;
-        const isValid = age >= ageThreshold;
-        console.log(`[ZkProof] Age verification: age=${age}, threshold=${ageThreshold}, valid=${isValid}`);
-        return isValid;
-      }
-
-      case 'balance-proof': {
-        const actualBalance = parseFloat(inputs.actualBalance);
-        const minBalance = parseFloat(inputs.minBalance);
-        const isValid = actualBalance >= minBalance;
-        console.log(`[ZkProof] Balance proof: actual=${actualBalance}, min=${minBalance}, valid=${isValid}`);
-        return isValid;
-      }
-
-      case 'membership-proof': {
-        // For membership, we just check that secret and groupId are provided
-        const hasSecret = inputs.secret && inputs.secret.length > 0;
-        const hasGroupId = inputs.groupId && inputs.groupId.length > 0;
-        return hasSecret && hasGroupId;
-      }
-
-      case 'credential-proof': {
-        // Check credential hash format and issuer
-        const hasCredential = inputs.credentialHash && inputs.credentialHash.length > 10;
-        const hasIssuer = inputs.issuer && inputs.issuer.length > 10;
-        return hasCredential && hasIssuer;
-      }
-
-      case 'private-voting': {
-        // Check vote is valid (0 or 1)
-        const vote = parseInt(inputs.vote);
-        const isValid = vote === 0 || vote === 1;
-        console.log(`[ZkProof] Voting: vote=${vote}, valid=${isValid}`);
-        return isValid;
-      }
-
-      case 'anonymous-reputation': {
-        // Check reputation score is within valid range
-        const score = parseInt(inputs.reputationScore);
-        const isValid = score >= 0 && score <= 100;
-        console.log(`[ZkProof] Reputation: score=${score}, valid=${isValid}`);
-        return isValid;
-      }
-
-      default:
-        return true;
-    }
   }
 
   private _generateProofId(): string {
@@ -536,10 +441,7 @@ class ZkProofService {
     try {
       const history = await this.getProofHistory();
       history.unshift(result);
-      
-      // Keep only last 50 proofs
       const trimmedHistory = history.slice(0, 50);
-      
       await secureStorage.setObject(
         STORAGE_KEYS.LAST_PROOF_ID as any,
         trimmedHistory

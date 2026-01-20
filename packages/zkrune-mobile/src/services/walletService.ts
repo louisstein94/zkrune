@@ -107,6 +107,8 @@ class WalletService {
   private _nativeWallet: NativeWallet | null = null;
   private _pendingAction: string | null = null;
   private _allWallets: WalletConnection[] = [];
+  private _loadPromise: Promise<NativeWallet | null> | null = null;
+  private _isSaving: boolean = false;
 
   // =====================================================
   // NATIVE WALLET CREATION & IMPORT
@@ -633,6 +635,23 @@ class WalletService {
   }
 
   /**
+   * Get native wallet (sync, returns cached value)
+   */
+  getNativeWallet(): NativeWallet | null {
+    return this._nativeWallet;
+  }
+
+  /**
+   * Get native wallet async (loads from storage if needed)
+   */
+  async getNativeWalletAsync(): Promise<NativeWallet | null> {
+    if (this._nativeWallet) {
+      return this._nativeWallet;
+    }
+    return this._loadNativeWallet();
+  }
+
+  /**
    * Check if wallet is connected
    */
   async isConnected(): Promise<boolean> {
@@ -753,54 +772,89 @@ class WalletService {
   }
 
   private async _saveNativeWallet(wallet: NativeWallet): Promise<void> {
-    // Save wallet in separate keys to avoid SecureStore 2048 byte limit
-    // Save secret key as base64
-    const secretKeyBase64 = Buffer.from(wallet.secretKey).toString('base64');
+    // Set saving flag to prevent race conditions with load
+    this._isSaving = true;
     
-    const walletMeta = {
-      publicKey: wallet.publicKey,
-      name: wallet.name,
-      walletType: wallet.walletType,
-      createdAt: wallet.createdAt,
-      hasMnemonic: !!wallet.mnemonic,
-    };
-    
-    console.log('[Wallet] Saving wallet...', wallet.publicKey.slice(0, 8));
-    
-    // Save metadata
-    const metaSuccess = await secureStorage.set(
-      STORAGE_KEYS.WALLET_SECRET,
-      JSON.stringify(walletMeta)
-    );
-    
-    // Save secret key separately
-    const keySuccess = await secureStorage.set(
-      'zkrune_wallet_sk' as any,
-      secretKeyBase64
-    );
-    
-    // Save mnemonic separately if exists
-    if (wallet.mnemonic) {
-      await secureStorage.set(
-        'zkrune_wallet_mnemonic' as any,
-        wallet.mnemonic
+    try {
+      // Save wallet in separate keys to avoid SecureStore 2048 byte limit
+      // Save secret key as base64
+      const secretKeyBase64 = Buffer.from(wallet.secretKey).toString('base64');
+      
+      const walletMeta = {
+        publicKey: wallet.publicKey,
+        name: wallet.name,
+        walletType: wallet.walletType,
+        createdAt: wallet.createdAt,
+        hasMnemonic: !!wallet.mnemonic,
+      };
+      
+      console.log('[Wallet] Saving wallet...', wallet.publicKey.slice(0, 8));
+      
+      // Save metadata
+      const metaSuccess = await secureStorage.set(
+        STORAGE_KEYS.WALLET_SECRET,
+        JSON.stringify(walletMeta)
       );
-    }
-    
-    console.log('[Wallet] Wallet saved:', metaSuccess && keySuccess ? 'SUCCESS' : 'FAILED');
-    
-    await secureStorage.set(STORAGE_KEYS.WALLET_PUBLIC_KEY, wallet.publicKey);
+      
+      // Save secret key separately
+      const keySuccess = await secureStorage.set(
+        'zkrune_wallet_sk' as any,
+        secretKeyBase64
+      );
+      
+      // Save mnemonic separately if exists
+      if (wallet.mnemonic) {
+        await secureStorage.set(
+          'zkrune_wallet_mnemonic' as any,
+          wallet.mnemonic
+        );
+      }
+      
+      console.log('[Wallet] Wallet saved:', metaSuccess && keySuccess ? 'SUCCESS' : 'FAILED');
+      
+      await secureStorage.set(STORAGE_KEYS.WALLET_PUBLIC_KEY, wallet.publicKey);
 
-    // Also save as connection
-    await this._saveConnection({
-      publicKey: wallet.publicKey,
-      provider: WalletProvider.NATIVE,
-      walletType: wallet.walletType,
-      name: wallet.name,
-    });
+      // Also save as connection
+      await this._saveConnection({
+        publicKey: wallet.publicKey,
+        provider: WalletProvider.NATIVE,
+        walletType: wallet.walletType,
+        name: wallet.name,
+      });
+    } finally {
+      this._isSaving = false;
+    }
   }
 
   private async _loadNativeWallet(): Promise<NativeWallet | null> {
+    // If already in memory, return cached version
+    if (this._nativeWallet) {
+      return this._nativeWallet;
+    }
+    
+    // If save in progress, wait a bit and return in-memory version
+    if (this._isSaving) {
+      console.log('[Wallet] Save in progress, waiting...');
+      await new Promise(resolve => setTimeout(resolve, 100));
+      return this._nativeWallet;
+    }
+    
+    // If another load is already in progress, wait for it
+    if (this._loadPromise) {
+      return this._loadPromise;
+    }
+    
+    // Start new load operation
+    this._loadPromise = this._doLoadNativeWallet();
+    try {
+      const result = await this._loadPromise;
+      return result;
+    } finally {
+      this._loadPromise = null;
+    }
+  }
+  
+  private async _doLoadNativeWallet(): Promise<NativeWallet | null> {
     try {
       // Load wallet metadata
       const walletJson = await secureStorage.get(STORAGE_KEYS.WALLET_SECRET);
@@ -809,7 +863,19 @@ class WalletService {
         return null;
       }
 
-      const meta = JSON.parse(walletJson);
+      let meta;
+      try {
+        meta = JSON.parse(walletJson);
+      } catch (parseError) {
+        console.warn('[Wallet] Failed to parse wallet metadata');
+        return null;
+      }
+      
+      // Validate metadata has required fields
+      if (!meta || !meta.publicKey) {
+        console.warn('[Wallet] Invalid wallet metadata structure');
+        return null;
+      }
       
       // Load secret key
       const secretKeyBase64 = await secureStorage.get('zkrune_wallet_sk' as any);
@@ -829,7 +895,7 @@ class WalletService {
 
       console.log('[Wallet] Wallet loaded:', meta.publicKey.slice(0, 8) + '...');
       
-      return {
+      const wallet: NativeWallet = {
         publicKey: meta.publicKey,
         secretKey,
         mnemonic,
@@ -837,6 +903,11 @@ class WalletService {
         walletType: meta.walletType || WalletType.NATIVE,
         createdAt: meta.createdAt || Date.now(),
       };
+      
+      // Cache in memory
+      this._nativeWallet = wallet;
+      
+      return wallet;
     } catch (error) {
       console.error('[Wallet] Failed to load native wallet:', error);
       return null;
@@ -879,6 +950,17 @@ class WalletService {
     // Basic validation: 32-44 characters, base58 alphabet
     const base58Regex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
     return base58Regex.test(address);
+  }
+
+  private async _clearWalletStorage(): Promise<void> {
+    try {
+      await secureStorage.delete(STORAGE_KEYS.WALLET_SECRET);
+      await secureStorage.delete('zkrune_wallet_sk' as any);
+      await secureStorage.delete('zkrune_wallet_mnemonic' as any);
+      console.log('[Wallet] Cleared wallet storage');
+    } catch (error) {
+      console.error('[Wallet] Failed to clear wallet storage:', error);
+    }
   }
 
   private async _getEncryptionPublicKey(): Promise<string> {

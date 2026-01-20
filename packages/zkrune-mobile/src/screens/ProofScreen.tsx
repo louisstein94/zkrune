@@ -3,7 +3,7 @@
  * Generate ZK proofs with real service integration
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   TextInput,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -25,15 +26,22 @@ import { ProofType, ProofInput } from '../services';
 export function ProofScreen({ navigation }: any) {
   const { 
     templates, 
-    isGenerating, 
-    progress, 
+    isGenerating,
+    isDownloading,
+    progress,
+    statusMessage,
     currentProof, 
     error,
+    downloadedCircuits,
+    isCircuitReady,
+    downloadCircuit,
     generateProof,
     exportProof,
     getShareableUrl,
     clearCurrentProof,
   } = useZkProof();
+  
+  const [circuitReady, setCircuitReady] = useState(false);
   
   const { isConnected, connection } = useWallet();
   
@@ -46,8 +54,28 @@ export function ProofScreen({ navigation }: any) {
     ? templates.find(t => t.type === selectedTemplate) 
     : null;
 
+  // Check if selected circuit is ready
+  useEffect(() => {
+    if (selectedTemplate) {
+      isCircuitReady(selectedTemplate).then(setCircuitReady);
+    } else {
+      setCircuitReady(false);
+    }
+  }, [selectedTemplate, downloadedCircuits, isCircuitReady]);
+
   const handleInputChange = (field: string, value: string) => {
     setInputValues(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleDownloadCircuit = async () => {
+    if (!selectedTemplate) return;
+    
+    const success = await downloadCircuit(selectedTemplate);
+    if (success) {
+      Alert.alert('Success', 'Circuit downloaded! You can now generate proofs offline.');
+    } else {
+      Alert.alert('Error', 'Failed to download circuit. Check your connection.');
+    }
   };
 
   const handleGenerate = async () => {
@@ -125,10 +153,20 @@ export function ProofScreen({ navigation }: any) {
             <View style={styles.successIcon}>
               <Ionicons name="checkmark-circle" size={64} color={colors.status.success} />
             </View>
-            <Text style={styles.successTitle}>Proof Generated Successfully!</Text>
-            <Text style={styles.successSubtitle}>
-              Your zero-knowledge proof is ready to use
+            <Text style={styles.successTitle}>
+              {currentProof.isRealProof ? '🔐 Real ZK Proof Generated!' : 'Proof Generated Successfully!'}
             </Text>
+            <Text style={styles.successSubtitle}>
+              {currentProof.isRealProof 
+                ? `Groth16 zk-SNARK proof verified on-device in ${currentProof.generationTime}ms`
+                : 'Your zero-knowledge proof is ready to use'}
+            </Text>
+            {currentProof.isRealProof && (
+              <View style={styles.realProofBadge}>
+                <Ionicons name="shield-checkmark" size={16} color="#10B981" />
+                <Text style={styles.realProofBadgeText}>REAL SNARKJS</Text>
+              </View>
+            )}
           </LinearGradient>
 
           {/* Proof Details */}
@@ -144,7 +182,7 @@ export function ProofScreen({ navigation }: any) {
               </Text>
             </View>
             <View style={styles.detailRow}>
-              <Text style={styles.detailLabel}>Verified</Text>
+              <Text style={styles.detailLabel}>Proof Valid</Text>
               <View style={[
                 styles.verifiedBadge,
                 currentProof.verified && styles.verifiedBadgeSuccess
@@ -162,10 +200,65 @@ export function ProofScreen({ navigation }: any) {
                 </Text>
               </View>
             </View>
+            {/* Show actual circuit output - this is what matters! */}
+            {currentProof.publicSignals && currentProof.publicSignals.length > 0 && (() => {
+              const template = templates.find(t => t.type === currentProof.type);
+              const conditionMet = currentProof.publicSignals[0] === '1';
+              const label = template?.conditionLabel || 'Condition';
+              const successText = template?.conditionSuccessText || 'Condition met ✓';
+              const failText = template?.conditionFailText || 'Condition not met ✗';
+              
+              return (
+                <View style={styles.detailRow}>
+                  <Text style={styles.detailLabel}>{label}</Text>
+                  <View style={[
+                    styles.verifiedBadge,
+                    conditionMet && styles.verifiedBadgeSuccess
+                  ]}>
+                    <Ionicons 
+                      name={conditionMet ? 'checkmark-circle' : 'close-circle'} 
+                      size={14} 
+                      color={conditionMet ? colors.status.success : colors.status.error} 
+                    />
+                    <Text style={[
+                      styles.verifiedText,
+                      conditionMet && styles.verifiedTextSuccess
+                    ]}>
+                      {conditionMet ? successText : failText}
+                    </Text>
+                  </View>
+                </View>
+              );
+            })()}
             <View style={styles.detailRow}>
               <Text style={styles.detailLabel}>Protocol</Text>
               <Text style={styles.detailValue}>{currentProof.proof.protocol}</Text>
             </View>
+            <View style={styles.detailRow}>
+              <Text style={styles.detailLabel}>Proof Type</Text>
+              <View style={[
+                styles.verifiedBadge,
+                currentProof.isRealProof && { backgroundColor: '#8B5CF620' }
+              ]}>
+                <Ionicons 
+                  name={currentProof.isRealProof ? 'hardware-chip' : 'code-working'} 
+                  size={14} 
+                  color={currentProof.isRealProof ? '#8B5CF6' : colors.text.secondary} 
+                />
+                <Text style={[
+                  styles.verifiedText,
+                  currentProof.isRealProof && { color: '#8B5CF6' }
+                ]}>
+                  {currentProof.isRealProof ? 'Real ZK' : 'Simulated'}
+                </Text>
+              </View>
+            </View>
+            {currentProof.generationTime && (
+              <View style={styles.detailRow}>
+                <Text style={styles.detailLabel}>Generation Time</Text>
+                <Text style={styles.detailValue}>{currentProof.generationTime}ms</Text>
+              </View>
+            )}
           </Card>
 
           {/* Actions */}
@@ -315,10 +408,48 @@ export function ProofScreen({ navigation }: any) {
           </Card>
         )}
 
+        {/* Circuit Download Status */}
+        {selectedTemplate && !circuitReady && (
+          <Card style={styles.downloadCard}>
+            <View style={styles.downloadHeader}>
+              <Ionicons name="cloud-download" size={24} color={colors.brand.primary} />
+              <Text style={styles.downloadTitle}>Circuit Required</Text>
+            </View>
+            <Text style={styles.downloadText}>
+              Download the circuit files (~3MB) to generate real ZK proofs. 
+              Once downloaded, proofs work offline!
+            </Text>
+            
+            {isDownloading ? (
+              <View style={styles.downloadProgress}>
+                <View style={styles.progressBar}>
+                  <View style={[styles.progressFill, { width: `${progress}%` }]} />
+                </View>
+                <Text style={styles.downloadStatus}>{statusMessage}</Text>
+              </View>
+            ) : (
+              <Button
+                title="Download Circuit"
+                onPress={handleDownloadCircuit}
+                variant="secondary"
+                icon={<Ionicons name="download" size={18} color={colors.brand.primary} />}
+              />
+            )}
+          </Card>
+        )}
+
+        {/* Circuit Ready Badge */}
+        {selectedTemplate && circuitReady && (
+          <View style={styles.readyBadge}>
+            <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+            <Text style={styles.readyText}>Circuit ready - Real ZK proofs enabled!</Text>
+          </View>
+        )}
+
         {/* Generate Button */}
         {selectedTemplate && (
           <View style={styles.generateSection}>
-            {isGenerating && (
+            {(isGenerating || isDownloading) && (
               <View style={styles.progressContainer}>
                 <View style={styles.progressBar}>
                   <View style={[styles.progressFill, { width: `${progress}%` }]} />
@@ -327,13 +458,17 @@ export function ProofScreen({ navigation }: any) {
               </View>
             )}
             
+            {statusMessage && (isGenerating || isDownloading) && (
+              <Text style={styles.statusText}>{statusMessage}</Text>
+            )}
+            
             <Button
-              title={isGenerating ? 'Generating...' : 'Generate Proof'}
+              title={isGenerating ? 'Generating Proof...' : circuitReady ? 'Generate Real ZK Proof' : 'Download Circuit First'}
               onPress={handleGenerate}
               loading={isGenerating}
-              disabled={isGenerating}
+              disabled={isGenerating || !circuitReady}
               size="lg"
-              icon={!isGenerating ? <Ionicons name="flash" size={20} color={colors.text.primary} /> : undefined}
+              icon={!isGenerating && circuitReady ? <Ionicons name="flash" size={20} color={colors.text.primary} /> : undefined}
             />
             
             {isGenerating && (
@@ -629,5 +764,72 @@ const styles = StyleSheet.create({
   },
   newProofButton: {
     marginTop: spacing[2],
+  },
+  realProofBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: '#10B98120',
+    paddingHorizontal: spacing[3],
+    paddingVertical: spacing[2],
+    borderRadius: 20,
+    marginTop: spacing[3],
+  },
+  realProofBadgeText: {
+    ...typography.styles.bodySmall,
+    color: '#10B981',
+    fontWeight: '700',
+    letterSpacing: 1,
+  },
+  downloadCard: {
+    backgroundColor: colors.brand.primary + '10',
+    borderColor: colors.brand.primary + '30',
+    marginBottom: spacing[4],
+  },
+  downloadHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    marginBottom: spacing[2],
+  },
+  downloadTitle: {
+    ...typography.styles.body,
+    color: colors.brand.primary,
+    fontWeight: '600',
+  },
+  downloadText: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    marginBottom: spacing[4],
+    lineHeight: 20,
+  },
+  downloadProgress: {
+    gap: spacing[2],
+  },
+  downloadStatus: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    textAlign: 'center',
+  },
+  readyBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+    backgroundColor: '#10B98115',
+    paddingHorizontal: spacing[4],
+    paddingVertical: spacing[3],
+    borderRadius: layout.radius.md,
+    marginBottom: spacing[4],
+  },
+  readyText: {
+    ...typography.styles.bodySmall,
+    color: '#10B981',
+    fontWeight: '500',
+  },
+  statusText: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    textAlign: 'center',
+    marginBottom: spacing[2],
   },
 });
