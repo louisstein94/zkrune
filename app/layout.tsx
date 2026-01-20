@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
-import InstallPrompt from "@/components/InstallPrompt";
-import FirstTimeSetupPrompt from "@/components/FirstTimeSetupPrompt";
-import TutorialOverlay from "@/components/TutorialOverlay";
+// Removed pop-ups for cleaner UX
+// import InstallPrompt from "@/components/InstallPrompt";
+// import FirstTimeSetupPrompt from "@/components/FirstTimeSetupPrompt";
+// import TutorialOverlay from "@/components/TutorialOverlay";
 import { ClientWalletProvider } from "@/components/ClientWalletProvider";
 
 const dmSans = DM_Sans({
@@ -124,9 +125,6 @@ export default function RootLayout({
       <body className="font-dm-sans antialiased">
         <ClientWalletProvider>
         {children}
-        <InstallPrompt />
-        <FirstTimeSetupPrompt />
-        <TutorialOverlay />
         </ClientWalletProvider>
       </body>
     </html>
