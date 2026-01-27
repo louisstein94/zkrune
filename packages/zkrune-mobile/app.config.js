@@ -66,9 +66,6 @@ export default {
       // Helius API key for faster RPC
       // In production, use: process.env.HELIUS_API_KEY
       heliusApiKey: process.env.HELIUS_API_KEY || 'HELIUS_API_KEY_REDACTED',
-      eas: {
-        projectId: "your-project-id"
-      }
     },
     scheme: "zkrune"
   }
