@@ -12,8 +12,13 @@ web-build/
 *.p8
 *.p12
 *.key
+*.keystore
 *.mobileprovision
 *.orig
+
+# Signing secrets - NEVER commit these!
+*-release.keystore
+keystore.properties
 
 # Metro
 .metro-health-check*
