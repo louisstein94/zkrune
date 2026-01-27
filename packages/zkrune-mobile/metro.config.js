@@ -8,6 +8,16 @@ const config = getDefaultConfig(__dirname);
 config.resolver.extraNodeModules = {
   stream: require.resolve('stream-browserify'),
   crypto: require.resolve('crypto-browserify'),
+  buffer: require.resolve('buffer'),
+  process: require.resolve('process/browser'),
+};
+
+// Ensure shim is loaded first
+config.serializer = {
+  ...config.serializer,
+  getModulesRunBeforeMainModule: () => [
+    require.resolve('./shim.js'),
+  ],
 };
 
 module.exports = config;

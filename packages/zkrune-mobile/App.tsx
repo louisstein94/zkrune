@@ -3,11 +3,11 @@
  * Real navigation with all services integrated
  */
 
-// Polyfills for Node.js crypto libraries
-import 'react-native-get-random-values';
+// CRITICAL: Polyfills must be imported FIRST
+import './shim';
 
 import React, { useEffect, useState, useRef } from 'react';
-import { StatusBar, View, Text, StyleSheet } from 'react-native';
+import { StatusBar, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { Navigation } from './src/navigation';
 import { ZkProofEngine, ZkProofEngineRef } from './src/components/ZkProofEngine';
@@ -16,11 +16,11 @@ import { zkProofService } from './src/services';
 // Error Boundary for catching crashes
 class ErrorBoundary extends React.Component<
   { children: React.ReactNode },
-  { hasError: boolean; error: Error | null }
+  { hasError: boolean; error: Error | null; errorInfo: string }
 > {
   constructor(props: { children: React.ReactNode }) {
     super(props);
-    this.state = { hasError: false, error: null };
+    this.state = { hasError: false, error: null, errorInfo: '' };
   }
 
   static getDerivedStateFromError(error: Error) {
@@ -29,20 +29,38 @@ class ErrorBoundary extends React.Component<
 
   componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
     console.error('App Error:', error, errorInfo);
+    this.setState({ 
+      errorInfo: errorInfo.componentStack || '' 
+    });
   }
+
+  handleReload = () => {
+    this.setState({ hasError: false, error: null, errorInfo: '' });
+  };
 
   render() {
     if (this.state.hasError) {
       return (
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorTitle}>Uygulama Hatası</Text>
+        <ScrollView style={styles.errorContainer} contentContainerStyle={styles.errorContent}>
+          <Text style={styles.errorTitle}>⚠️ Uygulama Hatası</Text>
           <Text style={styles.errorMessage}>
             {this.state.error?.message || 'Bilinmeyen hata'}
           </Text>
           <Text style={styles.errorStack}>
-            {this.state.error?.stack?.slice(0, 500)}
+            {this.state.error?.stack?.slice(0, 1000)}
           </Text>
-        </View>
+          {this.state.errorInfo ? (
+            <Text style={styles.errorComponent}>
+              Component: {this.state.errorInfo.slice(0, 300)}
+            </Text>
+          ) : null}
+          <TouchableOpacity 
+            style={styles.reloadButtonContainer}
+            onPress={this.handleReload}
+          >
+            <Text style={styles.reloadButton}>🔄 Tekrar Dene</Text>
+          </TouchableOpacity>
+        </ScrollView>
       );
     }
     return this.props.children;
@@ -113,8 +131,11 @@ const styles = StyleSheet.create({
   errorContainer: {
     flex: 1,
     backgroundColor: '#1a0a0a',
+  },
+  errorContent: {
     padding: 20,
-    justifyContent: 'center',
+    paddingTop: 60,
+    paddingBottom: 40,
   },
   errorTitle: {
     color: '#EF4444',
@@ -129,7 +150,28 @@ const styles = StyleSheet.create({
   },
   errorStack: {
     color: '#888',
-    fontSize: 12,
+    fontSize: 11,
     fontFamily: 'monospace',
+    marginBottom: 12,
+  },
+  errorComponent: {
+    color: '#F59E0B',
+    fontSize: 11,
+    fontFamily: 'monospace',
+    marginBottom: 20,
+  },
+  reloadButtonContainer: {
+    backgroundColor: '#8B5CF6',
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 12,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  reloadButton: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: 'bold',
+    textAlign: 'center',
   },
 });
