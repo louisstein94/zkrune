@@ -1,6 +1,5 @@
 'use client';
 
-import { Header } from '@/components/Header';
 import Link from 'next/link';
 
 export default function DownloadPage() {
@@ -9,7 +8,22 @@ export default function DownloadPage() {
   
   return (
     <div className="min-h-screen bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950">
-      <Header />
+      {/* Simple Header */}
+      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur-sm sticky top-0 z-50">
+        <div className="container mx-auto px-4 py-4 flex items-center justify-between">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-br from-cyan-500 to-purple-600 rounded-lg flex items-center justify-center">
+              <span className="text-sm font-bold text-white">zk</span>
+            </div>
+            <span className="text-xl font-bold text-white">zkRune</span>
+          </Link>
+          <nav className="flex gap-6">
+            <Link href="/templates" className="text-slate-400 hover:text-white transition-colors">Templates</Link>
+            <Link href="/staking" className="text-slate-400 hover:text-white transition-colors">Staking</Link>
+            <Link href="/governance" className="text-slate-400 hover:text-white transition-colors">DAO</Link>
+          </nav>
+        </div>
+      </header>
       
       <main className="container mx-auto px-4 py-16 max-w-4xl">
         <div className="text-center mb-12">
