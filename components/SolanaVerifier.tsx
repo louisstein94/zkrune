@@ -1,100 +1,137 @@
 "use client";
 
-import { FC, useState, useEffect } from 'react';
+import { FC, useState } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { 
     PublicKey, 
-    TransactionMessage, 
-    VersionedTransaction,
+    Transaction,
     TransactionInstruction 
 } from '@solana/web3.js';
-// @ts-ignore - bn.js types
-import BN from 'bn.js';
+
+// Deployed Program ID (Devnet) - zkRune Groth16 Verifier
+const PROGRAM_ID = new PublicKey("9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad");
+
+// BN254 curve prime field modulus (for negation)
+const BN254_PRIME = BigInt('21888242871839275222246405745257275088696311157297823662689037894645226208583');
 
 // Template ID to numeric mapping (matches Rust program)
 const TEMPLATE_ID_MAP: Record<string, number> = {
     'age-verification': 0,
     'balance-proof': 1,
-    'hash-preimage': 2,
-    'anonymous-reputation': 3,
-    'credential-proof': 4,
-    'merkle-membership': 5,
-    'nft-ownership': 6,
-    'patience-proof': 7,
+    'membership-proof': 2,
+    'credential-proof': 3,
+    'private-voting': 4,
+    'nft-ownership': 5,
+    'range-proof': 6,
+    'hash-preimage': 7,
     'quadratic-voting': 8,
-    'range-verification': 9,
-    'signature-verification': 10,
-    'token-swap': 11,
+    'anonymous-reputation': 9,
+    'token-swap': 10,
+    'patience-proof': 11,
+    'signature-verification': 12,
 };
 
-// Deployed Program ID (Devnet)
-const PROGRAM_ID = new PublicKey("2hZ1fQDvc3AG9mZDgnSq4fPmzni3obNiwqWt5fweqp5V");
-
-// Helper: Convert BigInt string to 32-byte buffer
-const bigIntTo32Bytes = (bigIntStr: string): Uint8Array => {
-    const bn = new BN(bigIntStr);
-    return new Uint8Array(bn.toArrayLike(Buffer, 'be', 32));
-};
-
-// HYBRID APPROACH: Verify with snarkjs, record hash on Solana
-const serializeVerificationRecord = async (
-    template_id: number,
-    proof: any,
-    publicSignals: string[],
-    vk: any
-): Promise<Buffer> => {
-    // 1. Verify with snarkjs first!
-    // @ts-ignore
-    const snarkjs = await import("snarkjs");
-    const isValid = await snarkjs.groth16.verify(vk, publicSignals, proof);
+/**
+ * Convert a decimal string to a 32-byte big-endian array
+ */
+function fieldToBytes(decimalStr: string): Uint8Array {
+    let n = BigInt(decimalStr);
+    n = ((n % BN254_PRIME) + BN254_PRIME) % BN254_PRIME;
     
-    if (!isValid) {
-        throw new Error("snarkjs verification failed!");
+    const bytes = new Uint8Array(32);
+    for (let i = 31; i >= 0; i--) {
+        bytes[i] = Number(n & BigInt(0xff));
+        n = n >> BigInt(8);
     }
+    return bytes;
+}
+
+/**
+ * Negate G1 point y-coordinate: (x, y) → (x, p - y)
+ */
+function negateG1(point: string[]): string[] {
+    const y = BigInt(point[1]);
+    const negY = y === BigInt(0) ? BigInt(0) : BN254_PRIME - (y % BN254_PRIME);
+    return [point[0], negY.toString()];
+}
+
+/**
+ * Convert G1 point to 64 bytes (Light Protocol format: direct BE)
+ */
+function g1ToBytes(point: string[]): Uint8Array {
+    const result = new Uint8Array(64);
+    result.set(fieldToBytes(point[0]), 0);  // x BE
+    result.set(fieldToBytes(point[1]), 32); // y BE
+    return result;
+}
+
+/**
+ * Convert G2 point to 128 bytes (Light Protocol format)
+ * snarkjs format: [[x.c1, x.c0], [y.c1, y.c0]]
+ * Output: [x.c0 BE, x.c1 BE, y.c0 BE, y.c1 BE]
+ */
+function g2ToBytes(point: string[][]): Uint8Array {
+    const result = new Uint8Array(128);
+    // snarkjs: point[0] = [x.c1, x.c0], point[1] = [y.c1, y.c0]
+    result.set(fieldToBytes(point[0][1]), 0);   // x.c0 BE
+    result.set(fieldToBytes(point[0][0]), 32);  // x.c1 BE
+    result.set(fieldToBytes(point[1][1]), 64);  // y.c0 BE
+    result.set(fieldToBytes(point[1][0]), 96);  // y.c1 BE
+    return result;
+}
+
+/**
+ * Serialize proof for on-chain Groth16 verification
+ */
+function serializeProof(
+    templateId: number,
+    proof: any,
+    publicSignals: string[]
+): Uint8Array {
+    const size = 1 + 64 + 128 + 64 + (publicSignals.length * 32);
+    const data = new Uint8Array(size);
     
-    // 2. Create hashes
-    // @ts-ignore
-    const crypto = await import('crypto-browserify');
-    const proofHash = crypto.createHash('sha256')
-        .update(JSON.stringify(proof))
-        .digest();
-    const signalsHash = crypto.createHash('sha256')
-        .update(JSON.stringify(publicSignals))
-        .digest();
-    
-    // 3. Serialize record (very small!)
-    const buffer = Buffer.allocUnsafe(1 + 32 + 32 + 8 + 1);
     let offset = 0;
     
-    buffer.writeUInt8(template_id, offset); offset += 1;
-    proofHash.copy(buffer, offset); offset += 32;
-    signalsHash.copy(buffer, offset); offset += 32;
-    buffer.writeBigInt64LE(BigInt(Date.now()), offset); offset += 8;
-    buffer.writeUInt8(1, offset); // verified_by_snarkjs = true
+    // Template ID (1 byte)
+    data[offset] = templateId;
+    offset += 1;
     
-    return buffer;
-};
+    // Proof A (64 bytes - G1 point, NEGATED)
+    const negatedA = negateG1(proof.pi_a);
+    data.set(g1ToBytes(negatedA), offset);
+    offset += 64;
+    
+    // Proof B (128 bytes - G2 point)
+    data.set(g2ToBytes(proof.pi_b), offset);
+    offset += 128;
+    
+    // Proof C (64 bytes - G1 point)
+    data.set(g1ToBytes(proof.pi_c), offset);
+    offset += 64;
+    
+    // Public inputs (n * 32 bytes, big-endian)
+    for (const input of publicSignals) {
+        data.set(fieldToBytes(input), offset);
+        offset += 32;
+    }
+    
+    return data;
+}
 
 interface Props {
     proof: any; // snarkjs proof object
     publicSignals: string[];
-    templateId?: string; // Optional ID to select correct VK
+    templateId?: string;
 }
 
-export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = 'balance-proof' }) => {
+export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = 'age-verification' }) => {
     const { connection } = useConnection();
     const wallet = useWallet();
     const [status, setStatus] = useState<'idle' | 'verifying' | 'success' | 'error'>('idle');
     const [txHash, setTxHash] = useState<string>('');
     const [errorMsg, setErrorMsg] = useState<string>('');
-    const [warningMsg, setWarningMsg] = useState<string>('');
-
-    // Utility to convert BigInt string to 32-byte array (Big Endian)
-    const to32ByteBuffer = (bigIntStr: string): number[] => {
-        const bn = new BN(bigIntStr);
-        return Array.from(bn.toArrayLike(Buffer, 'be', 32));
-    };
     
     const verifyOnChain = async () => {
         if (!wallet.publicKey || !wallet.signTransaction) return;
@@ -102,92 +139,21 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
         try {
             setStatus('verifying');
             setErrorMsg('');
-            setWarningMsg('');
 
             // Get numeric template ID
             const numericTemplateId = TEMPLATE_ID_MAP[templateId];
             if (numericTemplateId === undefined) {
-                setErrorMsg(`Unknown template: ${templateId}`);
+                setErrorMsg(`Template "${templateId}" is not supported for on-chain verification.`);
                 setStatus('error');
                 return;
             }
             
-            console.log(`🆔 Template: ${templateId} (ID: ${numericTemplateId})`);
+            console.log(`Verifying on-chain: ${templateId} (ID: ${numericTemplateId})`);
+            console.log('Public signals:', publicSignals);
 
-            console.log("Preparing transaction...");
-            console.log("Original proof:", proof);
-            console.log("Public signals:", publicSignals);
-            console.log("Public signals count:", publicSignals.length);
-            
-            // Transform snarkjs proof to Solana format
-            
-            // Proof A (G1): pi_a[0], pi_a[1]
-            const proofABytes = [
-                ...to32ByteBuffer(proof.pi_a[0]),
-                ...to32ByteBuffer(proof.pi_a[1]),
-            ];
-            const realProofA = new Uint8Array(proofABytes);
-            
-            // Log point data for debugging
-            console.log("=== G2 Point Debug ===");
-            console.log("pi_b[0][0] (Real):", proof.pi_b[0][0]);
-            console.log("pi_b[0][1] (Imag):", proof.pi_b[0][1]);
-            
-            // Proof B (G2): Send in snarkjs format (real, imag)
-            // snarkjs pi_b is [[x_real, x_imag], [y_real, y_imag]]
-            // Hardcoded VK also has x[0] = real, x[1] = imag (after regeneration)
-            // Rust will swap to EIP-197 format (imag, real) when preparing pairing input
-            
-            const proofBBytes = [
-                ...to32ByteBuffer(proof.pi_b[0][0]),  // x_real (x[0])
-                ...to32ByteBuffer(proof.pi_b[0][1]),  // x_imag (x[1])
-                ...to32ByteBuffer(proof.pi_b[1][0]),  // y_real (y[0])
-                ...to32ByteBuffer(proof.pi_b[1][1]),  // y_imag (y[1])
-            ];
-
-            const realProofB = new Uint8Array(proofBBytes);
-            
-            // Proof C (G1): pi_c[0], pi_c[1]
-            const proofCBytes = [
-                ...to32ByteBuffer(proof.pi_c[0]),
-                ...to32ByteBuffer(proof.pi_c[1]),
-            ];
-            const realProofC = new Uint8Array(proofCBytes);
-            
-            // Public inputs
-            // Use ALL public signals provided by snarkjs
-            const formattedInputs = publicSignals.map(s => {
-                const bytes = to32ByteBuffer(s);
-                return new Uint8Array(bytes);
-            });
-            
-            console.log("Formatted public inputs:", formattedInputs.length, "signals");
-
-            // HYBRID: Verify with snarkjs, record on Solana
-            console.log("Verifying proof with snarkjs...");
-            
-            // Get VK for this template
-            const VK_MAP_LOCAL: Record<string, any> = {
-                'age-verification': await import('../circuits/age-verification/verification_key.json'),
-                'balance-proof': await import('../circuits/balance-proof/verification_key.json'),
-                // Add more as needed
-            };
-            
-            const vkModule = VK_MAP_LOCAL[templateId];
-            if (!vkModule) {
-                throw new Error(`VK not found for template: ${templateId}`);
-            }
-            
-            const instructionData = await serializeVerificationRecord(
-                numericTemplateId,
-                proof,
-                publicSignals,
-                vkModule.default || vkModule
-            );
-            
-            console.log("snarkjs verification: PASSED");
-            console.log("Record size:", instructionData.length, "bytes (only hash + metadata!)");
-            console.log("Full crypto verification done in browser");
+            // Serialize proof in Light Protocol format
+            const instructionData = serializeProof(numericTemplateId, proof, publicSignals);
+            console.log('Instruction data size:', instructionData.length, 'bytes');
 
             // Create transaction instruction
             const instruction = new TransactionInstruction({
@@ -196,141 +162,130 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
                 data: Buffer.from(instructionData),
             });
 
-            // Use Versioned Transaction (v0) for better size optimization
+            // Create and send transaction
+            const transaction = new Transaction().add(instruction);
             const { blockhash } = await connection.getLatestBlockhash();
-            
-            const messageV0 = new TransactionMessage({
-                payerKey: wallet.publicKey!,
-                recentBlockhash: blockhash,
-                instructions: [instruction],
-            }).compileToV0Message();
+            transaction.recentBlockhash = blockhash;
+            transaction.feePayer = wallet.publicKey;
 
-            const transaction = new VersionedTransaction(messageV0);
-            
             const signed = await wallet.signTransaction(transaction);
+            const signature = await connection.sendRawTransaction(signed.serialize());
             
-            const actualSize = signed.serialize().length;
-            console.log("Actual serialized transaction size:", actualSize, "bytes");
+            console.log('Transaction sent:', signature);
             
-            if (actualSize > 1232) {
-                throw new Error(`Transaction size (${actualSize} bytes) exceeds Solana limit (1232 bytes). Try a simpler circuit.`);
-            }
+            // Wait for confirmation
+            await connection.confirmTransaction(signature, 'confirmed');
             
-            const txHash = await connection.sendRawTransaction(signed.serialize());
-            
-            await connection.confirmTransaction(txHash, 'confirmed');
-                
-            console.log("Transaction signature", txHash);
-            setTxHash(txHash);
+            console.log('Verification successful!');
+            setTxHash(signature);
             setStatus('success');
 
         } catch (err: any) {
-            console.error("Verification failed:", err);
-            setErrorMsg(err.message || "Transaction failed");
+            console.error("On-chain verification failed:", err);
+            
+            // Parse error message
+            let message = err.message || "Transaction failed";
+            if (message.includes('ProofVerificationFailed')) {
+                message = "Proof verification failed on-chain. Please regenerate the proof.";
+            } else if (message.includes('insufficient funds')) {
+                message = "Insufficient SOL for transaction. Get devnet SOL from a faucet.";
+            }
+            
+            setErrorMsg(message);
             setStatus('error');
         }
     };
 
     return (
-        <div className="w-full mt-8 bg-black/40 border border-purple-500/30 rounded-xl p-6 backdrop-blur-sm relative overflow-hidden group">
-            {/* Background gradient effect */}
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-purple-600/20 rounded-full blur-3xl group-hover:bg-purple-600/30 transition-all duration-700"></div>
+        <div className="w-full mt-6 bg-gradient-to-br from-purple-900/20 to-blue-900/20 border border-purple-500/30 rounded-xl p-6 backdrop-blur-sm relative overflow-hidden">
+            {/* Background effect */}
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-purple-600/10 rounded-full blur-3xl"></div>
 
             <div className="relative z-10">
                 <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-xl font-bold text-white flex items-center gap-2">
-                        <span className="text-2xl font-bold text-yellow-400">V</span> 
-                        Solana Integration
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-gradient-to-r from-purple-600 to-blue-600 text-white uppercase tracking-wider">
-                            BETA
+                    <h3 className="text-lg font-bold text-white flex items-center gap-2">
+                        <svg className="w-5 h-5 text-purple-400" viewBox="0 0 128 128" fill="currentColor">
+                            <path d="M93.94 42.63c13.48 0 24.42 10.94 24.42 24.42s-10.94 24.42-24.42 24.42H49.88L93.94 42.63zM34.06 85.37c-13.48 0-24.42-10.94-24.42-24.42s10.94-24.42 24.42-24.42h44.06L34.06 85.37z"/>
+                        </svg>
+                        Verify on Solana
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-600/30 text-green-400 border border-green-500/30">
+                            DEVNET
                         </span>
                     </h3>
-                    {wallet.connected ? (
+                    {wallet.connected && (
                         <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-green-900/30 border border-green-500/30 text-xs text-green-400">
                             <div className="w-2 h-2 rounded-full bg-green-400 animate-pulse"></div>
                             {wallet.publicKey?.toString().slice(0,4)}...{wallet.publicKey?.toString().slice(-4)}
                         </div>
-                    ) : (
-                        <div className="flex items-center gap-2 px-3 py-1 rounded-full bg-yellow-900/30 border border-yellow-500/30 text-xs text-yellow-400">
-                            <div className="w-2 h-2 rounded-full bg-yellow-400"></div>
-                            Wallet Disconnected
-                        </div>
                     )}
                 </div>
 
-                <p className="text-gray-400 text-sm mb-6 leading-relaxed">
-                    Verify this <strong>{templateId.replace(/-/g, ' ')}</strong> proof immutably on the Solana blockchain. This utilizes 
-                    <span className="text-purple-300 font-mono mx-1">alt_bn128</span> 
-                    syscalls for high-performance on-chain verification.
+                <p className="text-gray-400 text-sm mb-4">
+                    Submit this proof to Solana for cryptographic verification using Groth16 pairing checks.
+                    This is <strong className="text-purple-300">real on-chain verification</strong> using altbn254 syscalls.
                 </p>
 
-                {warningMsg && (
-                    <div className="mb-4 p-3 bg-yellow-900/20 border border-yellow-500/50 rounded-lg flex items-start gap-2 text-sm text-yellow-200">
-                        <span className="mt-0.5 text-yellow-500 font-bold">!</span>
-                        <div className="break-all">{warningMsg}</div>
-                    </div>
-                )}
-                
                 {errorMsg && (
-                    <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg flex items-start gap-2 text-sm text-red-200">
-                        <span className="mt-0.5 text-red-500 font-bold">X</span>
-                        <div className="break-all">{errorMsg}</div>
+                    <div className="mb-4 p-3 bg-red-900/20 border border-red-500/50 rounded-lg text-sm text-red-200">
+                        {errorMsg}
                     </div>
                 )}
 
                 <div className="flex gap-3">
-                    {/* Solana Wallet Adapter Button */}
                     <div className={wallet.connected ? 'flex-none' : 'flex-1'}>
-                        <WalletMultiButton className="!w-full !px-6 !py-3 !rounded-lg !bg-[#512da8] hover:!bg-[#5e35b1] !text-white !font-bold !transition-all !shadow-lg hover:!shadow-purple-500/50" />
+                        <WalletMultiButton className="!w-full !px-4 !py-2.5 !rounded-lg !bg-[#512da8] hover:!bg-[#5e35b1] !text-white !font-medium !text-sm" />
                     </div>
 
-                    {/* Verify Button - only prominent when wallet connected */}
-                    <button 
-                        onClick={verifyOnChain}
-                        disabled={!wallet.connected || status === 'verifying'}
-                        className={`
-                            ${wallet.connected ? 'flex-1' : 'flex-none'} 
-                            px-6 py-3 rounded-lg font-bold transition-all flex items-center justify-center gap-2 shadow-lg
-                            ${wallet.connected 
-                                ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:scale-[1.02] hover:shadow-xl hover:shadow-purple-500/50 text-white' 
-                                : 'bg-gray-800/50 text-gray-600 cursor-not-allowed border border-gray-700/50'}
-                        `}
-                    >
-                        {status === 'verifying' ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-                                <span className="hidden sm:inline">Verifying on Devnet...</span>
-                                <span className="sm:hidden">Verifying...</span>
-                            </>
-                        ) : (
-                            <>
-                                <span className="hidden sm:inline">Verify Proof On-Chain</span>
-                                <span className="sm:hidden">Verify</span>
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M14 5l7 7m0 0l-7 7m7-7H3" /></svg>
-                            </>
-                        )}
-                    </button>
+                    {wallet.connected && (
+                        <button 
+                            onClick={verifyOnChain}
+                            disabled={status === 'verifying'}
+                            className={`
+                                flex-1 px-4 py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2
+                                ${status === 'verifying' 
+                                    ? 'bg-purple-600/50 cursor-wait' 
+                                    : 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500'}
+                                text-white
+                            `}
+                        >
+                            {status === 'verifying' ? (
+                                <>
+                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                                    Verifying...
+                                </>
+                            ) : (
+                                <>
+                                    Verify On-Chain
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                    </svg>
+                                </>
+                            )}
+                        </button>
+                    )}
                 </div>
 
                 {status === 'success' && (
-                    <div className="mt-6 p-4 bg-gradient-to-br from-green-900/40 to-emerald-900/20 border border-green-500/50 rounded-xl animate-in fade-in slide-in-from-bottom-4 duration-500">
-                        <div className="flex items-center gap-3 mb-2">
-                            <div className="w-8 h-8 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 border border-green-500/50">
+                    <div className="mt-4 p-4 bg-green-900/30 border border-green-500/40 rounded-xl">
+                        <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 text-xl">
                                 ✓
                             </div>
                             <div>
-                                <h4 className="font-bold text-green-100">Verification Successful!</h4>
-                                <p className="text-xs text-green-300/80">Proof has been verified and recorded on-chain.</p>
+                                <h4 className="font-bold text-green-100">Verified On-Chain!</h4>
+                                <p className="text-xs text-green-300/80">Groth16 proof verified using Solana altbn254 syscalls</p>
                             </div>
                         </div>
                         <a 
                             href={`https://explorer.solana.com/tx/${txHash}?cluster=devnet`} 
                             target="_blank" 
                             rel="noreferrer"
-                            className="text-xs text-purple-300 hover:text-purple-200 hover:underline break-all flex items-center gap-1 mt-2 pl-11"
+                            className="mt-3 inline-flex items-center gap-1 text-sm text-purple-300 hover:text-purple-200 hover:underline"
                         >
-                            View Transaction
-                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" /></svg>
+                            View on Solana Explorer
+                            <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                            </svg>
                         </a>
                     </div>
                 )}

@@ -46,55 +46,63 @@ export const TEMPLATE_IDS: Record<string, number> = {
   'signature-verification': 12,
 };
 
+// BN254 curve prime field modulus (for negation)
+const BN254_PRIME = BigInt('21888242871839275222246405745257275088696311157297823662689037894645226208583');
+
 /**
- * Convert a hex string or bigint string to a 32-byte array
+ * Convert a decimal string to a 32-byte big-endian array
  */
-function toBigEndianBytes(value: string): Uint8Array {
-  // Remove 0x prefix if present
-  const cleanHex = value.startsWith('0x') ? value.slice(2) : value;
+function fieldToBytes(decimalStr: string): Uint8Array {
+  let n = BigInt(decimalStr);
+  n = ((n % BN254_PRIME) + BN254_PRIME) % BN254_PRIME;
   
-  // Convert to bigint if it's a decimal string
-  let bigintValue: bigint;
-  if (/^[0-9]+$/.test(cleanHex)) {
-    bigintValue = BigInt(cleanHex);
-  } else {
-    bigintValue = BigInt('0x' + cleanHex);
-  }
-  
-  // Convert to 32-byte big-endian array
   const bytes = new Uint8Array(32);
   for (let i = 31; i >= 0; i--) {
-    bytes[i] = Number(bigintValue & BigInt(0xff));
-    bigintValue = bigintValue >> BigInt(8);
+    bytes[i] = Number(n & BigInt(0xff));
+    n = n >> BigInt(8);
   }
   return bytes;
 }
 
 /**
- * Convert G1 point (2 field elements) to 64 bytes
+ * Negate G1 point y-coordinate: (x, y) → (x, p - y)
+ */
+function negateG1(point: string[]): string[] {
+  const y = BigInt(point[1]);
+  const negY = y === BigInt(0) ? BigInt(0) : BN254_PRIME - (y % BN254_PRIME);
+  return [point[0], negY.toString()];
+}
+
+/**
+ * Convert G1 point to 64 bytes (Light Protocol format: direct BE)
  */
 function g1ToBytes(point: string[]): Uint8Array {
   const result = new Uint8Array(64);
-  result.set(toBigEndianBytes(point[0]), 0);
-  result.set(toBigEndianBytes(point[1]), 32);
+  result.set(fieldToBytes(point[0]), 0);  // x BE
+  result.set(fieldToBytes(point[1]), 32); // y BE
   return result;
 }
 
 /**
- * Convert G2 point (2x2 field elements) to 128 bytes
+ * Convert G2 point to 128 bytes (Light Protocol format)
+ * snarkjs format: [[x.c1, x.c0], [y.c1, y.c0]]
+ * Output: [x.c0 BE, x.c1 BE, y.c0 BE, y.c1 BE]
  */
 function g2ToBytes(point: string[][]): Uint8Array {
   const result = new Uint8Array(128);
-  // G2 points in snarkjs are [[[x0, x1], [y0, y1]]]
-  result.set(toBigEndianBytes(point[0][0]), 0);
-  result.set(toBigEndianBytes(point[0][1]), 32);
-  result.set(toBigEndianBytes(point[1][0]), 64);
-  result.set(toBigEndianBytes(point[1][1]), 96);
+  // snarkjs: point[0] = [x.c1, x.c0], point[1] = [y.c1, y.c0]
+  result.set(fieldToBytes(point[0][1]), 0);   // x.c0 BE
+  result.set(fieldToBytes(point[0][0]), 32);  // x.c1 BE
+  result.set(fieldToBytes(point[1][1]), 64);  // y.c0 BE
+  result.set(fieldToBytes(point[1][0]), 96);  // y.c1 BE
   return result;
 }
 
 /**
- * Serialize proof for on-chain verification
+ * Serialize proof for on-chain verification (Light Protocol format)
+ * - proof_a: NEGATED, then converted to bytes
+ * - proof_b: G2 in [c0 BE, c1 BE] order
+ * - proof_c: G1 direct BE
  */
 export function serializeProof(
   templateId: number,
@@ -112,8 +120,9 @@ export function serializeProof(
   data[offset] = templateId;
   offset += 1;
   
-  // Proof A (64 bytes - G1 point)
-  data.set(g1ToBytes(proof.pi_a), offset);
+  // Proof A (64 bytes - G1 point, NEGATED)
+  const negatedA = negateG1(proof.pi_a);
+  data.set(g1ToBytes(negatedA), offset);
   offset += 64;
   
   // Proof B (128 bytes - G2 point)
@@ -124,9 +133,9 @@ export function serializeProof(
   data.set(g1ToBytes(proof.pi_c), offset);
   offset += 64;
   
-  // Public inputs (n * 32 bytes)
+  // Public inputs (n * 32 bytes, big-endian)
   for (const input of publicInputs) {
-    data.set(toBigEndianBytes(input), offset);
+    data.set(fieldToBytes(input), offset);
     offset += 32;
   }
   
