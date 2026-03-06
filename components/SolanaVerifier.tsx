@@ -1,6 +1,6 @@
 "use client";
 
-import { FC, useState } from 'react';
+import { FC, useState, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
 import { 
@@ -9,7 +9,7 @@ import {
     TransactionInstruction 
 } from '@solana/web3.js';
 
-// Deployed Program ID (Devnet) - zkRune Groth16 Verifier
+// Deployed Program ID - zkRune Groth16 Verifier (same ID on devnet & mainnet)
 const PROGRAM_ID = new PublicKey("9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad");
 
 // BN254 curve prime field modulus (for negation)
@@ -133,6 +133,18 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
     const [txHash, setTxHash] = useState<string>('');
     const [errorMsg, setErrorMsg] = useState<string>('');
     
+    // Detect network from connection endpoint
+    const network = useMemo(() => {
+        const endpoint = connection.rpcEndpoint.toLowerCase();
+        if (endpoint.includes('mainnet')) return 'mainnet';
+        if (endpoint.includes('devnet')) return 'devnet';
+        if (endpoint.includes('testnet')) return 'testnet';
+        return 'mainnet'; // default to mainnet for custom RPCs
+    }, [connection.rpcEndpoint]);
+    
+    const isMainnet = network === 'mainnet';
+    const solscanCluster = isMainnet ? '' : `?cluster=${network}`;
+    
     const verifyOnChain = async () => {
         if (!wallet.publicKey || !wallet.signTransaction) return;
         
@@ -208,8 +220,12 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
                             <path d="M93.94 42.63c13.48 0 24.42 10.94 24.42 24.42s-10.94 24.42-24.42 24.42H49.88L93.94 42.63zM34.06 85.37c-13.48 0-24.42-10.94-24.42-24.42s10.94-24.42 24.42-24.42h44.06L34.06 85.37z"/>
                         </svg>
                         Verify on Solana
-                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-green-600/30 text-green-400 border border-green-500/30">
-                            DEVNET
+                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                            isMainnet 
+                                ? 'bg-purple-600/30 text-purple-400 border-purple-500/30' 
+                                : 'bg-green-600/30 text-green-400 border-green-500/30'
+                        }`}>
+                            {network.toUpperCase()}
                         </span>
                     </h3>
                     {wallet.connected && (
@@ -277,12 +293,12 @@ export const SolanaVerifier: FC<Props> = ({ proof, publicSignals, templateId = '
                             </div>
                         </div>
                         <a 
-                            href={`https://explorer.solana.com/tx/${txHash}?cluster=devnet`} 
+                            href={`https://solscan.io/tx/${txHash}${solscanCluster}`} 
                             target="_blank" 
                             rel="noreferrer"
                             className="mt-3 inline-flex items-center gap-1 text-sm text-purple-300 hover:text-purple-200 hover:underline"
                         >
-                            View on Solana Explorer
+                            View on Solscan
                             <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                             </svg>

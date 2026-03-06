@@ -24,7 +24,7 @@ import {
 
 // Configuration
 const PROGRAM_ID = '9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad';
-const RPC_URL = 'https://api.devnet.solana.com';
+const RPC_URL = process.env.SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
 const CIRCUIT_DIR = path.join(__dirname, '../../circuits/age-verification');
 
 async function main() {
@@ -167,7 +167,7 @@ async function main() {
     console.log('ON-CHAIN VERIFICATION SUCCESSFUL!');
     console.log('='.repeat(60));
     console.log('Transaction:', signature);
-    console.log('Explorer:', `https://explorer.solana.com/tx/${signature}?cluster=devnet`);
+    console.log('Explorer:', `https://explorer.solana.com/tx/${signature}`);
   } catch (error: any) {
     console.log('\nTransaction failed:', error.message);
     if (error.logs) {
