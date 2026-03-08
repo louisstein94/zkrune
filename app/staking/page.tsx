@@ -57,7 +57,6 @@ export default function StakingPage() {
   const [programReady, setProgramReady] = useState<boolean | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
-  const [isRequestingFaucet, setIsRequestingFaucet] = useState(false);
   const [showTestGuide, setShowTestGuide] = useState(true);
 
   // Fetch token balance
@@ -167,30 +166,18 @@ export default function StakingPage() {
     }
   }
 
-  async function handleFaucetRequest() {
-    if (!publicKey || isRequestingFaucet) return;
+  function handleFaucetRequest() {
+    if (!publicKey) return;
     
-    setIsRequestingFaucet(true);
-    try {
-      const response = await fetch('/api/faucet', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ walletAddress: publicKey.toString() }),
-      });
-      
-      const data = await response.json();
-      
-      if (response.ok && data.success) {
-        showNotification('success', `Received ${data.amount.toLocaleString()} test zkRUNE`);
-        setTimeout(() => fetchTokenBalance(), 2000);
-      } else {
-        showNotification('error', data.error || 'Faucet request failed');
-      }
-    } catch {
-      showNotification('error', 'Faucet temporarily unavailable');
-    } finally {
-      setIsRequestingFaucet(false);
-    }
+    // Copy wallet address to clipboard
+    navigator.clipboard.writeText(publicKey.toString());
+    showNotification('success', 'Wallet address copied! Share on Twitter/Discord to receive test tokens.');
+    
+    // Open Twitter with pre-filled message
+    const tweetText = encodeURIComponent(
+      `@zkaborr I need test zkRUNE tokens for staking on devnet!\n\nMy wallet: ${publicKey.toString()}\n\n#zkRune #Solana`
+    );
+    window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
   }
 
   const timeUntilUnlock = getTimeUntilUnlock();
@@ -370,20 +357,12 @@ export default function StakingPage() {
                     {connected ? (
                       <button
                         onClick={handleFaucetRequest}
-                        disabled={isRequestingFaucet}
-                        className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:shadow-lg hover:shadow-[#00FFA3]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:shadow-lg hover:shadow-[#00FFA3]/20 transition-all flex items-center gap-2"
                       >
-                        {isRequestingFaucet ? (
-                          <span className="flex items-center justify-center gap-2">
-                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
-                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                            </svg>
-                            Requesting...
-                          </span>
-                        ) : (
-                          'Get 1,000 Test zkRUNE'
-                        )}
+                        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                        </svg>
+                        Request Test Tokens
                       </button>
                     ) : (
                       <WalletMultiButton className="!bg-gradient-to-r !from-[#6B4CFF] !to-[#8B6CFF] hover:!opacity-90 !rounded-xl !h-12 !px-6 !text-sm !font-semibold" />
