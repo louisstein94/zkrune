@@ -11,7 +11,7 @@ export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
 
 const DEVNET_TOKEN_MINT = process.env.NEXT_PUBLIC_ZKRUNE_MINT || 'A619D39h4CxHT7rSSurWAb2Un36c6W8BLyJWBYGxzstP';
-const DEVNET_RPC = 'https://api.devnet.solana.com';
+const DEVNET_RPC = process.env.SOLANA_RPC_URL || 'https://api.devnet.solana.com';
 const FAUCET_AMOUNT = 1000;
 const DECIMALS = 6;
 const COOLDOWN_MS = 60 * 60 * 1000; // 1 hour
@@ -103,7 +103,10 @@ export async function POST(request: NextRequest) {
       connection,
       faucetKeypair,
       tokenMint,
-      recipient
+      recipient,
+      false, // allowOwnerOffCurve
+      'confirmed',
+      { commitment: 'confirmed' }
     );
 
     // Transfer tokens
@@ -132,8 +135,16 @@ export async function POST(request: NextRequest) {
     });
 
   } catch (error: unknown) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error';
-    console.error('Faucet error:', errorMessage);
+    console.error('Faucet error full:', error);
+    let errorMessage = 'Unknown error';
+    if (error instanceof Error) {
+      errorMessage = error.message || error.toString();
+      console.error('Error stack:', error.stack);
+    } else if (typeof error === 'string') {
+      errorMessage = error;
+    } else {
+      errorMessage = JSON.stringify(error);
+    }
     return NextResponse.json(
       { error: errorMessage, success: false },
       { status: 500 }
