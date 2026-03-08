@@ -57,6 +57,8 @@ export default function StakingPage() {
   const [programReady, setProgramReady] = useState<boolean | null>(null);
   const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
   const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+  const [isRequestingFaucet, setIsRequestingFaucet] = useState(false);
+  const [showTestGuide, setShowTestGuide] = useState(true);
 
   // Fetch token balance
   const fetchTokenBalance = useCallback(async () => {
@@ -165,6 +167,32 @@ export default function StakingPage() {
     }
   }
 
+  async function handleFaucetRequest() {
+    if (!publicKey || isRequestingFaucet) return;
+    
+    setIsRequestingFaucet(true);
+    try {
+      const response = await fetch('/api/faucet', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ walletAddress: publicKey.toString() }),
+      });
+      
+      const data = await response.json();
+      
+      if (response.ok && data.success) {
+        showNotification('success', `Received ${data.amount.toLocaleString()} test zkRUNE`);
+        setTimeout(() => fetchTokenBalance(), 2000);
+      } else {
+        showNotification('error', data.error || 'Faucet request failed');
+      }
+    } catch {
+      showNotification('error', 'Faucet temporarily unavailable');
+    } finally {
+      setIsRequestingFaucet(false);
+    }
+  }
+
   const timeUntilUnlock = getTimeUntilUnlock();
   const selectedPeriod = LOCK_PERIODS[selectedPeriodIndex];
   const baseApy = poolState?.baseApyBps ? poolState.baseApyBps / 100 : 12;
@@ -245,6 +273,158 @@ export default function StakingPage() {
             Earn up to {(baseApy * 3).toFixed(0)}% APY by staking your tokens on-chain
           </p>
         </div>
+
+        {/* Test Guide & Faucet Section */}
+        {showTestGuide && (
+          <div className="relative mb-10">
+            <div className="absolute inset-0 bg-gradient-to-r from-[#6B4CFF]/20 via-[#00FFA3]/20 to-[#6B4CFF]/20 rounded-3xl blur-xl" />
+            <div className="relative bg-[#0d0d15]/90 border border-white/10 rounded-3xl overflow-hidden">
+              {/* Header */}
+              <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6B4CFF] to-[#00FFA3] flex items-center justify-center">
+                    <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-white">How to Test Staking</h3>
+                    <p className="text-sm text-gray-400">Get started in 3 simple steps</p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowTestGuide(false)}
+                  className="text-gray-500 hover:text-white transition p-2"
+                >
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Content */}
+              <div className="p-6">
+                <div className="grid md:grid-cols-3 gap-6 mb-8">
+                  {/* Step 1 */}
+                  <div className="group">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#6B4CFF]/20 border border-[#6B4CFF]/30 flex items-center justify-center text-[#6B4CFF] font-bold text-sm group-hover:bg-[#6B4CFF]/30 transition">
+                        1
+                      </div>
+                      <h4 className="text-white font-medium">Switch to Devnet</h4>
+                    </div>
+                    <p className="text-gray-400 text-sm leading-relaxed pl-11">
+                      Open your Solana wallet (Phantom, Solflare) and switch network to <span className="text-white font-medium">Devnet</span> in settings.
+                    </p>
+                  </div>
+                  
+                  {/* Step 2 */}
+                  <div className="group">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-[#00FFA3]/20 border border-[#00FFA3]/30 flex items-center justify-center text-[#00FFA3] font-bold text-sm group-hover:bg-[#00FFA3]/30 transition">
+                        2
+                      </div>
+                      <h4 className="text-white font-medium">Get Test Tokens</h4>
+                    </div>
+                    <p className="text-gray-400 text-sm leading-relaxed pl-11">
+                      Connect wallet and click the <span className="text-[#00FFA3] font-medium">Faucet</span> button below to receive free test zkRUNE tokens.
+                    </p>
+                  </div>
+                  
+                  {/* Step 3 */}
+                  <div className="group">
+                    <div className="flex items-center gap-3 mb-3">
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold text-sm group-hover:bg-purple-500/30 transition">
+                        3
+                      </div>
+                      <h4 className="text-white font-medium">Start Staking</h4>
+                    </div>
+                    <p className="text-gray-400 text-sm leading-relaxed pl-11">
+                      Choose a lock period and stake amount. <span className="text-orange-400">Lock times are shortened to seconds</span> for easy testing.
+                    </p>
+                  </div>
+                </div>
+                
+                {/* Faucet Section */}
+                <div className="bg-gradient-to-r from-[#00FFA3]/5 to-[#6B4CFF]/5 border border-white/5 rounded-2xl p-5">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00FFA3] to-[#00DD8C] flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="text-white font-semibold">Test Token Faucet</div>
+                        <div className="text-gray-400 text-sm">
+                          {connected 
+                            ? tokenBalance !== null 
+                              ? `Your balance: ${formatTokenAmount(tokenBalance)} zkRUNE`
+                              : 'Loading balance...'
+                            : 'Connect wallet to claim tokens'
+                          }
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {connected ? (
+                      <button
+                        onClick={handleFaucetRequest}
+                        disabled={isRequestingFaucet}
+                        className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:shadow-lg hover:shadow-[#00FFA3]/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isRequestingFaucet ? (
+                          <span className="flex items-center justify-center gap-2">
+                            <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                            </svg>
+                            Requesting...
+                          </span>
+                        ) : (
+                          'Get 1,000 Test zkRUNE'
+                        )}
+                      </button>
+                    ) : (
+                      <WalletMultiButton className="!bg-gradient-to-r !from-[#6B4CFF] !to-[#8B6CFF] hover:!opacity-90 !rounded-xl !h-12 !px-6 !text-sm !font-semibold" />
+                    )}
+                  </div>
+                  
+                  {/* Additional Info */}
+                  <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2 mt-4 pt-4 border-t border-white/5 text-xs text-gray-500">
+                    <span>No real value</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-600" />
+                    <span>Devnet only</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-600" />
+                    <span>Rate limited</span>
+                    <span className="w-1 h-1 rounded-full bg-gray-600" />
+                    <a 
+                      href="https://faucet.solana.com" 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="text-[#00FFA3] hover:underline"
+                    >
+                      Need Devnet SOL?
+                    </a>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Collapsed Test Guide Toggle */}
+        {!showTestGuide && (
+          <button
+            onClick={() => setShowTestGuide(true)}
+            className="mb-8 mx-auto flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-full text-sm text-gray-400 hover:text-white hover:bg-white/10 transition"
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            Show Testing Guide
+          </button>
+        )}
 
         {/* Stats Grid */}
         {poolState && (
