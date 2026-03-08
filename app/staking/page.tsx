@@ -175,7 +175,7 @@ export default function StakingPage() {
     
     // Open Twitter with pre-filled message
     const tweetText = encodeURIComponent(
-      `@zkaborr I need test zkRUNE tokens for staking on devnet!\n\nMy wallet: ${publicKey.toString()}\n\n#zkRune #Solana`
+      `@rune_zk I need test zkRUNE tokens for staking on devnet!\n\nMy wallet: ${publicKey.toString()}\n\n#zkRune #Solana`
     );
     window.open(`https://twitter.com/intent/tweet?text=${tweetText}`, '_blank');
   }
