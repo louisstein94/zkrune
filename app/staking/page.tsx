@@ -13,7 +13,7 @@ const WalletMultiButton = dynamic(
   { ssr: false }
 );
 
-const DEVNET_TOKEN_MINT = process.env.NEXT_PUBLIC_ZKRUNE_MINT || 'A619D39h4CxHT7rSSurWAb2Un36c6W8BLyJWBYGxzstP';
+const DEVNET_TOKEN_MINT = process.env.NEXT_PUBLIC_STAKING_TOKEN_MINT || 'A619D39h4CxHT7rSSurWAb2Un36c6W8BLyJWBYGxzstP';
 
 function formatTokenAmount(amount: number): string {
   if (amount === 0) return '0';

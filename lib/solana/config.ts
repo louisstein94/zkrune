@@ -23,6 +23,14 @@ export const ZKRUNE_TOKEN_CONFIG = {
   NAME: 'zkRune',
 };
 
+// Staking Token (Devnet test token - separate from mainnet)
+export const STAKING_TOKEN_CONFIG = {
+  MINT_ADDRESS: process.env.NEXT_PUBLIC_STAKING_TOKEN_MINT || 'A619D39h4CxHT7rSSurWAb2Un36c6W8BLyJWBYGxzstP',
+  DECIMALS: 6,
+  SYMBOL: 'zkRUNE',
+  NAME: 'zkRune (Devnet)',
+};
+
 // Program IDs
 export const PROGRAM_IDS = {
   // Groth16 Verifier Program (Mainnet deployed)

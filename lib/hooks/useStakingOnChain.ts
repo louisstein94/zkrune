@@ -10,7 +10,7 @@ import {
   getAssociatedTokenAddressSync,
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
-import { ZKRUNE_TOKEN_CONFIG, getSolscanUrl } from '@/lib/solana/config';
+import { STAKING_TOKEN_CONFIG, getSolscanUrl } from '@/lib/solana/config';
 import { BN } from 'bn.js';
 
 // Program ID from deployed staking program (devnet)
@@ -106,7 +106,7 @@ export function useStakingOnChain() {
   });
 
   const tokenMint = useMemo(() => 
-    new PublicKey(ZKRUNE_TOKEN_CONFIG.MINT_ADDRESS), 
+    new PublicKey(STAKING_TOKEN_CONFIG.MINT_ADDRESS), 
     []
   );
 
