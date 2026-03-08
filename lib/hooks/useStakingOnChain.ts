@@ -181,7 +181,7 @@ export function useStakingOnChain() {
       const minStakeAmount = data.readBigUInt64LE(offset + 196);
       const baseApyBps = data.readUInt16LE(offset + 204);
 
-      const decimals = ZKRUNE_TOKEN_CONFIG.DECIMALS;
+      const decimals = STAKING_TOKEN_CONFIG.DECIMALS;
       const poolState: PoolState = {
         totalStaked: Number(totalStaked) / Math.pow(10, decimals),
         totalStakers,
@@ -224,7 +224,7 @@ export function useStakingOnChain() {
       const totalClaimed = data.readBigUInt64LE(offset + 97);
       const isActive = data.readUInt8(offset + 105) === 1;
 
-      const decimals = ZKRUNE_TOKEN_CONFIG.DECIMALS;
+      const decimals = STAKING_TOKEN_CONFIG.DECIMALS;
       
       // Calculate pending rewards (simplified - actual calculation on-chain)
       const now = Math.floor(Date.now() / 1000);
@@ -275,7 +275,7 @@ export function useStakingOnChain() {
     setState(prev => ({ ...prev, isStaking: true, result: null, error: null }));
 
     try {
-      const decimals = ZKRUNE_TOKEN_CONFIG.DECIMALS;
+      const decimals = STAKING_TOKEN_CONFIG.DECIMALS;
       const rawAmount = new BN(Math.floor(amount * Math.pow(10, decimals)));
 
       const userTokenAccount = getAssociatedTokenAddressSync(tokenMint, publicKey);
