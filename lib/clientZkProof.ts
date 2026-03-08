@@ -19,29 +19,13 @@ export async function generateClientProof(
     const wasmPath = `/circuits/${templateId}.wasm`;
     const zkeyPath = `/circuits/${templateId}.zkey`;
 
-    console.log(`[Client ZK] Loading circuit files for ${templateId}...`);
+    console.log(`[Client ZK] Generating proof for ${templateId}...`);
 
-    // Fetch WASM file
-    const wasmResponse = await fetch(wasmPath);
-    if (!wasmResponse.ok) {
-      throw new Error(`Failed to load WASM: ${wasmResponse.status}`);
-    }
-    const wasmBuffer = await wasmResponse.arrayBuffer();
-
-    // Fetch zkey file  
-    const zkeyResponse = await fetch(zkeyPath);
-    if (!zkeyResponse.ok) {
-      throw new Error(`Failed to load zkey: ${zkeyResponse.status}`);
-    }
-    const zkeyBuffer = await zkeyResponse.arrayBuffer();
-
-    console.log(`[Client ZK] Files loaded. Generating proof...`);
-
-    // Generate proof in browser!
+    // Generate proof in browser
     const { proof: groth16Proof, publicSignals } = await snarkjs.groth16.fullProve(
       inputs,
-      new Uint8Array(wasmBuffer),
-      new Uint8Array(zkeyBuffer)
+      wasmPath,
+      zkeyPath
     );
 
     const proofTime = Date.now() - startTime;

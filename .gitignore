@@ -94,6 +94,7 @@ solana-groth16-verifier/Cargo.lock
 # IDE
 .idea/
 .vscode/
+.cursor/
 
 # OS files
 Thumbs.db

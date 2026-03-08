@@ -10,6 +10,7 @@ const securityHeaders = {
   'Content-Security-Policy': [
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // snarkjs requires unsafe-eval
+    "worker-src 'self' blob:", // snarkjs creates Web Workers from blob URLs
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data: https:",
     "font-src 'self' data:",
