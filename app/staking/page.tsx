@@ -1,507 +1,648 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
-import { useWallet } from '@solana/wallet-adapter-react';
+import { useWallet, useConnection } from '@solana/wallet-adapter-react';
+import { useStakingOnChain, LOCK_PERIODS } from '@/lib/hooks/useStakingOnChain';
+import { PublicKey } from '@solana/web3.js';
+import { getAccount, getAssociatedTokenAddressSync } from '@solana/spl-token';
 
 const WalletMultiButton = dynamic(
   () => import('@solana/wallet-adapter-react-ui').then((mod) => mod.WalletMultiButton),
   { ssr: false }
 );
-import {
-  getUserStakingInfo,
-  createStake,
-  claimRewards,
-  unstake,
-  getStakingStats,
-  getLockPeriodOptions,
-  getTimeUntilUnlock,
-  calculatePendingRewards,
-  type StakePosition,
-  type UserStakingInfo,
-} from '@/lib/token/staking';
-import { STAKING_CONFIG, formatTokenAmount } from '@/lib/token/config';
-import { useStakingOnChain } from '@/lib/hooks/useStakingOnChain';
+
+const DEVNET_TOKEN_MINT = process.env.NEXT_PUBLIC_ZKRUNE_MINT || 'A619D39h4CxHT7rSSurWAb2Un36c6W8BLyJWBYGxzstP';
+
+function formatTokenAmount(amount: number): string {
+  if (amount === 0) return '0';
+  if (amount < 0.001) return amount.toFixed(6);
+  if (amount < 1) return amount.toFixed(4);
+  if (amount < 1000) return amount.toFixed(2);
+  if (amount < 1000000) return amount.toLocaleString('en-US', { maximumFractionDigits: 2 });
+  return (amount / 1000000).toFixed(2) + 'M';
+}
+
+function formatTimeRemaining(days: number, hours: number, minutes: number): string {
+  if (days > 0) return `${days}d ${hours}h`;
+  if (hours > 0) return `${hours}h ${minutes}m`;
+  return `${minutes}m`;
+}
 
 export default function StakingPage() {
   const { publicKey, connected } = useWallet();
-  const { stakeTokens, isStaking, isVaultConfigured } = useStakingOnChain();
-  const [userInfo, setUserInfo] = useState<UserStakingInfo | null>(null);
-  const [stats, setStats] = useState<ReturnType<typeof getStakingStats> | null>(null);
-  const [stakeAmount, setStakeAmount] = useState('');
-  const [selectedPeriod, setSelectedPeriod] = useState(30);
-  const [isProcessing, setIsProcessing] = useState(false);
-  const [activeTab, setActiveTab] = useState<'stake' | 'positions'>('stake');
-  const [txSignature, setTxSignature] = useState<string | null>(null);
+  const { connection } = useConnection();
+  const {
+    stakeTokens,
+    unstakeTokens,
+    claimRewards,
+    refreshData,
+    isStaking,
+    isUnstaking,
+    isClaiming,
+    isLoading,
+    poolState,
+    userStake,
+    result,
+    error,
+    getTimeUntilUnlock,
+    isProgramReady,
+    programId,
+  } = useStakingOnChain();
 
-  const lockPeriods = getLockPeriodOptions();
+  const [stakeAmount, setStakeAmount] = useState('');
+  const [selectedPeriodIndex, setSelectedPeriodIndex] = useState(0);
+  const [activeTab, setActiveTab] = useState<'stake' | 'position'>('stake');
+  const [programReady, setProgramReady] = useState<boolean | null>(null);
+  const [notification, setNotification] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [tokenBalance, setTokenBalance] = useState<number | null>(null);
+
+  // Fetch token balance
+  const fetchTokenBalance = useCallback(async () => {
+    if (!publicKey || !connection) return;
+    try {
+      const mint = new PublicKey(DEVNET_TOKEN_MINT);
+      const ata = getAssociatedTokenAddressSync(mint, publicKey);
+      const account = await getAccount(connection, ata);
+      setTokenBalance(Number(account.amount) / 1_000_000);
+    } catch {
+      setTokenBalance(0);
+    }
+  }, [publicKey, connection]);
 
   useEffect(() => {
-    loadData();
-    const interval = setInterval(loadData, 60000); // Refresh every minute
-    return () => clearInterval(interval);
-  }, [publicKey]);
-
-  function loadData() {
-    if (publicKey) {
-      setUserInfo(getUserStakingInfo(publicKey.toBase58()));
+    if (connected) {
+      fetchTokenBalance();
     }
-    setStats(getStakingStats());
-  }
+  }, [connected, fetchTokenBalance]);
+
+  useEffect(() => {
+    async function init() {
+      const ready = await isProgramReady();
+      setProgramReady(ready);
+      if (ready) {
+        await refreshData();
+      }
+    }
+    init();
+  }, [isProgramReady, refreshData]);
+
+  useEffect(() => {
+    if (connected && programReady) {
+      refreshData();
+    }
+  }, [connected, programReady, refreshData]);
+
+  useEffect(() => {
+    if (!programReady) return;
+    const interval = setInterval(() => {
+      refreshData();
+      fetchTokenBalance();
+    }, 30000);
+    return () => clearInterval(interval);
+  }, [programReady, refreshData, fetchTokenBalance]);
+
+  const showNotification = useCallback((type: 'success' | 'error', message: string) => {
+    setNotification({ type, message });
+    setTimeout(() => setNotification(null), 5000);
+  }, []);
 
   async function handleStake() {
     if (!publicKey || !stakeAmount) return;
 
     const amount = parseFloat(stakeAmount);
-    if (isNaN(amount) || amount < STAKING_CONFIG.MIN_STAKE) {
-      alert(`Minimum stake is ${STAKING_CONFIG.MIN_STAKE} zkRUNE`);
+    const minStake = poolState?.minStakeAmount || 100;
+
+    if (isNaN(amount) || amount < minStake) {
+      showNotification('error', `Minimum stake is ${minStake} zkRUNE`);
       return;
     }
 
-    setIsProcessing(true);
-
-    // Try on-chain staking first if vault is configured
-    if (isVaultConfigured()) {
-      const onChainResult = await stakeTokens(amount);
-      if (!onChainResult.success) {
-        alert(onChainResult.error || 'On-chain staking failed');
-        setIsProcessing(false);
-        return;
-      }
-      setTxSignature(onChainResult.signature || null);
+    if (tokenBalance !== null && amount > tokenBalance) {
+      showNotification('error', 'Insufficient balance');
+      return;
     }
 
-    // Record stake in local state
-    const result = createStake(publicKey.toBase58(), amount, selectedPeriod);
-    
-    if (result.success) {
-      loadData();
+    const res = await stakeTokens(amount, selectedPeriodIndex);
+
+    if (res.success) {
       setStakeAmount('');
-      setTimeout(() => setTxSignature(null), 5000);
+      showNotification('success', `Staked ${amount} zkRUNE for ${LOCK_PERIODS[selectedPeriodIndex].label}`);
+      fetchTokenBalance();
     } else {
-      alert(result.error || 'Staking failed');
+      showNotification('error', res.error || 'Staking failed');
     }
-
-    setIsProcessing(false);
   }
 
-  async function handleClaim(positionId: string) {
-    if (!publicKey) return;
-
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const result = claimRewards(positionId, publicKey.toBase58());
-    
-    if (result.success) {
-      loadData();
-      alert(`Claimed ${formatTokenAmount(result.amount || 0)} zkRUNE!`);
+  async function handleClaim() {
+    const res = await claimRewards();
+    if (res.success) {
+      showNotification('success', 'Rewards claimed successfully');
+      fetchTokenBalance();
     } else {
-      alert(result.error || 'Claim failed');
+      showNotification('error', res.error || 'Claim failed');
     }
-
-    setIsProcessing(false);
   }
 
-  async function handleUnstake(positionId: string) {
-    if (!publicKey) return;
+  async function handleUnstake() {
+    const timeInfo = getTimeUntilUnlock();
 
-    const position = userInfo?.positions.find(p => p.id === positionId);
-    if (!position) return;
-
-    const timeInfo = getTimeUntilUnlock(position);
-    
-    if (!timeInfo.isUnlocked) {
+    if (timeInfo && !timeInfo.isUnlocked) {
       const confirmed = confirm(
-        `Your stake is locked for ${timeInfo.days}d ${timeInfo.hours}h more. ` +
-        `Early withdrawal will result in a 50% penalty. Continue?`
+        `Your stake is locked for ${timeInfo.days}d ${timeInfo.hours}h more.\n\nEarly withdrawal will result in a 50% penalty.\n\nContinue?`
       );
       if (!confirmed) return;
     }
 
-    setIsProcessing(true);
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    const result = unstake(positionId, publicKey.toBase58());
-    
-    if (result.success) {
-      loadData();
-      alert(
-        `Unstaked ${formatTokenAmount(result.amount || 0)} zkRUNE` +
-        (result.rewards ? ` + ${formatTokenAmount(result.rewards)} rewards` : '')
-      );
+    const res = await unstakeTokens();
+    if (res.success) {
+      showNotification('success', 'Unstaked successfully');
+      setActiveTab('stake');
+      fetchTokenBalance();
     } else {
-      alert(result.error || 'Unstake failed');
+      showNotification('error', res.error || 'Unstake failed');
     }
-
-    setIsProcessing(false);
   }
 
+  const timeUntilUnlock = getTimeUntilUnlock();
+  const selectedPeriod = LOCK_PERIODS[selectedPeriodIndex];
+  const baseApy = poolState?.baseApyBps ? poolState.baseApyBps / 100 : 12;
+
+  const estimatedDaily = stakeAmount
+    ? (parseFloat(stakeAmount) * (baseApy * selectedPeriod.multiplier) / 100) / 365
+    : 0;
+  const estimatedYearly = stakeAmount
+    ? parseFloat(stakeAmount) * (baseApy * selectedPeriod.multiplier) / 100
+    : 0;
+
   return (
-    <div className="min-h-screen bg-[#0a0a0f]">
+    <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0d0d15] to-[#0a0a0f]">
+      {/* Background Effects */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00FFA3]/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#6B4CFF]/5 rounded-full blur-[120px]" />
+      </div>
+
       {/* Header */}
-      <header className="border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#00FFA3]">
-            zkRune
+      <header className="relative border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
+          <Link href="/" className="flex items-center gap-2">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FFA3] to-[#6B4CFF] flex items-center justify-center">
+              <span className="text-black font-bold text-sm">zk</span>
+            </div>
+            <span className="text-xl font-bold text-white">zkRune</span>
           </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/governance" className="text-gray-400 hover:text-white transition">
-              Governance
-            </Link>
-            <Link href="/premium" className="text-gray-400 hover:text-white transition">
-              Premium
-            </Link>
-            <Link href="/marketplace" className="text-gray-400 hover:text-white transition">
-              Marketplace
-            </Link>
-            <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
+          <div className="flex items-center gap-6">
+            <nav className="hidden md:flex items-center gap-6">
+              <Link href="/marketplace" className="text-gray-400 hover:text-white transition text-sm">
+                Marketplace
+              </Link>
+              <Link href="/governance" className="text-gray-400 hover:text-white transition text-sm">
+                Governance
+              </Link>
+              <Link href="/docs" className="text-gray-400 hover:text-white transition text-sm">
+                Docs
+              </Link>
+            </nav>
+            <WalletMultiButton className="!bg-gradient-to-r !from-[#6B4CFF] !to-[#8B6CFF] hover:!opacity-90 !rounded-xl !h-10 !text-sm !font-medium" />
           </div>
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Success Toast */}
-        {txSignature && (
-          <div className="fixed top-24 right-4 bg-green-500/20 border border-green-500/30 text-green-400 px-6 py-4 rounded-lg z-50 animate-fade-in max-w-md">
-            <div className="font-semibold mb-1">Staking successful!</div>
-            <a 
-              href={`https://solscan.io/tx/${txSignature}?cluster=devnet`}
+      {/* Notification Toast */}
+      {notification && (
+        <div className={`fixed top-20 right-4 z-50 px-6 py-4 rounded-xl border backdrop-blur-xl shadow-2xl animate-slide-in ${
+          notification.type === 'success' 
+            ? 'bg-[#00FFA3]/10 border-[#00FFA3]/30 text-[#00FFA3]' 
+            : 'bg-red-500/10 border-red-500/30 text-red-400'
+        }`}>
+          <p className="font-medium">{notification.message}</p>
+          {result && 'explorerUrl' in result && result.explorerUrl && (
+            <a
+              href={result.explorerUrl}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs text-green-400 hover:text-green-300 underline"
+              className="text-xs opacity-70 hover:opacity-100 underline mt-1 block"
             >
-              View on Solscan
+              View transaction
             </a>
-          </div>
-        )}
+          )}
+        </div>
+      )}
 
-        {/* Page Title */}
+      <main className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Hero Section */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Staking Rewards
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00FFA3]/10 border border-[#00FFA3]/20 text-[#00FFA3] text-sm mb-6">
+            <span className="w-2 h-2 rounded-full bg-[#00FFA3] animate-pulse" />
+            Devnet - Test Environment
+          </div>
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
+            Stake <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FFA3] to-[#6B4CFF]">zkRUNE</span>
           </h1>
-          <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Stake your zkRUNE tokens to earn rewards. Longer lock periods earn higher APY. 
-            Earn up to {STAKING_CONFIG.MAX_APY}% APY.
+          <p className="text-gray-400 text-lg max-w-xl mx-auto">
+            Earn up to {(baseApy * 3).toFixed(0)}% APY by staking your tokens on-chain
           </p>
         </div>
 
-        {/* Global Stats */}
-        {stats && (
+        {/* Stats Grid */}
+        {poolState && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-white">
-                {formatTokenAmount(stats.totalStaked)}
+            {[
+              { label: 'Total Staked', value: formatTokenAmount(poolState.totalStaked), color: 'text-white' },
+              { label: 'Stakers', value: poolState.totalStakers.toString(), color: 'text-[#00FFA3]' },
+              { label: 'Reward Pool', value: formatTokenAmount(poolState.rewardPoolBalance), color: 'text-blue-400' },
+              { label: 'Distributed', value: formatTokenAmount(poolState.totalRewardsDistributed), color: 'text-purple-400' },
+            ].map((stat, i) => (
+              <div key={i} className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center hover:bg-white/[0.04] transition">
+                <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
+                <div className="text-gray-500 text-sm mt-1">{stat.label}</div>
               </div>
-              <div className="text-gray-400 text-sm">Total Staked</div>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#00FFA3]">{stats.totalStakers}</div>
-              <div className="text-gray-400 text-sm">Stakers</div>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-blue-400">
-                {stats.averageAPY.toFixed(1)}%
-              </div>
-              <div className="text-gray-400 text-sm">Average APY</div>
-            </div>
-            <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400">
-                {formatTokenAmount(stats.totalRewardsPaid)}
-              </div>
-              <div className="text-gray-400 text-sm">Rewards Paid</div>
-            </div>
+            ))}
           </div>
         )}
 
-        {/* User Stats */}
-        {connected && userInfo && (
-          <div className="bg-gradient-to-r from-[#6B4CFF]/20 to-[#00FFA3]/20 border border-white/10 rounded-xl p-6 mb-8">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {/* Wallet Balance Card */}
+        {connected && (
+          <div className="bg-gradient-to-r from-[#6B4CFF]/10 to-[#00FFA3]/10 border border-white/5 rounded-2xl p-6 mb-8">
+            <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
-                <div className="text-sm text-gray-400 mb-1">Your Staked</div>
-                <div className="text-2xl font-bold text-white">
-                  {formatTokenAmount(userInfo.totalStaked)}
+                <div className="text-gray-400 text-sm mb-1">Your Balance</div>
+                <div className="text-3xl font-bold text-white">
+                  {tokenBalance !== null ? formatTokenAmount(tokenBalance) : '...'} <span className="text-lg text-gray-400">zkRUNE</span>
                 </div>
               </div>
-              <div>
-                <div className="text-sm text-gray-400 mb-1">Pending Rewards</div>
-                <div className="text-2xl font-bold text-[#00FFA3]">
-                  {formatTokenAmount(userInfo.totalPendingRewards)}
+              <div className="flex items-center gap-3">
+                <div className="text-right hidden sm:block">
+                  <div className="text-xs text-gray-500">Token (Devnet)</div>
+                  <div className="text-xs text-gray-400 font-mono">{DEVNET_TOKEN_MINT.slice(0, 8)}...</div>
                 </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-400 mb-1">Total Claimed</div>
-                <div className="text-2xl font-bold text-blue-400">
-                  {formatTokenAmount(userInfo.totalClaimed)}
-                </div>
-              </div>
-              <div>
-                <div className="text-sm text-gray-400 mb-1">Effective APY</div>
-                <div className="text-2xl font-bold text-purple-400">
-                  {userInfo.effectiveAPY.toFixed(1)}%
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Tabs */}
-        <div className="flex gap-2 mb-8">
-          <button
-            onClick={() => setActiveTab('stake')}
-            className={`px-6 py-2 rounded-lg font-medium transition ${
-              activeTab === 'stake'
-                ? 'bg-[#00FFA3] text-black'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            Stake
-          </button>
-          <button
-            onClick={() => setActiveTab('positions')}
-            className={`px-6 py-2 rounded-lg font-medium transition ${
-              activeTab === 'positions'
-                ? 'bg-[#00FFA3] text-black'
-                : 'bg-white/5 text-gray-400 hover:bg-white/10'
-            }`}
-          >
-            My Positions {userInfo?.positions.length ? `(${userInfo.positions.length})` : ''}
-          </button>
-        </div>
-
-        {activeTab === 'stake' ? (
-          <div className="grid lg:grid-cols-2 gap-8">
-            {/* Stake Form */}
-            <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-              <h3 className="text-xl font-semibold text-white mb-6">Stake zkRUNE</h3>
-
-              {connected ? (
-                <div className="space-y-6">
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-2">Amount</label>
-                    <input
-                      type="number"
-                      value={stakeAmount}
-                      onChange={(e) => setStakeAmount(e.target.value)}
-                      placeholder={`Min ${STAKING_CONFIG.MIN_STAKE}`}
-                      min={STAKING_CONFIG.MIN_STAKE}
-                      className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-lg focus:border-[#00FFA3] focus:outline-none"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-sm text-gray-400 mb-3">Lock Period</label>
-                    <div className="grid grid-cols-2 gap-3">
-                      {lockPeriods.map((period) => (
-                        <button
-                          key={period.days}
-                          onClick={() => setSelectedPeriod(period.days)}
-                          className={`p-4 rounded-lg border transition ${
-                            selectedPeriod === period.days
-                              ? 'border-[#00FFA3] bg-[#00FFA3]/10'
-                              : 'border-white/10 bg-white/5 hover:border-white/20'
-                          }`}
-                        >
-                          <div className="text-white font-semibold">{period.name}</div>
-                          <div className="text-[#00FFA3] text-lg font-bold">
-                            {period.apy}% APY
-                          </div>
-                          <div className="text-gray-400 text-sm">
-                            {period.multiplier}x multiplier
-                          </div>
-                        </button>
-                      ))}
-                    </div>
-                  </div>
-
-                  {stakeAmount && (
-                    <div className="bg-white/5 rounded-lg p-4">
-                      <div className="flex justify-between text-sm mb-2">
-                        <span className="text-gray-400">Estimated Daily</span>
-                        <span className="text-white">
-                          {formatTokenAmount(
-                            parseFloat(stakeAmount) * 
-                            (lockPeriods.find(p => p.days === selectedPeriod)?.apy || 12) / 
-                            365 / 100
-                          )} zkRUNE
-                        </span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-gray-400">Estimated Yearly</span>
-                        <span className="text-[#00FFA3] font-semibold">
-                          {formatTokenAmount(
-                            parseFloat(stakeAmount) * 
-                            (lockPeriods.find(p => p.days === selectedPeriod)?.apy || 12) / 
-                            100
-                          )} zkRUNE
-                        </span>
-                      </div>
-                    </div>
-                  )}
-
-                  <button
-                    onClick={handleStake}
-                    disabled={isProcessing || isStaking || !stakeAmount}
-                    className="w-full py-3 bg-[#00FFA3] text-black font-semibold rounded-lg hover:bg-[#00cc82] transition disabled:opacity-50"
-                  >
-                    {isProcessing ? 'Processing...' : 'Stake Now'}
-                  </button>
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <p className="text-gray-400 mb-4">Connect your wallet to stake</p>
-                  <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
-                </div>
-              )}
-            </div>
-
-            {/* Info */}
-            <div className="space-y-6">
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">How Staking Works</h4>
-                <ul className="space-y-3 text-gray-400 text-sm">
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#00FFA3]">1.</span>
-                    Choose your stake amount and lock period
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#00FFA3]">2.</span>
-                    Longer locks earn higher APY (up to 3x multiplier)
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#00FFA3]">3.</span>
-                    Claim rewards daily without unstaking
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-[#00FFA3]">4.</span>
-                    Unstake after lock period ends with no penalty
-                  </li>
-                  <li className="flex items-start gap-2">
-                    <span className="text-red-400">!</span>
-                    Early withdrawal incurs 50% penalty
-                  </li>
-                </ul>
-              </div>
-
-              <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-                <h4 className="text-lg font-semibold text-white mb-4">APY Breakdown</h4>
-                <div className="space-y-3">
-                  {lockPeriods.map((period) => (
-                    <div key={period.days} className="flex justify-between items-center">
-                      <span className="text-gray-400">{period.name}</span>
-                      <div className="text-right">
-                        <span className="text-white font-semibold">{period.apy}%</span>
-                        <span className="text-gray-500 text-sm ml-2">
-                          ({period.multiplier}x)
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        ) : (
-          /* Positions Tab */
-          <div className="space-y-4">
-            {!userInfo?.positions.length ? (
-              <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10">
-                <p className="text-gray-400 mb-4">No staking positions yet</p>
-                <button
-                  onClick={() => setActiveTab('stake')}
-                  className="px-6 py-2 bg-[#00FFA3] text-black font-medium rounded-lg"
+                <a
+                  href={`https://solscan.io/token/${DEVNET_TOKEN_MINT}?cluster=devnet`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-gray-300 hover:bg-white/10 transition"
                 >
-                  Start Staking
-                </button>
+                  View Token
+                </a>
               </div>
-            ) : (
-              userInfo.positions.map((position) => (
-                <PositionCard
-                  key={position.id}
-                  position={position}
-                  onClaim={handleClaim}
-                  onUnstake={handleUnstake}
-                  isProcessing={isProcessing}
-                />
-              ))
+            </div>
+            {userStake?.isActive && (
+              <div className="mt-4 pt-4 border-t border-white/5 grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div>
+                  <div className="text-xs text-gray-500">Staked</div>
+                  <div className="text-lg font-semibold text-white">{formatTokenAmount(userStake.amount)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500">Pending Rewards</div>
+                  <div className="text-lg font-semibold text-[#00FFA3]">{formatTokenAmount(userStake.pendingRewards)}</div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500">Lock Status</div>
+                  <div className={`text-lg font-semibold ${timeUntilUnlock?.isUnlocked ? 'text-[#00FFA3]' : 'text-orange-400'}`}>
+                    {timeUntilUnlock?.isUnlocked ? 'Unlocked' : formatTimeRemaining(timeUntilUnlock?.days || 0, timeUntilUnlock?.hours || 0, timeUntilUnlock?.minutes || 0)}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-gray-500">Your APY</div>
+                  <div className="text-lg font-semibold text-purple-400">
+                    {(baseApy * LOCK_PERIODS[userStake.lockPeriodIndex].multiplier).toFixed(0)}%
+                  </div>
+                </div>
+              </div>
             )}
           </div>
         )}
+
+        {/* Main Content */}
+        <div className="grid lg:grid-cols-5 gap-8">
+          {/* Left Column - Stake/Position */}
+          <div className="lg:col-span-3">
+            {/* Tabs */}
+            <div className="flex gap-2 mb-6">
+              <button
+                onClick={() => setActiveTab('stake')}
+                className={`px-5 py-2.5 rounded-xl font-medium text-sm transition ${
+                  activeTab === 'stake'
+                    ? 'bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10'
+                }`}
+              >
+                Stake
+              </button>
+              <button
+                onClick={() => setActiveTab('position')}
+                disabled={!userStake?.isActive}
+                className={`px-5 py-2.5 rounded-xl font-medium text-sm transition ${
+                  activeTab === 'position'
+                    ? 'bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black'
+                    : 'bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed'
+                }`}
+              >
+                My Position
+              </button>
+            </div>
+
+            {activeTab === 'stake' ? (
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+                {!connected ? (
+                  <div className="text-center py-12">
+                    <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-white/5 flex items-center justify-center">
+                      <svg className="w-8 h-8 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18 0a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 9m18 0V6a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3" />
+                      </svg>
+                    </div>
+                    <p className="text-gray-400 mb-4">Connect your wallet to start staking</p>
+                    <WalletMultiButton className="!bg-gradient-to-r !from-[#6B4CFF] !to-[#8B6CFF] !rounded-xl" />
+                  </div>
+                ) : userStake?.isActive ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400 mb-4">You have an active stake position</p>
+                    <button
+                      onClick={() => setActiveTab('position')}
+                      className="px-6 py-3 bg-gradient-to-r from-[#6B4CFF] to-[#8B6CFF] text-white font-medium rounded-xl hover:opacity-90 transition"
+                    >
+                      View Position
+                    </button>
+                  </div>
+                ) : programReady === false ? (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400">Staking pool is not initialized yet</p>
+                  </div>
+                ) : (
+                  <div className="space-y-6">
+                    {/* Amount Input */}
+                    <div>
+                      <div className="flex justify-between items-center mb-2">
+                        <label className="text-sm text-gray-400">Amount</label>
+                        {tokenBalance !== null && (
+                          <button 
+                            onClick={() => setStakeAmount(tokenBalance.toString())}
+                            className="text-xs text-[#00FFA3] hover:underline"
+                          >
+                            Max: {formatTokenAmount(tokenBalance)}
+                          </button>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <input
+                          type="number"
+                          value={stakeAmount}
+                          onChange={(e) => setStakeAmount(e.target.value)}
+                          placeholder="0.00"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-xl font-medium focus:border-[#00FFA3]/50 focus:outline-none focus:ring-1 focus:ring-[#00FFA3]/20 transition"
+                        />
+                        <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">zkRUNE</span>
+                      </div>
+                    </div>
+
+                    {/* Lock Period Selection */}
+                    <div>
+                      <label className="text-sm text-gray-400 mb-3 block">Lock Period</label>
+                      <div className="grid grid-cols-2 gap-3">
+                        {LOCK_PERIODS.map((period, index) => (
+                          <button
+                            key={period.days}
+                            onClick={() => setSelectedPeriodIndex(index)}
+                            className={`relative p-4 rounded-xl border transition overflow-hidden ${
+                              selectedPeriodIndex === index
+                                ? 'border-[#00FFA3]/50 bg-[#00FFA3]/5'
+                                : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04]'
+                            }`}
+                          >
+                            {selectedPeriodIndex === index && (
+                              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#00FFA3]" />
+                            )}
+                            <div className="text-white font-semibold">{period.label}</div>
+                            <div className="text-[#00FFA3] text-xl font-bold mt-1">
+                              {(baseApy * period.multiplier).toFixed(0)}%
+                            </div>
+                            <div className="text-gray-500 text-xs mt-1">{period.multiplier}x multiplier</div>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Estimate */}
+                    {stakeAmount && parseFloat(stakeAmount) > 0 && (
+                      <div className="bg-white/[0.02] rounded-xl p-4 space-y-2">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Daily earnings</span>
+                          <span className="text-white font-medium">~{formatTokenAmount(estimatedDaily)} zkRUNE</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-gray-500">Yearly earnings</span>
+                          <span className="text-[#00FFA3] font-semibold">~{formatTokenAmount(estimatedYearly)} zkRUNE</span>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Stake Button */}
+                    <button
+                      onClick={handleStake}
+                      disabled={isStaking || !stakeAmount || isLoading}
+                      className="w-full py-4 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                    >
+                      {isStaking ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <svg className="animate-spin h-5 w-5" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+                          </svg>
+                          Staking...
+                        </span>
+                      ) : 'Stake Now'}
+                    </button>
+                  </div>
+                )}
+              </div>
+            ) : (
+              /* Position Tab */
+              <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+                {userStake && userStake.isActive ? (
+                  <div className="space-y-6">
+                    <div className="flex justify-between items-start">
+                      <div>
+                        <div className="text-sm text-gray-500 mb-1">Your Staked Amount</div>
+                        <div className="text-3xl font-bold text-white">{formatTokenAmount(userStake.amount)} zkRUNE</div>
+                      </div>
+                      <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
+                        timeUntilUnlock?.isUnlocked 
+                          ? 'bg-[#00FFA3]/10 text-[#00FFA3]' 
+                          : 'bg-orange-500/10 text-orange-400'
+                      }`}>
+                        {timeUntilUnlock?.isUnlocked ? 'Unlocked' : `${formatTimeRemaining(timeUntilUnlock?.days || 0, timeUntilUnlock?.hours || 0, timeUntilUnlock?.minutes || 0)} left`}
+                      </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="bg-white/[0.02] rounded-xl p-4">
+                        <div className="text-sm text-gray-500 mb-1">Pending Rewards</div>
+                        <div className="text-2xl font-bold text-[#00FFA3]">{formatTokenAmount(userStake.pendingRewards)}</div>
+                      </div>
+                      <div className="bg-white/[0.02] rounded-xl p-4">
+                        <div className="text-sm text-gray-500 mb-1">Total Claimed</div>
+                        <div className="text-2xl font-bold text-blue-400">{formatTokenAmount(userStake.totalClaimed)}</div>
+                      </div>
+                    </div>
+
+                    <div className="bg-white/[0.02] rounded-xl p-4">
+                      <div className="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                          <span className="text-gray-500">Lock Period</span>
+                          <div className="text-white mt-1">{LOCK_PERIODS[userStake.lockPeriodIndex].label}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">APY</span>
+                          <div className="text-[#00FFA3] mt-1 font-semibold">
+                            {(baseApy * LOCK_PERIODS[userStake.lockPeriodIndex].multiplier).toFixed(0)}%
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Staked At</span>
+                          <div className="text-white mt-1">{userStake.stakedAt.toLocaleDateString()}</div>
+                        </div>
+                        <div>
+                          <span className="text-gray-500">Unlocks At</span>
+                          <div className="text-white mt-1">{userStake.unlocksAt.toLocaleDateString()}</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex gap-4">
+                      <button
+                        onClick={handleClaim}
+                        disabled={isClaiming || userStake.pendingRewards < 0.000001}
+                        className="flex-1 py-3.5 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {isClaiming ? 'Claiming...' : 'Claim Rewards'}
+                      </button>
+                      <button
+                        onClick={handleUnstake}
+                        disabled={isUnstaking}
+                        className={`flex-1 py-3.5 font-semibold rounded-xl transition disabled:opacity-50 ${
+                          timeUntilUnlock?.isUnlocked
+                            ? 'bg-white/5 text-white hover:bg-white/10 border border-white/10'
+                            : 'bg-red-500/10 text-red-400 hover:bg-red-500/20 border border-red-500/20'
+                        }`}
+                      >
+                        {isUnstaking ? 'Unstaking...' : timeUntilUnlock?.isUnlocked ? 'Unstake' : 'Early Withdraw'}
+                      </button>
+                    </div>
+
+                    {!timeUntilUnlock?.isUnlocked && (
+                      <p className="text-center text-red-400/60 text-sm">
+                        Early withdrawal incurs 50% penalty
+                      </p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="text-center py-12">
+                    <p className="text-gray-400 mb-4">No active position</p>
+                    <button
+                      onClick={() => setActiveTab('stake')}
+                      className="px-6 py-3 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-medium rounded-xl"
+                    >
+                      Start Staking
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Right Column - Info */}
+          <div className="lg:col-span-2 space-y-6">
+            {/* APY Table */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">APY Tiers</h3>
+              <div className="space-y-3">
+                {LOCK_PERIODS.map((period) => (
+                  <div key={period.days} className="flex items-center justify-between py-2 border-b border-white/5 last:border-0">
+                    <div>
+                      <span className="text-white">{period.label}</span>
+                      <span className="text-gray-500 text-sm ml-2">({period.multiplier}x)</span>
+                    </div>
+                    <span className="text-[#00FFA3] font-bold text-lg">{(baseApy * period.multiplier).toFixed(0)}%</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* How it Works */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">How It Works</h3>
+              <div className="space-y-4">
+                {[
+                  { step: '1', text: 'Choose amount and lock period' },
+                  { step: '2', text: 'Longer locks = higher APY' },
+                  { step: '3', text: 'Claim rewards anytime' },
+                  { step: '4', text: 'Unstake after lock ends' },
+                ].map((item) => (
+                  <div key={item.step} className="flex items-start gap-3">
+                    <div className="w-6 h-6 rounded-full bg-[#00FFA3]/10 text-[#00FFA3] flex items-center justify-center text-sm font-bold flex-shrink-0">
+                      {item.step}
+                    </div>
+                    <span className="text-gray-400 text-sm">{item.text}</span>
+                  </div>
+                ))}
+              </div>
+              <div className="mt-4 pt-4 border-t border-white/5">
+                <div className="flex items-start gap-3">
+                  <div className="w-6 h-6 rounded-full bg-red-500/10 text-red-400 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    !
+                  </div>
+                  <span className="text-red-400/80 text-sm">Early withdrawal = 50% penalty</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Contract Info */}
+            <div className="bg-white/[0.02] border border-white/5 rounded-2xl p-6">
+              <h3 className="text-lg font-semibold text-white mb-4">Contract Info</h3>
+              <div className="space-y-3 text-sm">
+                <div>
+                  <div className="text-gray-500 mb-1">Program ID</div>
+                  <a 
+                    href={`https://solscan.io/account/${programId.toString()}?cluster=devnet`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00FFA3] hover:underline font-mono text-xs break-all"
+                  >
+                    {programId.toString()}
+                  </a>
+                </div>
+                <div>
+                  <div className="text-gray-500 mb-1">Token</div>
+                  <a 
+                    href={`https://solscan.io/token/${DEVNET_TOKEN_MINT}?cluster=devnet`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-[#00FFA3] hover:underline font-mono text-xs break-all"
+                  >
+                    {DEVNET_TOKEN_MINT}
+                  </a>
+                </div>
+                <div>
+                  <div className="text-gray-500 mb-1">Network</div>
+                  <span className="text-white">Solana Devnet</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </main>
+
+      {/* Loading Overlay */}
+      {isLoading && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
+          <div className="bg-[#12121a] border border-white/10 rounded-2xl p-8 text-center">
+            <div className="animate-spin w-10 h-10 border-2 border-[#00FFA3] border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-400">Loading...</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
-
-function PositionCard({
-  position,
-  onClaim,
-  onUnstake,
-  isProcessing,
-}: {
-  position: StakePosition;
-  onClaim: (id: string) => void;
-  onUnstake: (id: string) => void;
-  isProcessing: boolean;
-}) {
-  const timeInfo = getTimeUntilUnlock(position);
-  const pendingRewards = calculatePendingRewards(position);
-  const lockPeriods = getLockPeriodOptions();
-  const periodInfo = lockPeriods.find(p => p.days === position.lockPeriodDays);
-
-  return (
-    <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-      <div className="flex flex-wrap justify-between items-start gap-4 mb-4">
-        <div>
-          <div className="text-2xl font-bold text-white">
-            {formatTokenAmount(position.amount)} zkRUNE
-          </div>
-          <div className="text-gray-400 text-sm">
-            Staked {new Date(position.stakedAt).toLocaleDateString('en-US', { timeZone: 'UTC' })}
-          </div>
-        </div>
-        <div className="text-right">
-          <div className={`text-lg font-semibold ${timeInfo.isUnlocked ? 'text-[#00FFA3]' : 'text-orange-400'}`}>
-            {timeInfo.isUnlocked ? 'Unlocked' : `${timeInfo.days}d ${timeInfo.hours}h left`}
-          </div>
-          <div className="text-gray-400 text-sm">
-            {periodInfo?.name} ({periodInfo?.apy}% APY)
-          </div>
-        </div>
-      </div>
-
-      <div className="flex flex-wrap gap-4 items-center justify-between">
-        <div className="bg-white/5 rounded-lg px-4 py-2">
-          <div className="text-sm text-gray-400">Pending Rewards</div>
-          <div className="text-lg font-semibold text-[#00FFA3]">
-            {formatTokenAmount(pendingRewards)} zkRUNE
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <button
-            onClick={() => onClaim(position.id)}
-            disabled={isProcessing || pendingRewards < 0.01}
-            className="px-4 py-2 bg-[#00FFA3] text-black font-medium rounded-lg hover:bg-[#00cc82] transition disabled:opacity-50"
-          >
-            Claim
-          </button>
-          <button
-            onClick={() => onUnstake(position.id)}
-            disabled={isProcessing}
-            className={`px-4 py-2 font-medium rounded-lg transition ${
-              timeInfo.isUnlocked
-                ? 'bg-white/10 text-white hover:bg-white/20'
-                : 'bg-red-500/20 text-red-400 hover:bg-red-500/30'
-            }`}
-          >
-            {timeInfo.isUnlocked ? 'Unstake' : 'Early Withdraw'}
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-}
-

@@ -25,12 +25,12 @@ export const ZKRUNE_TOKEN_CONFIG = {
 
 // Program IDs
 export const PROGRAM_IDS = {
-  // Groth16 Verifier Program (Devnet deployed)
+  // Groth16 Verifier Program (Mainnet deployed)
   GROTH16_VERIFIER: process.env.NEXT_PUBLIC_GROTH16_VERIFIER_PROGRAM || '9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad',
   // Governance Program (future)
   GOVERNANCE: process.env.NEXT_PUBLIC_GOVERNANCE_PROGRAM || '',
-  // Staking Program (future)
-  STAKING: process.env.NEXT_PUBLIC_STAKING_PROGRAM || '',
+  // Staking Program (Devnet deployed)
+  STAKING: process.env.NEXT_PUBLIC_STAKING_PROGRAM_ID || '44ToPJzWsnqJRhvFS5wXLsgWGWpbe3YwhU9t8LkQBRiX',
 };
 
 // Transaction Confirmation Settings

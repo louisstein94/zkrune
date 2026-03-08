@@ -35,6 +35,7 @@
   },
   "devDependencies": {
     "@babel/plugin-bugfix-firefox-class-in-computed-class-key": "^7.28.5",
+    "@types/bn.js": "^5.2.0",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

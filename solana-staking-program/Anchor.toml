@@ -1,14 +1,15 @@
 [toolchain]
+anchor_version = "0.30.1"
 package_manager = "yarn"
 
 [features]
 resolution = true
 skip-lint = false
 
-[programs.localnet]
-zkrune_staking = "8EzHiZqRJN3FYpUBqRRWgXpycT6uzLnNpgBHfqm3qLyu"
-
 [programs.devnet]
+zkrune_staking = "44ToPJzWsnqJRhvFS5wXLsgWGWpbe3YwhU9t8LkQBRiX"
+
+[programs.localnet]
 zkrune_staking = "8EzHiZqRJN3FYpUBqRRWgXpycT6uzLnNpgBHfqm3qLyu"
 
 [registry]
