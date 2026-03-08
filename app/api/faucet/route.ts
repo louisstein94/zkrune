@@ -3,9 +3,12 @@ import { Connection, PublicKey, Keypair } from '@solana/web3.js';
 import { 
   getOrCreateAssociatedTokenAccount, 
   transfer,
-  getAccount,
-  TOKEN_PROGRAM_ID
+  getAccount
 } from '@solana/spl-token';
+
+// Force Node.js runtime (not Edge) for native crypto support
+export const runtime = 'nodejs';
+export const dynamic = 'force-dynamic';
 
 const DEVNET_TOKEN_MINT = process.env.NEXT_PUBLIC_ZKRUNE_MINT || 'A619D39h4CxHT7rSSurWAb2Un36c6W8BLyJWBYGxzstP';
 const DEVNET_RPC = 'https://api.devnet.solana.com';
