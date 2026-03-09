@@ -86,6 +86,9 @@ async function main() {
       minStakeAmount: new BN(100_000_000), // 100 tokens
       baseApyBps: 1200, // 12%
       earlyWithdrawalPenaltyBps: 5000, // 50%
+      yearlyEmission: new BN(1_000_000_000_000), // 1M tokens/year
+      maxApyBps: 3600, // 36%
+      minApyBps: 500, // 5%
     })
     .accounts({
       authority: wallet.publicKey,

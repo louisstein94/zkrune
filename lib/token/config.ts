@@ -114,14 +114,23 @@ export const STAKING_CONFIG = {
     { days: 365, multiplier: 3.0, name: '1 Year' },
   ],
   
-  // Base APY percentage
+  // Base APY percentage (fallback, actual is dynamic on-chain)
   BASE_APY: 12,
   
-  // Maximum APY with bonuses
+  // Maximum APY with bonuses (cap)
   MAX_APY: 36,
+  
+  // Minimum APY floor
+  MIN_APY: 5,
+  
+  // Yearly emission for rewards (1M tokens)
+  YEARLY_EMISSION: 1_000_000,
   
   // Minimum stake amount
   MIN_STAKE: 100,
+  
+  // Early withdrawal penalty (50%)
+  EARLY_WITHDRAWAL_PENALTY: 50,
 } as const;
 
 // Marketplace configuration

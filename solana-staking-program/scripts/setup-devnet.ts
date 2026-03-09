@@ -1,3 +1,4 @@
+// @ts-nocheck
 import * as anchor from "@coral-xyz/anchor";
 import { Program, BN } from "@coral-xyz/anchor";
 import { ZkruneStaking } from "../target/types/zkrune_staking";
@@ -105,6 +106,9 @@ async function main() {
       minStakeAmount: new BN(100_000_000), // 100 tokens minimum
       baseApyBps: 1200, // 12% base APY
       earlyWithdrawalPenaltyBps: 5000, // 50% penalty
+      yearlyEmission: new BN(1_000_000_000_000), // 1M tokens/year
+      maxApyBps: 3600, // 36% max APY
+      minApyBps: 500, // 5% min APY
     })
     .accounts({
       authority: wallet.publicKey,

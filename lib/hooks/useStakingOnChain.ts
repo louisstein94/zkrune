@@ -67,6 +67,10 @@ interface PoolState {
   totalRewardsDistributed: number;
   baseApyBps: number;
   minStakeAmount: number;
+  yearlyEmission: number;
+  maxApyBps: number;
+  minApyBps: number;
+  currentDynamicApy: number; // Calculated dynamic APY for new stakers
 }
 
 interface UserStakeState {
@@ -77,6 +81,7 @@ interface UserStakeState {
   lastClaimAt: Date;
   totalClaimed: number;
   isActive: boolean;
+  lockedApyBps: number; // APY locked at stake time (includes multiplier)
   pendingRewards: number;
 }
 
@@ -172,7 +177,8 @@ export function useStakingOnChain() {
       // StakingPool: authority(32) + token_mint(32) + stake_vault(32) + reward_vault(32) + 
       //              total_staked(8) + total_stakers(4) + total_rewards_distributed(8) + 
       //              reward_pool_balance(8) + lock_periods(40) + min_stake_amount(8) + 
-      //              base_apy_bps(2) + early_withdrawal_penalty_bps(2) + bump(1)
+      //              base_apy_bps(2) + early_withdrawal_penalty_bps(2) + 
+      //              yearly_emission(8) + max_apy_bps(2) + min_apy_bps(2) + bump(1)
       const offset = 8; // discriminator
       const totalStaked = data.readBigUInt64LE(offset + 128);
       const totalStakers = data.readUInt32LE(offset + 136);
@@ -180,15 +186,35 @@ export function useStakingOnChain() {
       const rewardPoolBalance = data.readBigUInt64LE(offset + 148);
       const minStakeAmount = data.readBigUInt64LE(offset + 196);
       const baseApyBps = data.readUInt16LE(offset + 204);
+      // early_withdrawal_penalty_bps at offset + 206
+      const yearlyEmission = data.readBigUInt64LE(offset + 208);
+      const maxApyBps = data.readUInt16LE(offset + 216);
+      const minApyBps = data.readUInt16LE(offset + 218);
 
       const decimals = STAKING_TOKEN_CONFIG.DECIMALS;
+      const totalStakedNum = Number(totalStaked);
+      const yearlyEmissionNum = Number(yearlyEmission);
+      
+      // Calculate dynamic APY for new stakers
+      let currentDynamicApy: number;
+      if (totalStakedNum === 0) {
+        currentDynamicApy = maxApyBps;
+      } else {
+        const rawApy = (yearlyEmissionNum * 10000) / totalStakedNum;
+        currentDynamicApy = Math.min(Math.max(rawApy, minApyBps), maxApyBps);
+      }
+
       const poolState: PoolState = {
-        totalStaked: Number(totalStaked) / Math.pow(10, decimals),
+        totalStaked: totalStakedNum / Math.pow(10, decimals),
         totalStakers,
         rewardPoolBalance: Number(rewardPoolBalance) / Math.pow(10, decimals),
         totalRewardsDistributed: Number(totalRewardsDistributed) / Math.pow(10, decimals),
         baseApyBps,
         minStakeAmount: Number(minStakeAmount) / Math.pow(10, decimals),
+        yearlyEmission: yearlyEmissionNum / Math.pow(10, decimals),
+        maxApyBps,
+        minApyBps,
+        currentDynamicApy,
       };
 
       setState(prev => ({ ...prev, poolState }));
@@ -214,7 +240,7 @@ export function useStakingOnChain() {
 
       // Parse UserStake: owner(32) + pool(32) + amount(8) + lock_period_index(1) + 
       //                  staked_at(8) + unlock_at(8) + last_claim_at(8) + total_claimed(8) + 
-      //                  is_active(1) + bump(1)
+      //                  is_active(1) + locked_apy_bps(2) + bump(1)
       const offset = 8;
       const amount = data.readBigUInt64LE(offset + 64);
       const lockPeriodIndex = data.readUInt8(offset + 72);
@@ -223,16 +249,16 @@ export function useStakingOnChain() {
       const lastClaimAt = data.readBigInt64LE(offset + 89);
       const totalClaimed = data.readBigUInt64LE(offset + 97);
       const isActive = data.readUInt8(offset + 105) === 1;
+      const lockedApyBps = data.readUInt16LE(offset + 106);
 
       const decimals = STAKING_TOKEN_CONFIG.DECIMALS;
       
-      // Calculate pending rewards (simplified - actual calculation on-chain)
+      // Calculate pending rewards using locked APY (same formula as on-chain)
       const now = Math.floor(Date.now() / 1000);
       const secondsSinceLastClaim = now - Number(lastClaimAt);
-      const lockPeriod = LOCK_PERIODS[lockPeriodIndex] || LOCK_PERIODS[0];
-      const baseApy = state.poolState?.baseApyBps || 1200;
-      const effectiveApy = (baseApy * lockPeriod.multiplier) / 10000;
-      const pendingRewards = (Number(amount) / Math.pow(10, decimals)) * effectiveApy * (secondsSinceLastClaim / 31536000);
+      // rewards = amount * locked_apy_bps * seconds / (10000 * 31536000)
+      const pendingRewards = (Number(amount) / Math.pow(10, decimals)) * 
+        (lockedApyBps / 10000) * (secondsSinceLastClaim / 31536000);
 
       const userStake: UserStakeState = {
         amount: Number(amount) / Math.pow(10, decimals),
@@ -242,6 +268,7 @@ export function useStakingOnChain() {
         lastClaimAt: new Date(Number(lastClaimAt) * 1000),
         totalClaimed: Number(totalClaimed) / Math.pow(10, decimals),
         isActive,
+        lockedApyBps,
         pendingRewards: Math.max(0, pendingRewards),
       };
 
@@ -251,7 +278,7 @@ export function useStakingOnChain() {
       console.error('Failed to fetch user stake:', error);
       return null;
     }
-  }, [connection, userStakePda, state.poolState]);
+  }, [connection, userStakePda]);
 
   /**
    * Stake tokens on-chain

@@ -25,7 +25,7 @@ export const ZKRUNE_TOKEN_CONFIG = {
 
 // Staking Token (Devnet test token - separate from mainnet)
 export const STAKING_TOKEN_CONFIG = {
-  MINT_ADDRESS: process.env.NEXT_PUBLIC_STAKING_TOKEN_MINT || 'A619D39h4CxHT7rSSurWAb2Un36c6W8BLyJWBYGxzstP',
+  MINT_ADDRESS: process.env.NEXT_PUBLIC_STAKING_TOKEN_MINT || 'BWoksbT58fuiyKsqbVihiWi8WejzhdN1fTNDk4roKJXf',
   DECIMALS: 6,
   SYMBOL: 'zkRUNE',
   NAME: 'zkRune (Devnet)',

@@ -54,7 +54,7 @@ async function main() {
   const [userStakePda] = PublicKey.findProgramAddressSync([Buffer.from("user_stake"), stakingPoolPda.toBuffer(), wallet.publicKey.toBuffer()], program.programId);
 
   // Initialize
-  await program.methods.initialize({ minStakeAmount: new BN(100_000_000), baseApyBps: 1200, earlyWithdrawalPenaltyBps: 5000 })
+  await program.methods.initialize({ minStakeAmount: new BN(100_000_000), baseApyBps: 1200, earlyWithdrawalPenaltyBps: 5000, yearlyEmission: new BN(1_000_000_000_000), maxApyBps: 3600, minApyBps: 500 })
     .accounts({ authority: wallet.publicKey, tokenMint, stakingPool: stakingPoolPda, systemProgram: SystemProgram.programId }).rpc();
   
   await program.methods.createStakeVault()
@@ -175,7 +175,7 @@ async function main() {
   const [reward2Pda] = PublicKey.findProgramAddressSync([Buffer.from("reward_vault"), pool2Pda.toBuffer()], program.programId);
   const [stake2Pda] = PublicKey.findProgramAddressSync([Buffer.from("user_stake"), pool2Pda.toBuffer(), wallet.publicKey.toBuffer()], program.programId);
 
-  await program.methods.initialize({ minStakeAmount: new BN(100_000_000), baseApyBps: 1200, earlyWithdrawalPenaltyBps: 5000 })
+  await program.methods.initialize({ minStakeAmount: new BN(100_000_000), baseApyBps: 1200, earlyWithdrawalPenaltyBps: 5000, yearlyEmission: new BN(1_000_000_000_000), maxApyBps: 3600, minApyBps: 500 })
     .accounts({ authority: wallet.publicKey, tokenMint: tokenMint2, stakingPool: pool2Pda, systemProgram: SystemProgram.programId }).rpc();
   await program.methods.createStakeVault()
     .accounts({ authority: wallet.publicKey, tokenMint: tokenMint2, stakingPool: pool2Pda, stakeVault: vault2Pda, systemProgram: SystemProgram.programId, tokenProgram: TOKEN_PROGRAM_ID, rent: anchor.web3.SYSVAR_RENT_PUBKEY }).rpc();
@@ -275,7 +275,7 @@ async function main() {
   const [reward3Pda] = PublicKey.findProgramAddressSync([Buffer.from("reward_vault"), pool3Pda.toBuffer()], program.programId);
   const [stake3Pda] = PublicKey.findProgramAddressSync([Buffer.from("user_stake"), pool3Pda.toBuffer(), wallet.publicKey.toBuffer()], program.programId);
 
-  await program.methods.initialize({ minStakeAmount: new BN(100_000_000), baseApyBps: 1200, earlyWithdrawalPenaltyBps: 5000 })
+  await program.methods.initialize({ minStakeAmount: new BN(100_000_000), baseApyBps: 1200, earlyWithdrawalPenaltyBps: 5000, yearlyEmission: new BN(1_000_000_000_000), maxApyBps: 3600, minApyBps: 500 })
     .accounts({ authority: wallet.publicKey, tokenMint: tokenMint3, stakingPool: pool3Pda, systemProgram: SystemProgram.programId }).rpc();
   await program.methods.createStakeVault()
     .accounts({ authority: wallet.publicKey, tokenMint: tokenMint3, stakingPool: pool3Pda, stakeVault: vault3Pda, systemProgram: SystemProgram.programId, tokenProgram: TOKEN_PROGRAM_ID, rent: anchor.web3.SYSVAR_RENT_PUBKEY }).rpc();

@@ -42,6 +42,9 @@ describe("zkrune-staking", () => {
   const MIN_STAKE = 100 * TOKENS_PER_UNIT; // 100 tokens
   const BASE_APY_BPS = 1200; // 12%
   const EARLY_WITHDRAWAL_PENALTY_BPS = 5000; // 50%
+  const YEARLY_EMISSION = 1_000_000 * TOKENS_PER_UNIT; // 1M tokens/year
+  const MAX_APY_BPS = 3600; // 36%
+  const MIN_APY_BPS = 500; // 5%
 
   // Seeds
   const STAKING_POOL_SEED = Buffer.from("staking_pool");
@@ -150,6 +153,9 @@ describe("zkrune-staking", () => {
           minStakeAmount: new BN(MIN_STAKE),
           baseApyBps: BASE_APY_BPS,
           earlyWithdrawalPenaltyBps: EARLY_WITHDRAWAL_PENALTY_BPS,
+          yearlyEmission: new BN(YEARLY_EMISSION),
+          maxApyBps: MAX_APY_BPS,
+          minApyBps: MIN_APY_BPS,
         })
         .accounts({
           authority: mintAuthority.publicKey,
