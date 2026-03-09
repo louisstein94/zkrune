@@ -172,8 +172,8 @@ export default function VerifyProofPage() {
       // Generate real proof
       const { proof: groth16Proof, publicSignals } = await snarkjs.groth16.fullProve(
         inputs,
-        wasmPath,
-        zkeyPath
+        wasmPath as any,
+        zkeyPath as any
       );
       
       // Load verification key
