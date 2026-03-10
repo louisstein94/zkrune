@@ -1,0 +1,24 @@
+{
+  "name": "@zkrune/kage-plugin",
+  "version": "1.0.0",
+  "description": "ZK viewing key verification plugin for the Kage Shadow Memory Protocol",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
+  "types": "dist/index.d.ts",
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts"
+  },
+  "peerDependencies": {
+    "snarkjs": ">=0.7.0"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.0.0"
+  },
+  "keywords": ["zkp", "groth16", "solana", "kage", "viewing-key", "privacy", "zkrune"],
+  "license": "MIT"
+}

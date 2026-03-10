@@ -48,7 +48,7 @@ circuits/**/example_*.json
 circuits/**/proof.json
 circuits/**/public.json
 circuits/**/witness.wtns
-circuits/**/pot_*.ptau
+circuits/**/*.ptau
 
 # Keep these important files:
 !circuits/**/circuit.circom
