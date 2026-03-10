@@ -33,6 +33,7 @@ export default function Navigation() {
         { name: "Wallet", href: "/wallet" },
       ]
     },
+    { name: "Roadmap", href: "/roadmap" },
     { name: "Docs", href: "/docs" },
   ];
 
