@@ -49,6 +49,17 @@ interface ProofResult {
   nullifierSecret: string;
 }
 
+// ── Snapshot cache (loaded once per session) ──────────────────────────────────
+let snapshotCache: import('@/lib/merkle').Snapshot | null = null;
+
+async function loadSnapshot(): Promise<import('@/lib/merkle').Snapshot> {
+  if (snapshotCache) return snapshotCache;
+  const res = await fetch('/snapshot.json');
+  if (!res.ok) throw new Error('Failed to load snapshot. Please try again later.');
+  snapshotCache = await res.json();
+  return snapshotCache!;
+}
+
 // ── Main component ────────────────────────────────────────────────────────────
 export default function WhaleChatPage() {
   const { publicKey, connected } = useWallet();
@@ -79,30 +90,36 @@ export default function WhaleChatPage() {
 
   const addLine = (line: string) => setProofLines((prev) => [...prev, line]);
 
-  // ── Fetch Merkle path ──────────────────────────────────────────────────────
+  // ── Fetch Merkle path (client-side lookup from static /snapshot.json) ────────
   const fetchPath = useCallback(async (address: string) => {
     setPhase('fetching');
     setErrorMsg('');
 
     try {
-      const res = await fetch(`/api/merkle-path?address=${encodeURIComponent(address)}`);
-      const data = await res.json();
+      const snapshot = await loadSnapshot();
+      const entry = snapshot.entries[address];
 
-      if (res.status === 404) {
-        setSnapshotTimestamp(data.snapshotTimestamp ?? null);
+      if (!entry) {
+        setSnapshotTimestamp(snapshot.meta.timestamp);
         setPhase('not_found');
         return;
       }
 
-      if (!res.ok) {
-        setErrorMsg(data.error ?? 'Failed to fetch Merkle path');
-        setPhase('error');
-        return;
-      }
+      const pathData: MerklePathResponse = {
+        address,
+        balance:           entry.balance,
+        index:             entry.index,
+        pathElements:      entry.pathElements,
+        pathIndices:       entry.pathIndices,
+        root:              snapshot.meta.root,
+        snapshotTimestamp: snapshot.meta.timestamp,
+        snapshotBlock:     snapshot.meta.blockHeight,
+        totalHolders:      snapshot.meta.totalHolders,
+      };
 
-      setPathData(data as MerklePathResponse);
+      setPathData(pathData);
 
-      if (BigInt(data.balance) < BigInt(WHALE_THRESHOLD)) {
+      if (BigInt(entry.balance) < BigInt(WHALE_THRESHOLD)) {
         setPhase('insufficient');
       } else {
         setPhase('ready');

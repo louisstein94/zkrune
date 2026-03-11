@@ -113,5 +113,5 @@ public/downloads/
 # ts-node scripts build output
 .scripts-out/
 
-# Whale holder snapshot — contains all holder addresses (regenerate with scripts/snapshot-holders.ts)
-data/snapshot.json
+# data/ directory (local only — snapshot is now written to public/snapshot.json)
+data/

@@ -2,14 +2,17 @@
  * scripts/snapshot-holders.ts
  *
  * Fetches all zkRUNE token holders from Solana, builds a Poseidon sparse
- * Merkle tree (depth=20), and writes the snapshot to data/snapshot.json.
+ * Merkle tree (depth=20), and writes the full snapshot to public/snapshot.json
+ * so it can be served as a static file on Vercel (no API route needed).
  *
  * Run:
- *   npx ts-node --project tsconfig.json scripts/snapshot-holders.ts
+ *   npx ts-node --project tsconfig.scripts.json scripts/snapshot-holders.ts
  *
  * Output:
- *   data/snapshot.json        (full tree with paths — NOT committed to git)
+ *   public/snapshot.json      (full tree with Merkle paths — committed to git)
  *   public/snapshot-meta.json (root + metadata only — committed to git)
+ *
+ * Note: holder addresses and balances are on-chain public data.
  */
 
 import { Connection, PublicKey } from '@solana/web3.js';
@@ -200,17 +203,15 @@ async function main() {
 
   const snapshot: Snapshot = { meta, entries };
 
-  // Write full snapshot (NOT in git — contains all holder addresses)
-  const dataDir = path.join(process.cwd(), 'data');
-  fs.mkdirSync(dataDir, { recursive: true });
+  // Write full snapshot to public/ — served as static file, no API route needed
+  const publicDir = path.join(process.cwd(), 'public');
   fs.writeFileSync(
-    path.join(dataDir, 'snapshot.json'),
+    path.join(publicDir, 'snapshot.json'),
     JSON.stringify(snapshot, null, 2),
   );
-  console.log(`Snapshot written to data/snapshot.json (${holders.length} holders)`);
+  console.log(`Snapshot written to public/snapshot.json (${holders.length} holders)`);
 
-  // Write public meta only (committed to git)
-  const publicDir = path.join(process.cwd(), 'public');
+  // Also write metadata separately for quick root checks
   fs.writeFileSync(
     path.join(publicDir, 'snapshot-meta.json'),
     JSON.stringify(meta, null, 2),
