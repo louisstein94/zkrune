@@ -109,3 +109,9 @@ Thumbs.db
 # APK files (use GitHub Releases instead)
 *.apk
 public/downloads/
+
+# ts-node scripts build output
+.scripts-out/
+
+# Whale holder snapshot — contains all holder addresses (regenerate with scripts/snapshot-holders.ts)
+data/snapshot.json
