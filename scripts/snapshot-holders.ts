@@ -15,6 +15,9 @@
  * Note: holder addresses and balances are on-chain public data.
  */
 
+import * as dotenv from 'dotenv';
+dotenv.config({ path: '.env.local' });
+
 import { Connection, PublicKey } from '@solana/web3.js';
 import { TOKEN_PROGRAM_ID } from '@solana/spl-token';
 import * as fs from 'fs';
@@ -27,13 +30,13 @@ import {
   SnapshotMeta,
 } from '../lib/merkle';
 
-const MINT_ADDRESS =
-  process.env.NEXT_PUBLIC_ZKRUNE_MINT ||
-  '51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump';
+// Always mainnet — independent of NEXT_PUBLIC_ZKRUNE_MINT (which may point to devnet)
+const MINT_ADDRESS = '51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump';
 
 const RPC_URL =
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
-  'https://api.mainnet-beta.solana.com';
+  process.env.HELIUS_API_KEY
+    ? `https://mainnet.helius-rpc.com/?api-key=${process.env.HELIUS_API_KEY}`
+    : 'https://api.mainnet-beta.solana.com';
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY || '';
 
