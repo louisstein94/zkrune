@@ -156,7 +156,7 @@ export default function InstallPage() {
               real ZK proof generation with snarkjs, and works completely offline.
             </p>
             <a
-              href="https://drive.google.com/uc?export=download&id=10ddRtnd_6KuC-I890FSBC8etkeoMpyGm"
+              href="https://github.com/louisstein94/zkrune/releases/download/v0.2.0-mobile/zkRune-v0.2.0-signed.apk"
               className="inline-flex items-center gap-2 px-6 py-3 bg-green-500 hover:bg-green-600 text-white font-semibold rounded-xl transition-all hover:scale-105"
               target="_blank"
               rel="noopener noreferrer"

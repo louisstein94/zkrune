@@ -601,7 +601,7 @@ export default function Home() {
               <a href="/builder" className="text-zk-gray hover:text-zk-primary transition-colors">Builder</a>
               <a href="/install" className="text-zk-gray hover:text-zk-primary transition-colors">Install PWA</a>
               <a 
-                href="https://drive.google.com/uc?export=download&id=10ddRtnd_6KuC-I890FSBC8etkeoMpyGm" 
+                href="https://github.com/louisstein94/zkrune/releases/download/v0.2.0-mobile/zkRune-v0.2.0-signed.apk" 
                 target="_blank" 
                 rel="noopener noreferrer"
                 className="text-green-400 hover:text-green-300 transition-colors font-medium flex items-center gap-1"
