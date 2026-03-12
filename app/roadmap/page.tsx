@@ -39,6 +39,7 @@ const phases = [
       { text: "Solana Privacy Hack 2026 submission", done: true },
       { text: "Mobile ZK Wallet — Android APK (Solana + Zcash)", done: true },
       { text: "Trusted Setup Ceremony (multi-party)", done: true },
+      { text: "AI-driven security audit & circuit hardening (pre-audit)", done: true },
     ],
   },
   {
