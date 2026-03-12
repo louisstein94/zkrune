@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { PREMIUM_TIERS, type PremiumTier } from '@/lib/token/config';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { PREMIUM_TIERS, ZKRUNE_TOKEN, type PremiumTier } from '@/lib/token/config';
+import { verifyAuth } from '@/lib/auth/verifyWalletSignature';
+import {
+  getTxAccountKeys,
+  getBurnDelta,
+  verifySplBurnFromAta,
+  toRawAmount,
+} from '@/lib/solana/txVerification';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -117,13 +126,105 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { wallet, amount, targetTier, transactionSignature } = body;
+    const { wallet, amount, targetTier, transactionSignature, signedMessage, signature } = body;
 
     // Validate required fields
-    if (!wallet || !amount || !targetTier || !transactionSignature) {
+    if (!wallet || !amount || !targetTier || !transactionSignature || !signedMessage || !signature) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: wallet, amount, targetTier, transactionSignature',
+        error: 'Missing required fields: wallet, amount, targetTier, transactionSignature, signedMessage, signature',
+      }, { status: 400 });
+    }
+
+    // Verify caller owns the wallet — signature binds amount, tier, and txSig
+    // so the same signature cannot be replayed for a different upgrade
+    if (!verifyAuth(
+      { wallet, signedMessage, signature },
+      'premium',
+      { amount: String(amount), targetTier, transactionSignature },
+    )) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired wallet signature',
+      }, { status: 401 });
+    }
+
+    // ── On-chain burn verification ────────────────────────────────────────────
+    const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+    const connection = new Connection(rpcUrl, 'confirmed');
+
+    const txInfo = await connection.getTransaction(transactionSignature, {
+      maxSupportedTransactionVersion: 0,
+      commitment: 'confirmed',
+    });
+
+    if (!txInfo || txInfo.meta?.err !== null) {
+      return NextResponse.json({
+        success: false,
+        error: 'Transaction not found or failed on-chain',
+      }, { status: 400 });
+    }
+
+    const walletPubkey = new PublicKey(wallet);
+    const mintPubkey = new PublicKey(ZKRUNE_TOKEN.MINT_ADDRESS);
+    const accountKeys = getTxAccountKeys(txInfo as any);
+
+    // Fee payer must be the wallet requesting the upgrade
+    if (!accountKeys[0]?.equals(walletPubkey)) {
+      return NextResponse.json({
+        success: false,
+        error: 'Transaction fee payer does not match wallet',
+      }, { status: 400 });
+    }
+
+    // Derive wallet's canonical ATA — no fallback
+    const walletAta = getAssociatedTokenAddressSync(mintPubkey, walletPubkey);
+    const ataIndex = accountKeys.findIndex(k => k.equals(walletAta));
+    if (ataIndex < 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'Wallet zkRUNE ATA not found in transaction accounts',
+      }, { status: 400 });
+    }
+
+    // Verify a Burn/BurnChecked instruction targeting exactly walletAta + zkRUNE mint + walletPubkey authority
+    try {
+      verifySplBurnFromAta(txInfo as any, accountKeys, walletAta, mintPubkey, walletPubkey);
+    } catch (err: unknown) {
+      return NextResponse.json({
+        success: false,
+        error: `Burn instruction check failed: ${err instanceof Error ? err.message : String(err)}`,
+      }, { status: 400 });
+    }
+
+    // Verify raw burned amount using integer arithmetic — no float, no tolerance
+    let actualBurnedRaw: bigint;
+    try {
+      actualBurnedRaw = getBurnDelta(txInfo as any, ataIndex, ZKRUNE_TOKEN.MINT_ADDRESS);
+    } catch (err: unknown) {
+      return NextResponse.json({
+        success: false,
+        error: `Burn delta check failed: ${err instanceof Error ? err.message : String(err)}`,
+      }, { status: 400 });
+    }
+
+    const requiredRaw = toRawAmount(amount, ZKRUNE_TOKEN.DECIMALS);
+    if (actualBurnedRaw < requiredRaw) {
+      return NextResponse.json({
+        success: false,
+        error: `On-chain burn (${actualBurnedRaw} base units) is less than required (${requiredRaw} base units)`,
+      }, { status: 400 });
+    }
+
+    // Prevent replay: reject if this txSig was already used for a premium upgrade
+    const existingBurnRes = await supabaseFetch(
+      `burn_history?transaction_signature=eq.${transactionSignature}&select=id`
+    );
+    const existingBurn = await existingBurnRes.json();
+    if (Array.isArray(existingBurn) && existingBurn.length > 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'This transaction has already been used for a premium upgrade',
       }, { status: 400 });
     }
 

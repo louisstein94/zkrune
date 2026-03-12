@@ -436,13 +436,11 @@ pub mod zkrune_staking {
         pool.total_rewards_distributed = 0;
         pool.reward_pool_balance = 0;
 
-        // TEST MODE: Short lock periods (30s, 60s, 90s, 120s)
-        // PRODUCTION: Replace with (30*24*60*60, 90*24*60*60, 180*24*60*60, 365*24*60*60)
         pool.lock_periods = [
-            LockPeriod { duration_seconds: 30, multiplier_bps: 10000 },   // 30 seconds (test) / 30 days (prod)
-            LockPeriod { duration_seconds: 60, multiplier_bps: 15000 },   // 60 seconds (test) / 90 days (prod)
-            LockPeriod { duration_seconds: 90, multiplier_bps: 20000 },   // 90 seconds (test) / 180 days (prod)
-            LockPeriod { duration_seconds: 120, multiplier_bps: 30000 },  // 120 seconds (test) / 365 days (prod)
+            LockPeriod { duration_seconds: 30  * 24 * 60 * 60, multiplier_bps: 10000 }, // 30 days  — 1.0x
+            LockPeriod { duration_seconds: 90  * 24 * 60 * 60, multiplier_bps: 15000 }, // 90 days  — 1.5x
+            LockPeriod { duration_seconds: 180 * 24 * 60 * 60, multiplier_bps: 20000 }, // 180 days — 2.0x
+            LockPeriod { duration_seconds: 365 * 24 * 60 * 60, multiplier_bps: 30000 }, // 365 days — 3.0x
         ];
 
         pool.min_stake_amount = params.min_stake_amount;

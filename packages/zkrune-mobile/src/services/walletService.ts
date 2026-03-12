@@ -405,7 +405,7 @@ class WalletService {
    */
   async getAllWallets(): Promise<WalletConnection[]> {
     try {
-      const walletsJson = await secureStorage.get(STORAGE_KEYS.WALLET_PUBLIC_KEY + '_list');
+      const walletsJson = await secureStorage.get(STORAGE_KEYS.WALLET_LIST);
       if (walletsJson) {
         this._allWallets = JSON.parse(walletsJson);
       }
@@ -555,6 +555,7 @@ class WalletService {
       const connection: WalletConnection = {
         publicKey,
         provider,
+        walletType: WalletType.EXTERNAL,
         session: params.session as string | undefined,
       };
 
@@ -939,7 +940,7 @@ class WalletService {
     if (!exists) {
       wallets.push(connection);
       await secureStorage.set(
-        STORAGE_KEYS.WALLET_PUBLIC_KEY + '_list',
+        STORAGE_KEYS.WALLET_LIST,
         JSON.stringify(wallets)
       );
       this._allWallets = wallets;
@@ -969,9 +970,6 @@ class WalletService {
     return 'zkRune-dapp-encryption-key';
   }
 }
-
-// Export types
-export type { NativeWallet };
 
 export const walletService = new WalletService();
 export default walletService;

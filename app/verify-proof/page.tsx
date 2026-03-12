@@ -46,24 +46,24 @@ export default function VerifyProofPage() {
       const hasProofHash = !!(proof.proofHash && proof.proofHash.length > 10);
       const isValidFormat = proof.isValid !== undefined;
       const hasPublicSignals = !!(proof.publicSignals && Array.isArray(proof.publicSignals));
-      const hasVerificationKey = proof.verificationKey !== undefined;
+      const hasCircuitName = !!(proof.circuitName || proof.metadata?.template);
 
       // STRICT validation - all required fields must exist
-      const allRequiredFields = hasStatement && hasTimestamp && hasProofHash && hasVerificationKey;
-      
+      const allRequiredFields = hasStatement && hasTimestamp && hasProofHash && hasCircuitName;
+
       // If ANY field missing, IMMEDIATELY fail
       if (!allRequiredFields) {
         setResult({
           success: false,
           isValid: false,
           message: "Missing required fields",
-          error: "Proof must have: statement, timestamp, proofHash, and verificationKey",
+          error: "Proof must have: statement, timestamp, proofHash, and circuitName",
           checks: {
             hasGroth16Proof: hasGroth16 ? "PASS" : "FAIL",
             hasProofHash: hasProofHash ? "PASS" : "FAIL",
             hasStatement: hasStatement ? "PASS" : "FAIL",
             hasTimestamp: hasTimestamp ? "PASS" : "FAIL",
-            hasVerificationKey: hasVerificationKey ? "PASS" : "FAIL",
+            hasCircuitName: hasCircuitName ? "PASS" : "FAIL",
             cryptographicVerification: "SKIPPED",
           },
         });
@@ -90,24 +90,30 @@ export default function VerifyProofPage() {
         groth16Valid = groth16Valid && allNumeric;
       }
 
-      // Verify Groth16 proof in browser 
+      // Verify Groth16 proof via server — server loads the trusted vKey,
+      // the client never supplies it (prevents vKey substitution attacks).
       let cryptoVerified = false;
       if (isRealProof && groth16Valid) {
         try {
-          console.log('[Verify] Starting cryptographic verification in browser...');
-          
-          // @ts-ignore
-          const snarkjs = await import("snarkjs");
-          
-          cryptoVerified = await snarkjs.groth16.verify(
-            proof.verificationKey,
-            proof.publicSignals,
-            proof.groth16Proof
-          );
-          
-          console.log('[Verify] Result:', cryptoVerified);
+          console.log('[Verify] Sending proof to server for trusted vKey verification...');
+
+          const circuitName = proof.circuitName || proof.metadata?.template || 'age-verification';
+
+          const res = await fetch('/api/verify-proof', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              proof: proof.groth16Proof,
+              publicSignals: proof.publicSignals,
+              circuitName,
+            }),
+          });
+          const verifyData = await res.json();
+          cryptoVerified = verifyData.success && verifyData.isValid;
+
+          console.log('[Verify] Server result:', verifyData);
         } catch (verifyError) {
-          console.error("Crypto verification failed:", verifyError);
+          console.error("Server verification failed:", verifyError);
           cryptoVerified = false;
         }
       }
@@ -137,7 +143,7 @@ export default function VerifyProofPage() {
           hasProofHash: hasProofHash ? "PASS" : "FAIL",
           hasStatement: hasStatement ? "PASS" : "FAIL",
           hasTimestamp: hasTimestamp ? "PASS" : "FAIL",
-          hasVerificationKey: hasVerificationKey ? "PASS" : "FAIL",
+          hasCircuitName: hasCircuitName ? "PASS" : "FAIL",
           cryptographicVerification: isRealProof ? (cryptoVerified ? "PASS - Verified" : "FAIL") : "N/A",
         },
         timing: 1000,
@@ -176,11 +182,7 @@ export default function VerifyProofPage() {
         zkeyPath as any
       );
       
-      // Load verification key
-      const vkeyResponse = await fetch('/circuits/age-verification_vkey.json');
-      const vKey = await vkeyResponse.json();
-      
-      // Set the example with real proof data
+      // Set the example with real proof data — no vKey in export, server loads it
       setExportedJson(JSON.stringify({
         "proof": {
           "groth16Proof": groth16Proof,
@@ -189,7 +191,7 @@ export default function VerifyProofPage() {
           "timestamp": new Date().toISOString(),
           "publicSignals": publicSignals,
           "proofHash": "0x" + JSON.stringify(groth16Proof).substring(10, 74),
-          "verificationKey": vKey,
+          "circuitName": "age-verification",
           "note": "REAL Groth16 zk-SNARK proof generated live"
         },
         "metadata": {
@@ -393,8 +395,8 @@ export default function VerifyProofPage() {
                       <span className="text-zk-gray">Timestamp</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <span>{result.checks.hasVerificationKey}</span>
-                      <span className="text-zk-gray">Verification Key</span>
+                      <span>{result.checks.hasCircuitName}</span>
+                      <span className="text-zk-gray">Circuit Name</span>
                     </div>
                     <div className="flex items-center gap-2">
                       <span>{result.checks.validFormat}</span>

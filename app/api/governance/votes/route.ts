@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { GOVERNANCE_CONFIG } from '@/lib/token/config';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { GOVERNANCE_CONFIG, ZKRUNE_TOKEN } from '@/lib/token/config';
+import { verifyAuth } from '@/lib/auth/verifyWalletSignature';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -93,14 +96,42 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { proposalId, voter, support, tokenBalance } = body;
+    // tokenBalance is no longer accepted from the client — fetched on-chain below
+    const { proposalId, voter, support, signedMessage, signature } = body;
 
     // Validate required fields
-    if (!proposalId || !voter || support === undefined || !tokenBalance) {
+    if (!proposalId || !voter || support === undefined || !signedMessage || !signature) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: proposalId, voter, support, tokenBalance',
+        error: 'Missing required fields: proposalId, voter, support, signedMessage, signature',
       }, { status: 400 });
+    }
+
+    // Verify caller owns the voter wallet AND that the signed message binds
+    // proposalId and support — prevents reuse across different proposals/choices
+    if (!verifyAuth(
+      { wallet: voter, signedMessage, signature },
+      'vote',
+      { proposalId, support: support ? '1' : '0' },
+    )) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired wallet signature',
+      }, { status: 401 });
+    }
+
+    // Fetch actual token balance on-chain — never trust client-supplied values
+    const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+    const connection = new Connection(rpcUrl, 'confirmed');
+    const mintPubkey = new PublicKey(ZKRUNE_TOKEN.MINT_ADDRESS);
+    const voterPubkey = new PublicKey(voter);
+    let tokenBalance = 0;
+    try {
+      const ata = getAssociatedTokenAddressSync(mintPubkey, voterPubkey);
+      const accountInfo = await connection.getTokenAccountBalance(ata);
+      tokenBalance = accountInfo.value.uiAmount ?? 0;
+    } catch {
+      // Token account doesn't exist → balance is 0
     }
 
     // Check minimum tokens
@@ -144,7 +175,7 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Calculate vote weight (quadratic voting)
+    // Calculate vote weight (quadratic voting) using the on-chain balance
     const weight = Math.sqrt(tokenBalance);
 
     // Insert vote

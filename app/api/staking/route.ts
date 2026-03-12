@@ -1,5 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { STAKING_CONFIG } from '@/lib/token/config';
+import { Connection, PublicKey } from '@solana/web3.js';
+import { getAssociatedTokenAddressSync } from '@solana/spl-token';
+import { STAKING_CONFIG, ZKRUNE_TOKEN } from '@/lib/token/config';
+import { verifyAuth } from '@/lib/auth/verifyWalletSignature';
+import {
+  getTxAccountKeys,
+  getTokenTransferDeltas,
+  verifySplTransferToDestination,
+  toRawAmount,
+} from '@/lib/solana/txVerification';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -119,13 +128,137 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { staker, amount, lockPeriodDays } = body;
+    const { staker, amount, lockPeriodDays, transactionSignature, signedMessage, signature } = body;
 
-    // Validate required fields
-    if (!staker || !amount || !lockPeriodDays) {
+    // Validate required fields — transactionSignature proves tokens were locked on-chain
+    if (!staker || !amount || !lockPeriodDays || !transactionSignature || !signedMessage || !signature) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: staker, amount, lockPeriodDays',
+        error: 'Missing required fields: staker, amount, lockPeriodDays, transactionSignature, signedMessage, signature',
+      }, { status: 400 });
+    }
+
+    // Verify caller owns the staker wallet AND that all critical params are bound in the signature
+    if (!verifyAuth(
+      { wallet: staker, signedMessage, signature },
+      'stake',
+      { amount: String(amount), lockPeriodDays: String(lockPeriodDays), transactionSignature },
+    )) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired wallet signature',
+      }, { status: 401 });
+    }
+
+    // Prevent replay: reject if this txSig has already been used for a stake position
+    const existingTxRes = await supabaseFetch(
+      `staking_positions?transaction_signature=eq.${transactionSignature}&select=id`
+    );
+    const existingTx = await existingTxRes.json();
+    if (Array.isArray(existingTx) && existingTx.length > 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'This transaction has already been used to create a stake position',
+      }, { status: 400 });
+    }
+
+    // ── On-chain transfer verification ───────────────────────────────────────
+    // STAKE_VAULT_AUTHORITY is the wallet that *owns* the vault ATA.
+    // The vault token account is the canonical ATA derived from (mint, authority).
+    if (!ZKRUNE_TOKEN.STAKE_VAULT_AUTHORITY) {
+      return NextResponse.json({
+        success: false,
+        error: 'Stake vault authority not configured on server',
+      }, { status: 503 });
+    }
+
+    const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
+    const connection = new Connection(rpcUrl, 'confirmed');
+    const mintPubkey = new PublicKey(ZKRUNE_TOKEN.MINT_ADDRESS);
+    const stakerPubkey = new PublicKey(staker);
+    // vaultAuthority is the owner wallet; vaultAta is the actual token account
+    const vaultAuthority = new PublicKey(ZKRUNE_TOKEN.STAKE_VAULT_AUTHORITY);
+
+    const txInfo = await connection.getTransaction(transactionSignature, {
+      maxSupportedTransactionVersion: 0,
+      commitment: 'confirmed',
+    });
+
+    if (!txInfo || txInfo.meta?.err !== null) {
+      return NextResponse.json({
+        success: false,
+        error: 'Stake transaction not found or failed on-chain',
+      }, { status: 400 });
+    }
+
+    const accountKeys = getTxAccountKeys(txInfo as any);
+
+    // Fee payer must be the staker
+    if (!accountKeys[0]?.equals(stakerPubkey)) {
+      return NextResponse.json({
+        success: false,
+        error: 'Transaction fee payer does not match staker wallet',
+      }, { status: 400 });
+    }
+
+    // Derive the canonical ATAs — staker owns theirs, vault authority owns the vault's
+    const stakerAta = getAssociatedTokenAddressSync(mintPubkey, stakerPubkey);
+    const vaultAta = getAssociatedTokenAddressSync(mintPubkey, vaultAuthority);
+
+    const stakerAtaIndex = accountKeys.findIndex(k => k.equals(stakerAta));
+    if (stakerAtaIndex < 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'Staker zkRUNE ATA not found in transaction accounts',
+      }, { status: 400 });
+    }
+
+    const vaultAtaIndex = accountKeys.findIndex(k => k.equals(vaultAta));
+    if (vaultAtaIndex < 0) {
+      return NextResponse.json({
+        success: false,
+        error: 'Stake vault ATA not found in transaction accounts',
+      }, { status: 400 });
+    }
+
+    // Both the staker ATA must decrease AND the vault ATA must increase by at least `amount`
+    let sourceDelta: bigint;
+    let destDelta: bigint;
+    try {
+      ({ sourceDelta, destDelta } = getTokenTransferDeltas(
+        txInfo as any,
+        stakerAtaIndex,
+        vaultAtaIndex,
+        ZKRUNE_TOKEN.MINT_ADDRESS,
+      ));
+    } catch (err: unknown) {
+      return NextResponse.json({
+        success: false,
+        error: `Token balance check failed: ${err instanceof Error ? err.message : String(err)}`,
+      }, { status: 400 });
+    }
+
+    const rawAmount = toRawAmount(amount, ZKRUNE_TOKEN.DECIMALS);
+    if (sourceDelta < rawAmount) {
+      return NextResponse.json({
+        success: false,
+        error: `Staker ATA decrease (${sourceDelta}) is less than required stake amount (${rawAmount})`,
+      }, { status: 400 });
+    }
+    if (destDelta < rawAmount) {
+      return NextResponse.json({
+        success: false,
+        error: `Vault ATA increase (${destDelta}) is less than required stake amount (${rawAmount})`,
+      }, { status: 400 });
+    }
+
+    // Confirm an SPL Transfer instruction explicitly routes stakerAta → vaultAta
+    try {
+      verifySplTransferToDestination(txInfo as any, accountKeys, stakerAta, vaultAta);
+    } catch (err: unknown) {
+      return NextResponse.json({
+        success: false,
+        error: `Transfer instruction check failed: ${err instanceof Error ? err.message : String(err)}`,
       }, { status: 400 });
     }
 
@@ -158,6 +291,7 @@ export async function POST(request: NextRequest) {
         lock_period_days: lockPeriodDays,
         multiplier: lockConfig.multiplier,
         unlocks_at: unlocksAt.toISOString(),
+        transaction_signature: transactionSignature,
       }),
     });
 
@@ -190,13 +324,26 @@ export async function PATCH(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { positionId, staker, action } = body;
+    const { positionId, staker, action, signedMessage, signature } = body;
 
-    if (!positionId || !staker || !action) {
+    if (!positionId || !staker || !action || !signedMessage || !signature) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: positionId, staker, action',
+        error: 'Missing required fields: positionId, staker, action, signedMessage, signature',
       }, { status: 400 });
+    }
+
+    // positionId is bound in the signature so the message can't be replayed
+    // against a different position
+    if (!verifyAuth(
+      { wallet: staker, signedMessage, signature },
+      action,
+      { positionId },
+    )) {
+      return NextResponse.json({
+        success: false,
+        error: 'Invalid or expired wallet signature',
+      }, { status: 401 });
     }
 
     // Get position

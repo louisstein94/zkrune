@@ -20,6 +20,8 @@ template BalanceProof() {
     
     // Output the actual comparison result
     hasMinimum <== balanceCheck.out;
+    // Enforce: proof is only satisfiable when balance meets the minimum
+    hasMinimum === 1;
     
     // Additional constraint: balance must be non-negative
     component nonNegativeCheck = LessThan(64);

@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useWalletAuth } from '@/lib/auth/useWalletAuth';
 
 export interface Proposal {
   id: string;
@@ -34,6 +35,7 @@ export interface GovernanceStats {
 }
 
 export function useGovernance() {
+  const { buildSignedPayload } = useWalletAuth();
   const [proposals, setProposals] = useState<Proposal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -99,10 +101,16 @@ export function useGovernance() {
     tokenBalance: number
   ) => {
     try {
+      // Bind signature to all critical vote fields — prevents reuse across proposals
+      const { signedMessage, signature } = await buildSignedPayload('vote', {
+        proposalId,
+        support: support ? '1' : '0',
+      });
+
       const response = await fetch('/api/governance/votes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ proposalId, voter, support, tokenBalance }),
+        body: JSON.stringify({ proposalId, voter, support, signedMessage, signature }),
       });
 
       const data = await response.json();
@@ -114,7 +122,7 @@ export function useGovernance() {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  }, [fetchProposals]);
+  }, [fetchProposals, buildSignedPayload]);
 
   const getUserVotes = useCallback(async (voter: string): Promise<Vote[]> => {
     try {

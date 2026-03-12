@@ -36,8 +36,8 @@ export function useNotifications(): UseNotificationsReturn {
   const [badgeCount, setBadgeCount] = useState(0);
   const [lastNotification, setLastNotification] = useState<Notifications.Notification | null>(null);
   
-  const notificationListener = useRef<Notifications.Subscription>();
-  const responseListener = useRef<Notifications.Subscription>();
+  const notificationListener = useRef<Notifications.Subscription | undefined>(undefined);
+  const responseListener = useRef<Notifications.Subscription | undefined>(undefined);
 
   // Initialize on mount
   useEffect(() => {

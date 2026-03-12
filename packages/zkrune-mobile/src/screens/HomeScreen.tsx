@@ -376,10 +376,10 @@ function WalletCard({ name, address, active, gradient, onPress }: {
   name: string; 
   address: string; 
   active?: boolean; 
-  gradient?: string[];
+  gradient?: [string, string, ...string[]];
   onPress: () => void;
 }) {
-  const cardGradient = gradient || (active 
+  const cardGradient: [string, string, ...string[]] = gradient || (active 
     ? ['#1e2845', '#2a3455', '#252d48'] 
     : ['#181f35', '#1a2238', '#151c30']
   );

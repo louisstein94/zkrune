@@ -22,6 +22,11 @@ export const ZKRUNE_TOKEN = {
   
   // Staking program address
   STAKING_PROGRAM: process.env.NEXT_PUBLIC_STAKING_PROGRAM || '',
+
+  // Stake vault authority wallet (owner of the vault ATA).
+  // Set NEXT_PUBLIC_STAKE_VAULT_AUTHORITY to the authority's base58 public key.
+  // The actual token account is derived on-chain: getAssociatedTokenAddress(mint, authority).
+  STAKE_VAULT_AUTHORITY: process.env.NEXT_PUBLIC_STAKE_VAULT_AUTHORITY || '',
 } as const;
 
 // Premium feature tiers

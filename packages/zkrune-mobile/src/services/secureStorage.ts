@@ -14,6 +14,7 @@ const isWeb = Platform.OS === 'web';
 export const STORAGE_KEYS = {
   WALLET_SECRET: 'zkrune_wallet_secret',
   WALLET_PUBLIC_KEY: 'zkrune_wallet_pubkey',
+  WALLET_LIST: 'zkrune_wallet_pubkey_list',
   BIOMETRIC_ENABLED: 'zkrune_biometric_enabled',
   PIN_HASH: 'zkrune_pin_hash',
   ONBOARDED: 'zkrune_onboarded',

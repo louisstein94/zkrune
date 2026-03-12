@@ -73,6 +73,7 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
         proofId: 'scanned',
         timestamp: Date.now(),
         verified: false,
+        isRealProof: false,
       });
 
       const template = templates.find(t => t.type === proofData.t);

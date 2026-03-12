@@ -312,7 +312,9 @@ class ZkProofService {
   }
 
   /**
-   * Verify a proof using bundled verification keys
+   * Verify a proof by calling the server-side groth16.verify endpoint.
+   * The server loads the trusted vKey from its own filesystem — the client
+   * never supplies the vKey, preventing vKey substitution attacks.
    */
   async verifyProof(
     proof: ZKProof,
@@ -320,23 +322,35 @@ class ZkProofService {
     type: ProofType
   ): Promise<boolean> {
     try {
-      // For now, we trust the verification done during generation
-      // Full re-verification would require another WebView call
-      const vkey = await this._getVerificationKey(type);
-      if (!vkey) {
-        throw new Error('Verification key not found');
-      }
-
-      // Structural check
+      // Basic structural sanity check before hitting the network
       if (
-        proof.pi_a.length !== 3 ||
-        proof.pi_b.length !== 3 ||
-        proof.pi_c.length !== 3
+        !Array.isArray(proof.pi_a) || proof.pi_a.length < 2 ||
+        !Array.isArray(proof.pi_b) || proof.pi_b.length < 2 ||
+        !Array.isArray(proof.pi_c) || proof.pi_c.length < 2
       ) {
+        console.warn('[ZkProof] Proof has invalid structure');
         return false;
       }
 
-      return true;
+      // Delegate cryptographic verification to the server
+      // Server loads the trusted vKey — client cannot inject its own
+      const response = await fetch('https://zkrune.com/api/verify-proof', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          proof,
+          publicSignals,
+          circuitName: type,
+        }),
+      });
+
+      if (!response.ok) {
+        console.error('[ZkProof] Server verification failed:', response.status);
+        return false;
+      }
+
+      const result = await response.json();
+      return result.success === true && result.isValid === true;
     } catch (error) {
       console.error('[ZkProof] Failed to verify proof:', error);
       return false;

@@ -1,53 +1,43 @@
 pragma circom 2.0.0;
 
-include "../../node_modules/circomlib/circuits/poseidon.circom";
-include "../../node_modules/circomlib/circuits/comparators.circom";
 include "../../node_modules/circomlib/circuits/eddsaposeidon.circom";
 
 // Signature Verification Circuit
-// Verifies a signature without revealing the private key
+// Uses real EdDSA-Poseidon signature verification (circomlib standard).
+//
+// The signer produces (R8x, R8y, S) off-circuit with the circomlib
+// eddsa.js helper and provides them as private inputs.
+// Only the public key (Ax, Ay) and the message M are public.
+//
+// Security properties:
+//  - privateKey is never an input; the circuit never sees it
+//  - EdDSAPoseidonVerifier enforces the group equation in-circuit
+//  - proof is only satisfiable if the signer holds the private key
+//    corresponding to (Ax, Ay)
+
 template SignatureVerification() {
-    // Private inputs
-    signal input privateKey;          // Private key (kept secret)
-    signal input message;             // Message that was signed
-    signal input nonce;               // Random nonce for signature
-    
-    // Public inputs  
-    signal input publicKeyX;          // Public key X coordinate
-    signal input publicKeyY;          // Public key Y coordinate
-    signal input expectedMessage;     // Expected message hash
-    
-    // Outputs
-    signal output isValidSignature;
-    signal output messageHash;
-    
-    // Hash the message
-    component messageHasher = Poseidon(2);
-    messageHasher.inputs[0] <== message;
-    messageHasher.inputs[1] <== nonce;
-    messageHash <== messageHasher.out;
-    
-    // Check message matches expected
-    component messageCheck = IsEqual();
-    messageCheck.in[0] <== messageHash;
-    messageCheck.in[1] <== expectedMessage;
-    
-    // Verify signature using real cryptographic key derivation
-    // Hash private key to derive public key component
-    component pubKeyHasher = Poseidon(1);
-    pubKeyHasher.inputs[0] <== privateKey;
-    
-    // Check derived public key matches provided public key
-    component pubKeyCheck = IsEqual();
-    pubKeyCheck.in[0] <== pubKeyHasher.out;
-    pubKeyCheck.in[1] <== publicKeyX;
-    
-    // Both checks must pass (message and signature)
-    isValidSignature <== messageCheck.out * pubKeyCheck.out;
-    
-    // Constraint
-    isValidSignature * (isValidSignature - 1) === 0;
+    // Private inputs — signature components
+    signal input R8x;   // R8 point x-coordinate (from eddsa.sign)
+    signal input R8y;   // R8 point y-coordinate (from eddsa.sign)
+    signal input S;     // Scalar component (from eddsa.sign)
+
+    // Public inputs
+    signal input Ax;    // Signer public key x
+    signal input Ay;    // Signer public key y
+    signal input M;     // Message (field element)
+
+    // EdDSA-Poseidon verifier from circomlib
+    // Internally checks: 8·S·B == 8·R8 + 8·hash(R8,A,M)·A
+    component verifier = EdDSAPoseidonVerifier();
+    verifier.enabled <== 1;  // always enforce
+    verifier.Ax      <== Ax;
+    verifier.Ay      <== Ay;
+    verifier.R8x     <== R8x;
+    verifier.R8y     <== R8y;
+    verifier.S       <== S;
+    verifier.M       <== M;
 }
 
-component main {public [publicKeyX, publicKeyY, expectedMessage]} = SignatureVerification();
+// Ax, Ay, M are public; R8x, R8y, S remain private
+component main {public [Ax, Ay, M]} = SignatureVerification();
 

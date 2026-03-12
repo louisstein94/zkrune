@@ -24,6 +24,7 @@ import { colors, typography, spacing, layout } from '../theme';
 import { Card, GradientText } from '../components/ui';
 import { useBiometric, useNotifications, useWallet, useSolana } from '../hooks';
 import { secureStorage, walletService } from '../services';
+import { STORAGE_KEYS } from '../services/secureStorage';
 
 // External links
 const LINKS = {
@@ -165,8 +166,13 @@ export function SettingsScreen() {
       Alert.alert('Error', 'PINs do not match');
       return;
     }
-    // Save PIN
-    await secureStorage.set('zkrune_pin' as any, newPin);
+    // Hash the PIN before storing — never store plaintext PINs
+    const encoder = new TextEncoder();
+    const data = encoder.encode(newPin + 'zkrune_pin_salt');
+    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+    const hashArray = Array.from(new Uint8Array(hashBuffer));
+    const pinHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    await secureStorage.set(STORAGE_KEYS.PIN_HASH, pinHash);
     Alert.alert('Success', 'PIN has been updated');
     setShowPinModal(false);
     setCurrentPin('');
@@ -323,43 +329,47 @@ export function SettingsScreen() {
           <View key={section.title} style={styles.section}>
             <Text style={styles.sectionTitle}>{section.title}</Text>
             <Card noPadding>
-              {section.items.map((item, index) => (
+              {section.items.map((item, index) => {
+                const isDisabled = ('disabled' in item && item.disabled) || item.type === 'info';
+                const subtitle = 'subtitle' in item ? item.subtitle : undefined;
+                const status = 'status' in item ? item.status : undefined;
+                return (
                 <TouchableOpacity
                   key={item.title}
                   style={[
                     styles.settingItem,
                     index < section.items.length - 1 && styles.settingItemBorder,
                   ]}
-                  disabled={item.type === 'toggle' || item.type === 'info' || item.disabled}
+                  disabled={item.type === 'toggle' || item.type === 'info' || isDisabled}
                   onPress={item.type === 'link' ? item.onPress : undefined}
                 >
                   <View style={[
                     styles.settingIcon,
-                    item.disabled && styles.settingIconDisabled,
+                    isDisabled && styles.settingIconDisabled,
                   ]}>
                     <Ionicons 
                       name={item.icon as any} 
                       size={22} 
-                      color={item.disabled ? colors.text.tertiary : colors.brand.primary} 
+                      color={isDisabled ? colors.text.tertiary : colors.brand.primary} 
                     />
                   </View>
                   <View style={styles.settingContent}>
                     <Text style={[
                       styles.settingTitle,
-                      item.disabled && styles.settingTitleDisabled,
+                      isDisabled && styles.settingTitleDisabled,
                     ]}>
                       {item.title}
                     </Text>
-                    {item.subtitle && (
+                    {subtitle && (
                       <View style={styles.subtitleRow}>
-                        {item.status && (
+                        {status && (
                           <View style={[
                             styles.statusDot,
-                            item.status === 'success' && styles.statusDotSuccess,
-                            item.status === 'error' && styles.statusDotError,
+                            status === 'success' && styles.statusDotSuccess,
+                            status === 'error' && styles.statusDotError,
                           ]} />
                         )}
-                        <Text style={styles.settingSubtitle}>{item.subtitle}</Text>
+                        <Text style={styles.settingSubtitle}>{subtitle}</Text>
                       </View>
                     )}
                   </View>
@@ -374,7 +384,7 @@ export function SettingsScreen() {
                     <Switch
                       value={item.value}
                       onValueChange={item.onToggle}
-                      disabled={item.disabled}
+                      disabled={isDisabled}
                       trackColor={{ 
                         false: colors.background.tertiary, 
                         true: colors.brand.primary + '60',
@@ -383,7 +393,8 @@ export function SettingsScreen() {
                     />
                   )}
                 </TouchableOpacity>
-              ))}
+                );
+              })}
             </Card>
           </View>
         ))}
@@ -705,7 +716,7 @@ const styles = StyleSheet.create({
     gap: spacing[2],
   },
   wordNumber: {
-    ...typography.styles.caption,
+    ...typography.styles.bodySmall,
     color: colors.text.tertiary,
     minWidth: 16,
   },

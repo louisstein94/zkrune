@@ -30,6 +30,8 @@ template RangeProof() {
     
     // Output the result (1 if both pass, 0 otherwise)
     inRange <== bothChecks;
+    // Enforce: proof is only satisfiable when value is within range
+    inRange === 1;
     
     // Additional sanity check: minRange <= maxRange
     component rangeValidCheck = LessEqThan(64);

@@ -8,7 +8,6 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 template TokenSwap() {
     // Private inputs
     signal input tokenABalance;       // Your balance of Token A
-    signal input tokenBBalance;       // Your balance of Token B (if needed)
     signal input swapSecret;          // Secret to authorize swap
     
     // Public inputs
@@ -61,6 +60,8 @@ template TokenSwap() {
     
     // Constraints
     canSwap * (canSwap - 1) === 0;
+    // Enforce: proof is only satisfiable when swap conditions are met
+    canSwap === 1;
 }
 
 component main {public [requiredTokenA, swapRate, minReceive]} = TokenSwap();

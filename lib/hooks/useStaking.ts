@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { STAKING_CONFIG } from '@/lib/token/config';
+import { useWalletAuth } from '@/lib/auth/useWalletAuth';
 
 export interface StakePosition {
   id: string;
@@ -30,6 +31,7 @@ export interface UserStakingInfo {
 }
 
 export function useStaking(walletAddress?: string) {
+  const { buildSignedPayload } = useWalletAuth();
   const [positions, setPositions] = useState<StakePosition[]>([]);
   const [stats, setStats] = useState<StakingStats>({
     totalStaked: 0,
@@ -67,13 +69,21 @@ export function useStaking(walletAddress?: string) {
   const createStake = useCallback(async (
     staker: string,
     amount: number,
-    lockPeriodDays: number
+    lockPeriodDays: number,
+    transactionSignature: string,
   ) => {
     try {
+      // Bind signature to amount, lock period, AND the on-chain tx that moved the tokens
+      const { signedMessage, signature } = await buildSignedPayload('stake', {
+        amount: String(amount),
+        lockPeriodDays: String(lockPeriodDays),
+        transactionSignature,
+      });
+
       const response = await fetch('/api/staking', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ staker, amount, lockPeriodDays }),
+        body: JSON.stringify({ staker, amount, lockPeriodDays, transactionSignature, signedMessage, signature }),
       });
 
       const data = await response.json();
@@ -85,14 +95,16 @@ export function useStaking(walletAddress?: string) {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  }, [fetchPositions]);
+  }, [fetchPositions, buildSignedPayload]);
 
   const claimRewards = useCallback(async (positionId: string, staker: string) => {
     try {
+      const { signedMessage, signature } = await buildSignedPayload('claim', { positionId });
+
       const response = await fetch('/api/staking', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ positionId, staker, action: 'claim' }),
+        body: JSON.stringify({ positionId, staker, action: 'claim', signedMessage, signature }),
       });
 
       const data = await response.json();
@@ -104,14 +116,16 @@ export function useStaking(walletAddress?: string) {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  }, [fetchPositions]);
+  }, [fetchPositions, buildSignedPayload]);
 
   const unstake = useCallback(async (positionId: string, staker: string) => {
     try {
+      const { signedMessage, signature } = await buildSignedPayload('unstake', { positionId });
+
       const response = await fetch('/api/staking', {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ positionId, staker, action: 'unstake' }),
+        body: JSON.stringify({ positionId, staker, action: 'unstake', signedMessage, signature }),
       });
 
       const data = await response.json();
@@ -129,7 +143,7 @@ export function useStaking(walletAddress?: string) {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  }, [fetchPositions]);
+  }, [fetchPositions, buildSignedPayload]);
 
   const calculatePendingRewards = useCallback((position: StakePosition): number => {
     if (!position.is_active) return 0;

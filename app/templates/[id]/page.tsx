@@ -329,6 +329,10 @@ export default function TemplatePage() {
     }
   }, [birthDate, templateId]);
 
+  // No circuits currently under maintenance
+  const CIRCUITS_UNDER_MAINTENANCE = new Set<string>();
+  const isUnderMaintenance = CIRCUITS_UNDER_MAINTENANCE.has(templateId);
+
   if (!template) {
     return (
       <div className="min-h-screen bg-zk-darker flex items-center justify-center">
@@ -492,6 +496,20 @@ export default function TemplatePage() {
                 Generate Proof
               </h2>
 
+              {isUnderMaintenance && (
+                <div className="mb-6 p-4 bg-yellow-500/10 border border-yellow-500/40 rounded-xl flex items-start gap-3">
+                  <svg className="w-5 h-5 text-yellow-400 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <p className="text-yellow-400 font-medium text-sm">Circuit Under Maintenance</p>
+                    <p className="text-yellow-300/70 text-xs mt-1">
+                      This circuit&apos;s trusted setup is being updated with security improvements. Proof generation is temporarily unavailable. Please check back soon.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               {!proof ? (
                 <>
                   {templateId === "age-verification" && (
@@ -515,7 +533,7 @@ export default function TemplatePage() {
                       <button
                         id="tutorial-generate-button"
                         onClick={generateAgeProof}
-                        disabled={isGenerating || !birthDate}
+                        disabled={isGenerating || !birthDate || isUnderMaintenance}
                         className="w-full py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {isGenerating ? (
@@ -523,6 +541,8 @@ export default function TemplatePage() {
                             <div className="w-5 h-5 border-2 border-zk-darker/30 border-t-zk-darker rounded-full animate-spin" />
                             Generating Proof...
                           </>
+                        ) : isUnderMaintenance ? (
+                          <>Under Maintenance</>
                         ) : (
                           <>Generate ZK Proof</>
                         )}

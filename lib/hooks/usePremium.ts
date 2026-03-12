@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { PREMIUM_TIERS, type PremiumTier } from '@/lib/token/config';
+import { useWalletAuth } from '@/lib/auth/useWalletAuth';
 
 export interface PremiumStatus {
   wallet: string;
@@ -21,6 +22,7 @@ export interface BurnRecord {
 }
 
 export function usePremium(walletAddress?: string) {
+  const { buildSignedPayload } = useWalletAuth();
   const [status, setStatus] = useState<PremiumStatus>({
     wallet: walletAddress || '',
     tier: 'FREE',
@@ -86,6 +88,14 @@ export function usePremium(walletAddress?: string) {
     }
 
     try {
+      // Bind signature to burn amount, tier, and the on-chain tx — prevents replaying
+      // a valid signature against a different tier or transaction
+      const { signedMessage, signature } = await buildSignedPayload('premium', {
+        amount: String(amount),
+        targetTier,
+        transactionSignature,
+      });
+
       const response = await fetch('/api/premium', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -94,6 +104,8 @@ export function usePremium(walletAddress?: string) {
           amount,
           targetTier,
           transactionSignature,
+          signedMessage,
+          signature,
         }),
       });
 
@@ -107,7 +119,7 @@ export function usePremium(walletAddress?: string) {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  }, [walletAddress, fetchStatus, fetchBurnHistory]);
+  }, [walletAddress, fetchStatus, fetchBurnHistory, buildSignedPayload]);
 
   const hasFeatureAccess = useCallback((feature: string): boolean => {
     const featureRequirements: Record<string, PremiumTier[]> = {

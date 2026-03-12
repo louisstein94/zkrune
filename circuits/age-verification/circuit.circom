@@ -30,13 +30,13 @@ template AgeVerification() {
     
     // Output the actual comparison result
     isValid <== ageCheck.out;
+    // Enforce: proof is only satisfiable when user meets the age requirement
+    isValid === 1;
     
     // Additional constraint: age must be reasonable (0-150)
     component maxAgeCheck = LessThan(32);
     maxAgeCheck.in[0] <== age;
     maxAgeCheck.in[1] <== 150;
-    
-    // Force the constraint
     maxAgeCheck.out === 1;
 }
 

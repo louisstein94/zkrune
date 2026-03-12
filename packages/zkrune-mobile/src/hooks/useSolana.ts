@@ -45,7 +45,7 @@ export function useSolana(): UseSolanaReturn {
   const [isInitialized, setIsInitialized] = useState(false);
   const [isHealthy, setIsHealthy] = useState(false);
   const [network, setNetworkState] = useState<Network>('mainnet-beta');
-  const [endpoint, setEndpointState] = useState(RPC_ENDPOINTS.MAINNET);
+  const [endpoint, setEndpointState] = useState<string>(RPC_ENDPOINTS.MAINNET);
   const [currentSlot, setCurrentSlot] = useState(0);
 
   // Initialize on mount
