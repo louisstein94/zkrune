@@ -11,9 +11,9 @@ const securityHeaders = {
     "default-src 'self'",
     "script-src 'self' 'unsafe-eval' 'unsafe-inline'", // snarkjs requires unsafe-eval
     "worker-src 'self' blob:", // snarkjs creates Web Workers from blob URLs
-    "style-src 'self' 'unsafe-inline'",
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
-    "font-src 'self' data:",
+    "font-src 'self' data: https://fonts.gstatic.com",
     "connect-src 'self' https://mainnet.lightwalletd.com:9067 https://*.vercel.app",
     "frame-ancestors 'none'",
     "base-uri 'self'",

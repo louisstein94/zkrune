@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect, useRef } from 'react';
+import { useCallback, useState, useMemo, useRef } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -13,7 +13,6 @@ import ReactFlow, {
   OnEdgesChange,
   OnConnect,
   NodeTypes,
-  useReactFlow,
   ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
@@ -33,65 +32,48 @@ const nodeTypes: NodeTypes = {
 };
 
 interface CircuitCanvasProps {
-  initialNodes?: Node[];
-  initialEdges?: Edge[];
-  onNodesChange?: (nodes: Node[]) => void;
-  onEdgesChange?: (edges: Edge[]) => void;
+  nodes: Node[];
+  edges: Edge[];
+  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
 }
 
-function CircuitCanvasInner({ 
-  initialNodes = [], 
-  initialEdges = [],
-  onNodesChange: externalNodesChange,
-  onEdgesChange: externalEdgesChange,
-}: CircuitCanvasProps) {
-  const [nodes, setNodes] = useState<Node[]>([]);
-  const [edges, setEdges] = useState<Edge[]>([]);
+function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasProps) {
   const [showCodePanel, setShowCodePanel] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
-  const [generatedCode, setGeneratedCode] = useState<string>('');
-  const [validation, setValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
   const nodeCountRef = useRef(0);
 
-  useEffect(() => {
-    setNodes(initialNodes);
-  }, [initialNodes]);
+  const generatedCode = useMemo(
+    () => (nodes.length > 0 ? generateCircomCode(nodes, edges) : ''),
+    [nodes, edges]
+  );
 
-  useEffect(() => {
-    setEdges(initialEdges);
-  }, [initialEdges]);
+  const validation = useMemo(
+    () => (nodes.length > 0 ? validateCircuit(nodes, edges) : { valid: true, errors: [] as string[] }),
+    [nodes, edges]
+  );
 
-  useEffect(() => {
-    if (nodes.length > 0) {
-      setGeneratedCode(generateCircomCode(nodes, edges));
-      setValidation(validateCircuit(nodes, edges));
-    } else {
-      setGeneratedCode('');
-      setValidation({ valid: true, errors: [] });
-    }
-    externalNodesChange?.(nodes);
-  }, [nodes, edges]);
+  const complexity = useMemo(
+    () => estimateCircuitComplexity(nodes, edges),
+    [nodes, edges]
+  );
 
-  useEffect(() => {
-    externalEdgesChange?.(edges);
-  }, [edges]);
-
-  const onNodesChange: OnNodesChange = useCallback(
+  const handleNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    []
+    [setNodes]
   );
 
-  const onEdgesChange: OnEdgesChange = useCallback(
+  const handleEdgesChange: OnEdgesChange = useCallback(
     (changes) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    []
+    [setEdges]
   );
 
-  const onConnect: OnConnect = useCallback(
+  const handleConnect: OnConnect = useCallback(
     (connection) => setEdges((eds) => addEdge({ ...connection, animated: true }, eds)),
-    []
+    [setEdges]
   );
 
-  const addNode = (type: string, nodeData: any) => {
+  const addNode = useCallback((type: string, nodeData: any) => {
     const col = nodeCountRef.current % 3;
     const row = Math.floor(nodeCountRef.current / 3);
     nodeCountRef.current += 1;
@@ -103,17 +85,15 @@ function CircuitCanvasInner({
       data: nodeData,
     };
     setNodes((nds) => [...nds, newNode]);
-  };
+  }, [setNodes]);
 
-  const handleCopyCode = () => {
-    const code = generatedCode || generateCircomCode(nodes, edges);
-    navigator.clipboard.writeText(code);
+  const handleCopyCode = useCallback(() => {
+    navigator.clipboard.writeText(generatedCode);
     setCodeCopied(true);
     setTimeout(() => setCodeCopied(false), 2000);
-  };
+  }, [generatedCode]);
 
   const isEmpty = nodes.length === 0;
-  const complexity = estimateCircuitComplexity(nodes, edges);
 
   return (
     <div className="flex h-[calc(100vh-140px)]">
@@ -153,9 +133,9 @@ function CircuitCanvasInner({
         <ReactFlow
           nodes={nodes}
           edges={edges}
-          onNodesChange={onNodesChange}
-          onEdgesChange={onEdgesChange}
-          onConnect={onConnect}
+          onNodesChange={handleNodesChange}
+          onEdgesChange={handleEdgesChange}
+          onConnect={handleConnect}
           nodeTypes={nodeTypes}
           fitView
           className="bg-zk-darker"
@@ -164,7 +144,6 @@ function CircuitCanvasInner({
           <Controls className="bg-zk-dark border border-zk-gray/20 rounded-lg" />
         </ReactFlow>
 
-        {/* Bottom bar with stats & code toggle */}
         {!isEmpty && (
           <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
             <div className="flex items-center gap-3 px-4 py-2 bg-zk-dark/90 backdrop-blur-sm border border-zk-gray/20 rounded-lg text-xs">
@@ -204,7 +183,6 @@ function CircuitCanvasInner({
         )}
       </div>
 
-      {/* Code Panel - Only visible when toggled */}
       {showCodePanel && (
         <div className="w-80 bg-zk-dark border-l border-zk-gray/20 overflow-auto flex flex-col">
           <div className="p-5 border-b border-zk-gray/10">
@@ -252,7 +230,7 @@ function CircuitCanvasInner({
           </div>
 
           <div className="p-4 border-t border-zk-gray/10">
-            <button 
+            <button
               onClick={handleCopyCode}
               disabled={!generatedCode}
               className={`w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
@@ -277,4 +255,3 @@ export default function CircuitCanvas(props: CircuitCanvasProps) {
     </ReactFlowProvider>
   );
 }
-

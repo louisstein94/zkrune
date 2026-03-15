@@ -133,7 +133,7 @@ export default function BuilderPage() {
           </div>
         )}
 
-        <CircuitCanvas initialNodes={nodes} initialEdges={edges} onNodesChange={setNodes} onEdgesChange={setEdges} />
+        <CircuitCanvas nodes={nodes} edges={edges} setNodes={setNodes} setEdges={setEdges} />
       </div>
     </main>
   );
