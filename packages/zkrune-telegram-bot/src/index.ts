@@ -15,7 +15,7 @@ const WHALE_GROUP_ID = process.env.WHALE_GROUP_ID;
 const PROOF_URL = process.env.PROOF_URL || "https://zkrune.com/whale-chat";
 const VKEY_PATH =
   process.env.VKEY_PATH ||
-  path.resolve(__dirname, "../data/whale-holder_vkey.json");
+  path.resolve(__dirname, "../keys/whale-holder_vkey.json");
 
 if (!BOT_TOKEN) {
   console.error("BOT_TOKEN is required. Set it in .env");

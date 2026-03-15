@@ -7,9 +7,11 @@ RUN npm ci --omit=dev
 
 COPY tsconfig.json ./
 COPY src ./src
-COPY data ./data
+COPY keys ./keys
 
 RUN npx tsc
+
+RUN mkdir -p data
 
 EXPOSE 3000
 
