@@ -61,8 +61,8 @@ export function startHttpServer(port: number): http.Server {
     json(res, 404, { error: "Not found" });
   });
 
-  server.listen(port, () => {
-    console.log(`[http] Snapshot server listening on :${port}`);
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`[http] Snapshot server listening on 0.0.0.0:${port}`);
   });
 
   return server;
