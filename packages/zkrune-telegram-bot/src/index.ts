@@ -211,10 +211,32 @@ const HTTP_PORT = parseInt(process.env.PORT || "3000", 10);
 startSnapshotCron();
 startHttpServer(HTTP_PORT);
 
-bot.start({
-  onStart: () => {
-    console.log("[zkrune-bot] Whale verification bot is running");
-    console.log("[zkrune-bot] Proof URL:", PROOF_URL);
-    console.log("[zkrune-bot] Group ID:", WHALE_GROUP_ID || "(not set)");
-  },
+async function launchBot(retries = 5): Promise<void> {
+  for (let attempt = 1; attempt <= retries; attempt++) {
+    try {
+      await bot.api.deleteWebhook({ drop_pending_updates: true });
+      await bot.start({
+        onStart: () => {
+          console.log("[zkrune-bot] Whale verification bot is running");
+          console.log("[zkrune-bot] Proof URL:", PROOF_URL);
+          console.log("[zkrune-bot] Group ID:", WHALE_GROUP_ID || "(not set)");
+        },
+      });
+      return;
+    } catch (err: any) {
+      if (err?.error_code === 409 && attempt < retries) {
+        const delay = attempt * 3000;
+        console.warn(
+          `[zkrune-bot] Conflict (attempt ${attempt}/${retries}), retrying in ${delay / 1000}s...`
+        );
+        await new Promise((r) => setTimeout(r, delay));
+      } else {
+        throw err;
+      }
+    }
+  }
+}
+
+launchBot().catch((err) => {
+  console.error("[zkrune-bot] Fatal:", err.message);
 });
