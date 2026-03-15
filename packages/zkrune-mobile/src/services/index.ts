@@ -66,6 +66,14 @@ export {
   type TokenPrice,
 } from './priceService';
 
+// Solana On-Chain Verifier
+export {
+  verifyProofOnChain,
+  isTemplateSupported,
+  getExplorerUrl,
+  type VerifyOnChainResult,
+} from './solanaVerifier';
+
 // Bundled Verification Keys
 export { VERIFICATION_KEYS } from './verificationKeys';
 

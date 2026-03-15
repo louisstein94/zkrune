@@ -171,10 +171,8 @@ export function Navigation() {
   const checkOnboarding = async () => {
     try {
       const onboarded = await secureStorage.get(STORAGE_KEYS.ONBOARDED);
-      // If no onboarding status saved, auto-complete for testing
       if (onboarded === null) {
-        await secureStorage.set(STORAGE_KEYS.ONBOARDED, 'true');
-        setHasOnboarded(true);
+        setHasOnboarded(false);
       } else {
         setHasOnboarded(onboarded === 'true');
       }

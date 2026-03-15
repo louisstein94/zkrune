@@ -6,12 +6,13 @@
 import Constants from 'expo-constants';
 import { secureStorage, STORAGE_KEYS } from './secureStorage';
 
-// Get API key from environment (with fallback for development)
-const HELIUS_API_KEY = Constants.expoConfig?.extra?.heliusApiKey || 'HELIUS_API_KEY_REDACTED';
+// Get API key from environment
+const HELIUS_API_KEY = Constants.expoConfig?.extra?.heliusApiKey;
+const isValidKey = HELIUS_API_KEY && HELIUS_API_KEY !== 'HELIUS_API_KEY_REDACTED';
 
 // Build RPC endpoints dynamically
 const buildHeliusUrl = (network: 'mainnet' | 'devnet') => {
-  if (!HELIUS_API_KEY) return null;
+  if (!isValidKey) return null;
   return `https://${network}.helius-rpc.com/?api-key=${HELIUS_API_KEY}`;
 };
 
@@ -98,6 +99,7 @@ export const STAKING_CONFIG = {
 class SolanaRpcService {
   private _endpoint: string = DEFAULT_MAINNET_RPC;
   private _network: Network = 'mainnet-beta';
+  private _requestId = 0;
 
   /**
    * Initialize the RPC service
@@ -171,6 +173,8 @@ class SolanaRpcService {
    * Make an RPC request
    */
   private async _request<T>(method: string, params: any[] = []): Promise<T> {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
     try {
       const response = await fetch(this._endpoint, {
         method: 'POST',
@@ -179,11 +183,14 @@ class SolanaRpcService {
         },
         body: JSON.stringify({
           jsonrpc: '2.0',
-          id: Date.now(),
+          id: ++this._requestId,
           method,
           params,
         }),
+        signal: controller.signal,
       });
+
+      if (!response.ok) throw new Error(`RPC error: ${response.status}`);
 
       const data = await response.json();
 
@@ -195,6 +202,8 @@ class SolanaRpcService {
     } catch (error) {
       console.error(`[SolanaRPC] ${method} failed:`, error);
       throw error;
+    } finally {
+      clearTimeout(timeoutId);
     }
   }
 

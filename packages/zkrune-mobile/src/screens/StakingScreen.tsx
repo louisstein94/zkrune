@@ -31,34 +31,12 @@ interface StakePosition {
   apy: number;
 }
 
-// Demo staking positions
-const demoPositions: StakePosition[] = [
-  {
-    id: '1',
-    amount: 1000,
-    lockPeriod: 90,
-    startDate: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
-    endDate: new Date(Date.now() + 60 * 24 * 60 * 60 * 1000),
-    rewards: 45.5,
-    apy: 18,
-  },
-  {
-    id: '2',
-    amount: 500,
-    lockPeriod: 30,
-    startDate: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
-    endDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-    rewards: 8.2,
-    apy: 12,
-  },
-];
 
 export function StakingScreen({ navigation }: any) {
   const { isConnected, zkRuneBalance } = useWallet();
   const [selectedPeriod, setSelectedPeriod] = useState<number>(30);
   const [stakeAmount, setStakeAmount] = useState('');
-  const [isStaking, setIsStaking] = useState(false);
-  const [positions] = useState<StakePosition[]>(demoPositions);
+  const [positions] = useState<StakePosition[]>([]);
 
   const selectedConfig = STAKING_CONFIG.LOCK_PERIODS.find(p => p.days === selectedPeriod);
   const calculatedAPY = STAKING_CONFIG.BASE_APY * (selectedConfig?.multiplier || 1);
@@ -80,18 +58,10 @@ export function StakingScreen({ navigation }: any) {
       return;
     }
 
-    setIsStaking(true);
-    
-    // Simulate staking transaction
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
     Alert.alert(
-      'Staking Successful!',
-      `You've staked ${stakeAmount} zkRUNE for ${selectedPeriod} days at ${calculatedAPY}% APY`,
-      [{ text: 'OK', onPress: () => setStakeAmount('') }]
+      'Coming Soon',
+      'On-chain staking will be available in a future update. Stay tuned!',
     );
-    
-    setIsStaking(false);
   };
 
   const handleUnstake = (position: StakePosition) => {
@@ -102,7 +72,7 @@ export function StakingScreen({ navigation }: any) {
         `Unstaking early will forfeit ${(position.rewards * 0.5).toFixed(2)} zkRUNE in rewards. Continue?`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Unstake', style: 'destructive', onPress: () => {} },
+          { text: 'Unstake', style: 'destructive', onPress: () => Alert.alert('Coming Soon', 'Unstaking will be available in the next update.') },
         ]
       );
     } else {
@@ -111,14 +81,14 @@ export function StakingScreen({ navigation }: any) {
         `Claim ${position.amount + position.rewards} zkRUNE?`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Claim', onPress: () => {} },
+          { text: 'Claim', onPress: () => Alert.alert('Coming Soon', 'Claiming will be available in the next update.') },
         ]
       );
     }
   };
 
   const handleMaxAmount = () => {
-    setStakeAmount(zkRuneBalance.toString());
+    setStakeAmount(zkRuneBalance.toFixed(6));
   };
 
   return (
@@ -248,9 +218,8 @@ export function StakingScreen({ navigation }: any) {
           )}
 
           <Button
-            title={isStaking ? 'Staking...' : 'Stake Now'}
+            title="Stake Now"
             onPress={handleStake}
-            loading={isStaking}
             disabled={!isConnected || !stakeAmount || parseFloat(stakeAmount) < STAKING_CONFIG.MIN_STAKE}
             size="lg"
             style={styles.stakeButton}

@@ -35,28 +35,28 @@ const slides: OnboardingSlide[] = [
     icon: 'shield-checkmark',
     title: 'Zero-Knowledge Privacy',
     description: 'Prove facts about yourself without revealing sensitive data. Your secrets stay yours.',
-    gradient: ['#0EA5E9', '#14B8A6'], // zkRune cyan to teal
+    gradient: ['#818CF8', '#A78BFA'],
   },
   {
     id: '2',
     icon: 'flash',
     title: 'Instant Proof Generation',
     description: 'Generate cryptographic proofs in seconds, right on your device. No servers, no waiting.',
-    gradient: ['#06B6D4', '#10B981'], // Cyan to emerald
+    gradient: ['#818CF8', '#A78BFA'],
   },
   {
     id: '3',
     icon: 'wallet',
     title: 'Solana Powered',
     description: 'Connect your Phantom or Solflare wallet. Verify proofs on-chain with minimal fees.',
-    gradient: ['#14B8A6', '#0EA5E9'], // Teal to sky
+    gradient: ['#A78BFA', '#34D399'],
   },
   {
     id: '4',
     icon: 'finger-print',
     title: 'Biometric Security',
     description: 'Protect your proofs with Face ID or fingerprint. Enterprise-grade security in your pocket.',
-    gradient: ['#06B6D4', '#5EEAD4'], // Cyan to rune glow
+    gradient: ['#818CF8', '#34D399'],
   },
 ];
 
@@ -83,7 +83,11 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
   };
 
   const handleComplete = async () => {
-    await secureStorage.set(STORAGE_KEYS.ONBOARDED, 'true');
+    try {
+      await secureStorage.set(STORAGE_KEYS.ONBOARDED, 'true');
+    } catch (error) {
+      console.error('[Onboarding] Failed to save onboarding status:', error);
+    }
     onComplete();
   };
 
@@ -179,6 +183,11 @@ export function OnboardingScreen({ onComplete }: OnboardingScreenProps) {
         }}
         keyExtractor={(item) => item.id}
         scrollEventThrottle={16}
+        getItemLayout={(_, index) => ({
+          length: width,
+          offset: width * index,
+          index,
+        })}
       />
 
       {/* Dots */}

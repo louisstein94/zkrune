@@ -17,34 +17,44 @@ if (typeof global.process === 'undefined') {
     version: '',
     nextTick: (fn) => setTimeout(fn, 0),
   };
+} else {
+  if (typeof global.process.version === 'undefined') {
+    global.process.version = '';
+  }
+  if (typeof global.process.env === 'undefined') {
+    global.process.env = {};
+  }
+  if (typeof global.process.nextTick === 'undefined') {
+    global.process.nextTick = (fn) => setTimeout(fn, 0);
+  }
 }
 
 // TextEncoder/TextDecoder polyfill (required for some crypto libs)
 if (typeof global.TextEncoder === 'undefined') {
-  class TextEncoderPolyfill {
+  global.TextEncoder = class TextEncoder {
     encode(str) {
-      const arr = [];
-      for (let i = 0; i < str.length; i++) {
-        arr.push(str.charCodeAt(i) & 0xff);
+      const utf8 = unescape(encodeURIComponent(str));
+      const arr = new Uint8Array(utf8.length);
+      for (let i = 0; i < utf8.length; i++) {
+        arr[i] = utf8.charCodeAt(i);
       }
-      return new Uint8Array(arr);
+      return arr;
     }
-  }
-  global.TextEncoder = TextEncoderPolyfill;
+  };
 }
 
 if (typeof global.TextDecoder === 'undefined') {
-  class TextDecoderPolyfill {
+  global.TextDecoder = class TextDecoder {
     decode(arr) {
       if (!arr) return '';
-      let result = '';
-      for (let i = 0; i < arr.length; i++) {
-        result += String.fromCharCode(arr[i]);
+      const bytes = arr instanceof Uint8Array ? arr : new Uint8Array(arr);
+      let str = '';
+      for (let i = 0; i < bytes.length; i++) {
+        str += String.fromCharCode(bytes[i]);
       }
-      return result;
+      return decodeURIComponent(escape(str));
     }
-  }
-  global.TextDecoder = TextDecoderPolyfill;
+  };
 }
 
 // URL polyfill for React Native (Hermes 0.73+ has native URL support)

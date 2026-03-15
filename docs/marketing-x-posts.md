@@ -354,6 +354,202 @@ zkRune Mobile APK is live. [link] 📱
 
 ---
 
+## 9. Telegram Bot — zkRune TG Bot is Live
+
+**Ana post (önerilen):**
+```
+zkRune Telegram bot is live 🐋
+
+Whale group access — without doxxing your wallet.
+
+• Prove you hold enough zkRUNE with a ZK proof (whale-holder circuit)
+• Generate proof on zkrune.com/whale-chat → export JSON → send to bot
+• Bot verifies Groth16 on-chain, checks nullifier (no replay), sends single-use invite
+• Your address and balance never leave the proof. Only "meets threshold" is verified.
+
+Privacy-first community. Join via proof, not via wallet. [Bot link]
+```
+
+**Kısa versiyon:**
+```
+zkRune TG bot is live.
+
+Prove you're a whale with a ZK proof. Get invite to the group. Your address and balance stay private. Groth16 + nullifier, no replay.
+
+Try: [Bot link] → /verify
+```
+
+**Tek cümle + CTA:**
+```
+Whale chat access without revealing your wallet: zkRune Telegram bot verifies your balance with a ZK proof and sends a single-use invite. Live now. [Bot link] 🔐
+```
+
+**Proof-over-promise açılışı:**
+```
+We don't ask "what's your wallet?"
+
+We ask: "prove you meet the threshold."
+
+zkRune Telegram bot is live. Generate a whale-holder ZK proof, send the file, get in. Address and balance never exposed. [Bot link]
+```
+
+---
+
+## 10. Ürün Odaklı Postlar (Yeni)
+
+### Value proposition — tek cümle
+```
+Privacy verification infrastructure for Solana.
+
+Prove age, balance, membership, or credentials — without exposing the data. 100% client-side Groth16. 13 templates. zkrune.com
+```
+```
+Verification without exposure.
+
+Users prove claims. You get a yes/no. No birthdates, no wallet addresses, no credentials on your server. zkrune.com
+```
+```
+Stop asking for the data. Ask for the proof.
+
+zkRune: zero-knowledge verification for access, eligibility, and identity. Solana-ready. zkrune.com
+```
+
+### Use-case: Access & eligibility
+```
+Age gate without the birthdate.
+
+User proves "I am 18+" with a ZK proof. You never see their date of birth. Same for "I hold ≥X tokens" or "I'm in this allowlist."
+
+One verification API. No PII. zkrune.com
+```
+```
+Fair launch without doxxing wallets.
+
+Prove eligibility with a balance or membership proof. No wallet reveal. No sniping. Just "eligible" or "not." Built for Solana. zkrune.com
+```
+```
+Gated community without exposing identity.
+
+Membership proof → user proves they're in the set. Credential proof → they prove they hold a valid pass. You grant access. You never see who. zkrune.com
+```
+
+### Use-case: Governance & reputation
+```
+Anonymous voting that’s actually anonymous.
+
+Private voting + quadratic voting templates. Prove a valid vote without linking it to a wallet. DAO-ready. zkrune.com
+```
+```
+Reputation without doxxing the score.
+
+Prove "my score ≥ X" with a ZK proof. Credit systems, trust tiers, allocations — no need to reveal the exact number. zkrune.com
+```
+
+### Use-case: Payments & swaps
+```
+Prove you can pay — without revealing balance.
+
+Balance proof: "I hold ≥ X." Token swap: "I have enough for this swap." Payment channels, DEX eligibility, private transfers. zkrune.com
+```
+
+### Developer / integration
+```
+Embed ZK verification in your app.
+
+zkrune-sdk: generateProof() in the browser, verify via our API or your own vKey. Age, balance, membership, credentials — one integration. Docs: zkrune.com/docs
+```
+```
+3 steps to privacy-preserving verification:
+
+1. npm install zkrune-sdk
+2. generateProof(templateId, inputs) — runs in user’s browser
+3. verify proof on your backend or zkrune.com/api/verify-proof
+
+No secrets on your server. Ever. zkrune.com/docs
+```
+```
+You don’t need to run a prover.
+
+We don’t either. Proofs are generated in the user’s browser. You get proof + publicSignals. Verify with the public vKey. That’s it. zkrune.com
+```
+
+### Özellik vurgusu (templates, verify API, widget)
+```
+13 proof templates. One stack.
+
+Age, balance, membership, credentials, NFT ownership, private voting, quadratic voting, token swap, range proof, hash preimage, signature, patience, reputation.
+
+All Groth16. All client-side. zkrune.com/templates
+```
+```
+Verify proofs in your backend.
+
+POST to zkrune.com/api/verify-proof with proof + publicSignals. We use the same trusted vKeys from our ceremony. You get { isValid }. No key management. zkrune.com/docs
+```
+```
+Add a "Prove with zkRune" flow to your app.
+
+Widget or SDK. User generates proof in-browser. You verify and grant access. No iframes of sensitive data — just the proof. zkrune.com/docs
+```
+
+### Token & ecosystem
+```
+zkRUNE isn’t just a token.
+
+Governance → vote on templates and features. Staking → earn APY. Marketplace → buy/sell circuit templates (95% to creators). Burn → unlock Builder/Pro/Enterprise tiers. zkrune.com
+```
+```
+Unlock more with zkRUNE.
+
+Free: 5 proofs/day. Builder (burn 100): unlimited proofs, all templates, API. Pro: custom circuits, gasless. Enterprise: white-label. zkrune.com/premium
+```
+
+### "What you can build"
+```
+What can you build with zkRune?
+
+• Age-gated content without collecting birthdates  
+• Token-gated access without wallet checks  
+• Anonymous DAO voting  
+• Fair launch eligibility without wallet exposure  
+• Private balance proofs for DeFi  
+• Credential checks without seeing the credential  
+
+All with real ZK proofs. All client-side. zkrune.com
+```
+```
+Build privacy into the flow.
+
+Not "we don’t store it" — we never see it. User proves in browser. You verify. Access granted or denied. No data handover. zkrune.com
+```
+
+### Karşılaştırma / positioning
+```
+Traditional verification: "Send us your data, we’ll check it."
+
+zkRune: "Generate a proof. We’ll verify the proof. We never see your data."
+
+Same outcome. Zero exposure. zkrune.com
+```
+```
+Most eligibility checks = "connect wallet" → everyone sees who you are and what you hold.
+
+zkRune = prove "I meet the bar" with a ZK proof. Verifier learns yes/no. Nothing else. zkrune.com
+```
+
+### Kısa CTA’lar (link + hook)
+```
+Privacy verification for Solana. Prove, don’t expose. zkrune.com 🔐
+```
+```
+13 ZK templates. 0 server calls for proof gen. Solana-ready. zkrune.com
+```
+```
+Access. Eligibility. Identity. Verified with ZK, not with data. zkrune.com
+```
+
+---
+
 ## Linkler (bio / link tree)
 
 - **Site:** zkrune.com  

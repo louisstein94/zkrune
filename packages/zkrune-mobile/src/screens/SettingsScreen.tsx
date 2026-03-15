@@ -20,6 +20,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import * as Crypto from 'expo-crypto';
+import * as LocalAuthentication from 'expo-local-authentication';
 import { colors, typography, spacing, layout } from '../theme';
 import { Card, GradientText } from '../components/ui';
 import { useBiometric, useNotifications, useWallet, useSolana } from '../hooks';
@@ -140,9 +142,15 @@ export function SettingsScreen() {
       Alert.alert('Not Available', 'No recovery phrase available for this wallet type.');
       return;
     }
-    // Require biometric or PIN authentication first
     if (biometricEnabled) {
-      // TODO: Add biometric check
+      const authResult = await LocalAuthentication.authenticateAsync({
+        promptMessage: 'Authenticate to view recovery phrase',
+        cancelLabel: 'Cancel',
+      });
+      if (!authResult.success) {
+        Alert.alert('Authentication Failed', 'Biometric authentication is required to view your recovery phrase.');
+        return;
+      }
     }
     setMnemonic(nativeWallet.mnemonic);
     setShowBackupModal(true);
@@ -152,12 +160,30 @@ export function SettingsScreen() {
   const handleCopyMnemonic = async () => {
     if (mnemonic) {
       await Clipboard.setStringAsync(mnemonic);
+      setTimeout(async () => {
+        await Clipboard.setStringAsync('');
+      }, 60000);
       Alert.alert('Copied', 'Recovery phrase copied to clipboard. Store it safely!');
     }
   };
 
   // Handle PIN change
   const handleChangePinSubmit = async () => {
+    const existingHash = await secureStorage.get(STORAGE_KEYS.PIN_HASH);
+    if (existingHash) {
+      if (!currentPin) {
+        Alert.alert('Error', 'Please enter your current PIN');
+        return;
+      }
+      const currentPinHash = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        currentPin + 'zkrune_pin_salt'
+      );
+      if (currentPinHash !== existingHash) {
+        Alert.alert('Error', 'Current PIN is incorrect');
+        return;
+      }
+    }
     if (newPin.length < 4) {
       Alert.alert('Error', 'PIN must be at least 4 digits');
       return;
@@ -167,10 +193,10 @@ export function SettingsScreen() {
       return;
     }
     try {
-      const { createHash } = require('crypto');
-      const pinHash = createHash('sha256')
-        .update(newPin + 'zkrune_pin_salt')
-        .digest('hex');
+      const pinHash = await Crypto.digestStringAsync(
+        Crypto.CryptoDigestAlgorithm.SHA256,
+        newPin + 'zkrune_pin_salt'
+      );
       await secureStorage.set(STORAGE_KEYS.PIN_HASH, pinHash);
       Alert.alert('Success', 'PIN has been updated');
       setShowPinModal(false);
@@ -252,9 +278,15 @@ export function SettingsScreen() {
         { 
           icon: 'moon', 
           title: 'Dark Mode', 
+          subtitle: 'Coming Soon',
           type: 'toggle' as const,
           value: darkMode,
-          onToggle: setDarkMode,
+          onToggle: (value: boolean) => {
+            setDarkMode(value);
+            Alert.alert('Coming Soon', 'Theme switching will be available in a future update.');
+            setDarkMode(true);
+          },
+          disabled: false,
         },
       ],
     },
@@ -426,13 +458,13 @@ export function SettingsScreen() {
         visible={showBackupModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowBackupModal(false)}
+        onRequestClose={() => { setShowBackupModal(false); setMnemonic(null); }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Recovery Phrase</Text>
-              <TouchableOpacity onPress={() => setShowBackupModal(false)}>
+              <TouchableOpacity onPress={() => { setShowBackupModal(false); setMnemonic(null); }}>
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
@@ -466,17 +498,31 @@ export function SettingsScreen() {
         visible={showPinModal}
         transparent
         animationType="fade"
-        onRequestClose={() => setShowPinModal(false)}
+        onRequestClose={() => { setShowPinModal(false); setCurrentPin(''); setNewPin(''); setConfirmPin(''); }}
       >
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>Change PIN</Text>
-              <TouchableOpacity onPress={() => setShowPinModal(false)}>
+              <TouchableOpacity onPress={() => { setShowPinModal(false); setCurrentPin(''); setNewPin(''); setConfirmPin(''); }}>
                 <Ionicons name="close" size={24} color={colors.text.primary} />
               </TouchableOpacity>
             </View>
             
+            <View style={styles.inputGroup}>
+              <Text style={styles.inputLabel}>Current PIN</Text>
+              <TextInput
+                style={styles.pinInput}
+                value={currentPin}
+                onChangeText={setCurrentPin}
+                placeholder="Enter current PIN"
+                placeholderTextColor={colors.text.tertiary}
+                keyboardType="number-pad"
+                secureTextEntry
+                maxLength={6}
+              />
+            </View>
+
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>New PIN</Text>
               <TextInput

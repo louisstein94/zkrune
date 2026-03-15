@@ -37,6 +37,11 @@ class SecureStorageService {
   async set(key: StorageKey, value: string): Promise<boolean> {
     try {
       if (isWeb) {
+        const sensitiveKeys = ['WALLET_SECRET', 'zkrune_wallet_sk', 'zkrune_wallet_mnemonic', 'zkrune_dh_seckey'];
+        if (sensitiveKeys.some(k => key.includes(k))) {
+          console.warn('[SecureStorage] Refusing to store sensitive data in localStorage on web');
+          return false;
+        }
         localStorage.setItem(key, value);
         return true;
       }
@@ -80,6 +85,13 @@ class SecureStorageService {
       console.debug(`[SecureStorage] Failed to delete ${key}:`, error);
       return false;
     }
+  }
+
+  /**
+   * Remove a stored value (alias for delete)
+   */
+  async remove(key: StorageKey): Promise<boolean> {
+    return this.delete(key);
   }
 
   /**

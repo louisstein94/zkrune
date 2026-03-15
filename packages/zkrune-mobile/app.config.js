@@ -14,7 +14,7 @@ export default {
     splash: {
       image: "./assets/splash.png",
       resizeMode: "contain",
-      backgroundColor: "#0A0A0F"
+      backgroundColor: "#111827"
     },
     assetBundlePatterns: ["**/*"],
     ios: {
@@ -28,7 +28,7 @@ export default {
     android: {
       adaptiveIcon: {
         foregroundImage: "./assets/adaptive-icon.png",
-        backgroundColor: "#0A0A0F"
+        backgroundColor: "#111827"
       },
       package: "com.zkrune.mobile",
       permissions: [
@@ -57,16 +57,17 @@ export default {
         "expo-notifications",
         {
           icon: "./assets/notification-icon.png",
-          color: "#8B5CF6"
+          color: "#818CF8"
         }
       ],
       "expo-font",
       "expo-splash-screen"
     ],
     extra: {
-      // Helius API key for faster RPC
-      // In production, use: process.env.HELIUS_API_KEY
       heliusApiKey: process.env.HELIUS_API_KEY || 'HELIUS_API_KEY_REDACTED',
+      eas: {
+        projectId: "446873f4-f55f-4cca-84d8-a184c48d00d8"
+      },
     },
     scheme: "zkrune"
   }

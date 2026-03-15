@@ -289,6 +289,29 @@ window.onload=run;
 }
 
 /**
+ * Delete a single temp proof HTML file after use
+ */
+export async function cleanupProofFile(filePath: string): Promise<void> {
+  try {
+    await FileSystem.deleteAsync(filePath, { idempotent: true });
+  } catch {}
+}
+
+/**
+ * Remove leftover proof-* HTML files from previous sessions
+ */
+export async function cleanupOldProofFiles(): Promise<void> {
+  try {
+    const files = await FileSystem.readDirectoryAsync(PROOF_HTML_DIR);
+    for (const file of files) {
+      if (file.startsWith('proof-')) {
+        await FileSystem.deleteAsync(`${PROOF_HTML_DIR}${file}`, { idempotent: true });
+      }
+    }
+  } catch {}
+}
+
+/**
  * Clean up temp proof HTML files
  */
 export async function cleanupProofHTML(): Promise<void> {

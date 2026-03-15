@@ -72,9 +72,16 @@ export function useZkProof(): UseZkProofReturn {
 
   // Initialize and load history on mount
   useEffect(() => {
-    zkProofService.init();
-    loadHistory();
-    loadDownloadedCircuits();
+    const initAll = async () => {
+      try {
+        await zkProofService.init();
+        await loadHistory();
+        await loadDownloadedCircuits();
+      } catch (error) {
+        console.error('[useZkProof] Initialization failed:', error);
+      }
+    };
+    initAll();
   }, []);
 
   // Load proof history

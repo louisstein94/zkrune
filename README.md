@@ -30,9 +30,9 @@ Verification today forces users to hand over raw data — birthdates for age gat
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│  13 Production Circuits  │  <1s Generation  │  0 Server Calls   │
+│  13 Production Circuits  │  <1s Generation  │  0 Server Calls    │
 ├──────────────────────────────────────────────────────────────────┤
-│  Real Groth16 zk-SNARKs  │  100% Client-Side  │  Solana Ready   │
+│  Real Groth16 zk-SNARKs  │  100% Client-Side  │  Solana Ready    │
 └──────────────────────────────────────────────────────────────────┘
 ```
 

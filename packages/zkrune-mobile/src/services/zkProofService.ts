@@ -4,6 +4,7 @@
  */
 
 import * as FileSystem from 'expo-file-system';
+import { Buffer } from 'buffer';
 import { secureStorage, STORAGE_KEYS } from './secureStorage';
 import { VERIFICATION_KEYS } from './verificationKeys';
 import {
@@ -64,21 +65,21 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     name: 'Age Verification',
     description: 'Prove you are above a certain age without revealing your birth date',
     icon: 'person',
-    color: '#8B5CF6',
+    color: '#818CF8',
     conditionLabel: 'Age Requirement',
     conditionSuccessText: 'Above minimum age ✓',
     conditionFailText: 'Below minimum age ✗',
     fields: [
-      { name: 'birthYear', label: 'Birth Year', type: 'number', placeholder: '1990', required: true, isPrivate: true },
+      { name: 'birthYear', label: 'Birth Year', type: 'secret', placeholder: '1990', required: true, isPrivate: true },
       { name: 'currentYear', label: 'Current Year', type: 'number', placeholder: '2026', required: true },
-      { name: 'ageThreshold', label: 'Age Threshold', type: 'number', placeholder: '18', required: true },
+      { name: 'minimumAge', label: 'Minimum Age', type: 'number', placeholder: '18', required: true },
     ],
   },
   'balance-proof': {
     name: 'Balance Proof',
     description: 'Prove you have at least a minimum token balance',
     icon: 'wallet',
-    color: '#10B981',
+    color: '#34D399',
     conditionLabel: 'Balance Check',
     conditionSuccessText: 'Sufficient balance ✓',
     conditionFailText: 'Insufficient balance ✗',
@@ -91,20 +92,20 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     name: 'Membership Proof',
     description: 'Prove you belong to a group without revealing your identity',
     icon: 'people',
-    color: '#06B6D4',
+    color: '#A78BFA',
     conditionLabel: 'Membership',
     conditionSuccessText: 'Member verified ✓',
     conditionFailText: 'Not a member ✗',
     fields: [
-      { name: 'secret', label: 'Member Secret', type: 'secret', placeholder: 'Your secret key', required: true, isPrivate: true },
-      { name: 'nullifier', label: 'Nullifier', type: 'secret', placeholder: 'Unique nullifier', required: true, isPrivate: true },
+      { name: 'memberId', label: 'Member ID', type: 'secret', placeholder: 'Your member ID', required: true, isPrivate: true },
+      { name: 'groupHash', label: 'Group Hash', type: 'number', placeholder: 'Group identifier', required: true },
     ],
   },
   'credential-proof': {
     name: 'Credential Proof',
     description: 'Prove you hold a valid credential',
     icon: 'ribbon',
-    color: '#EC4899',
+    color: '#F472B6',
     conditionLabel: 'Credential Valid',
     conditionSuccessText: 'Valid credential ✓',
     conditionFailText: 'Invalid credential ✗',
@@ -120,26 +121,30 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     name: 'Private Voting',
     description: 'Cast an anonymous vote in governance',
     icon: 'checkbox',
-    color: '#F59E0B',
+    color: '#FBBF24',
     conditionLabel: 'Vote Recorded',
     conditionSuccessText: 'Vote committed ✓',
     conditionFailText: 'Vote failed ✗',
     fields: [
-      { name: 'vote', label: 'Your Vote', type: 'number', placeholder: '1 (yes) or 0 (no)', required: true, isPrivate: true },
-      { name: 'nullifier', label: 'Voter Nullifier', type: 'secret', placeholder: 'Unique secret', required: true, isPrivate: true },
+      { name: 'voterId', label: 'Voter ID', type: 'secret', placeholder: 'Your voter ID', required: true, isPrivate: true },
+      { name: 'voteChoice', label: 'Vote Choice', type: 'secret', placeholder: '1 (yes) or 0 (no)', required: true, isPrivate: true },
+      { name: 'pollId', label: 'Poll ID', type: 'number', placeholder: 'Poll identifier', required: true },
     ],
   },
   'anonymous-reputation': {
     name: 'Anonymous Reputation',
     description: 'Prove your reputation score without revealing identity',
     icon: 'star',
-    color: '#8B5CF6',
+    color: '#22D3EE',
     conditionLabel: 'Reputation Check',
     conditionSuccessText: 'Meets threshold ✓',
     conditionFailText: 'Below threshold ✗',
     fields: [
-      { name: 'score', label: 'Reputation Score', type: 'secret', placeholder: 'Your score (0-100)', required: true, isPrivate: true },
-      { name: 'minScore', label: 'Minimum Score', type: 'number', placeholder: '80', required: true },
+      { name: 'userId', label: 'User ID', type: 'secret', placeholder: 'Your user ID', required: true, isPrivate: true },
+      { name: 'reputationScore', label: 'Reputation Score', type: 'secret', placeholder: 'Your score (0-100)', required: true, isPrivate: true },
+      { name: 'userNonce', label: 'Nonce', type: 'secret', placeholder: 'Random nonce', required: true, isPrivate: true },
+      { name: 'thresholdScore', label: 'Minimum Score', type: 'number', placeholder: '80', required: true },
+      { name: 'platformId', label: 'Platform ID', type: 'number', placeholder: 'Platform identifier', required: true },
     ],
   },
 };

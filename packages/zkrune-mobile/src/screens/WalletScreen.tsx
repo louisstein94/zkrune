@@ -3,7 +3,7 @@
  * Native wallet creation, import, and external wallet connection
  */
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import {
   View,
   Text,
@@ -15,6 +15,8 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
+  Share,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -22,7 +24,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
 import { colors, typography, spacing, layout } from '../theme';
 import { Button, Card, GradientText } from '../components/ui';
-import { useWallet, useSolana } from '../hooks';
+import { useWallet, useSolana, usePrice } from '../hooks';
 import { WalletProvider, WalletType, walletService } from '../services';
 
 export function WalletScreen({ navigation }: any) {
@@ -50,6 +52,9 @@ export function WalletScreen({ navigation }: any) {
     formatLamports,
   } = useSolana();
 
+  const { zkRunePrice } = usePrice();
+  const tokenPrice = zkRunePrice?.price || 0;
+
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [transactions, setTransactions] = useState<any[]>([]);
   
@@ -64,14 +69,7 @@ export function WalletScreen({ navigation }: any) {
   const [showWatchOnlyModal, setShowWatchOnlyModal] = useState(false);
   const [watchOnlyAddress, setWatchOnlyAddress] = useState('');
 
-  // Load transactions when connected
-  useEffect(() => {
-    if (connection) {
-      loadTransactions();
-    }
-  }, [connection]);
-
-  const loadTransactions = async () => {
+  const loadTransactions = useCallback(async () => {
     if (!connection) return;
     
     try {
@@ -80,12 +78,18 @@ export function WalletScreen({ navigation }: any) {
     } catch (error) {
       console.error('Failed to load transactions:', error);
     }
-  };
+  }, [connection, getRecentTransactions]);
+
+  // Load transactions when connected
+  useEffect(() => {
+    if (connection) {
+      loadTransactions();
+    }
+  }, [connection, loadTransactions]);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
-    await refreshBalance();
-    await loadTransactions();
+    await Promise.all([refreshBalance(), loadTransactions()]);
     setIsRefreshing(false);
   };
 
@@ -97,7 +101,7 @@ export function WalletScreen({ navigation }: any) {
         `${getProviderName(provider)} is not installed. Would you like to download it?`,
         [
           { text: 'Cancel', style: 'cancel' },
-          { text: 'Download', onPress: () => {} },
+          { text: 'Download', onPress: () => Linking.openURL('https://phantom.app/download') },
         ]
       );
     }
@@ -168,6 +172,9 @@ export function WalletScreen({ navigation }: any) {
   // Copy seed phrase
   const handleCopySeedPhrase = async () => {
     await Clipboard.setStringAsync(seedPhrase);
+    setTimeout(async () => {
+      await Clipboard.setStringAsync('');
+    }, 60000);
     Alert.alert('Copied', 'Seed phrase copied to clipboard. Store it safely!');
   };
 
@@ -221,526 +228,8 @@ export function WalletScreen({ navigation }: any) {
     }
   };
 
-  // Not connected view (also show if seed phrase modal is open)
-  if (!isConnected || showSeedPhraseModal || showCreateModal || showImportModal) {
-    return (
-      <SafeAreaView style={styles.container} edges={['top']}>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-        >
-          <View style={styles.header}>
-            <GradientText style={styles.title}>Wallet</GradientText>
-          </View>
-
-          {/* Connect Wallet Card */}
-          <LinearGradient
-            colors={[colors.brand.primary + '15', 'transparent']}
-            style={styles.connectCard}
-          >
-            <View style={styles.connectIcon}>
-              <Ionicons name="wallet-outline" size={48} color={colors.brand.primary} />
-            </View>
-            <Text style={styles.connectTitle}>Connect Your Wallet</Text>
-            <Text style={styles.connectDescription}>
-              Connect your Solana wallet to view balances, generate proofs, and interact with zkRune
-            </Text>
-          </LinearGradient>
-
-          {/* Create New Wallet Option */}
-          <Text style={styles.sectionTitle}>Create New Wallet</Text>
-
-          <TouchableOpacity
-            style={styles.walletOption}
-            onPress={() => setShowCreateModal(true)}
-            disabled={isConnecting}
-          >
-            <View style={[styles.walletIcon, { backgroundColor: colors.brand.primary + '20' }]}>
-              <Ionicons name="add-circle" size={24} color={colors.brand.primary} />
-            </View>
-            <View style={styles.walletInfo}>
-              <Text style={styles.walletName}>Create New Wallet</Text>
-              <Text style={styles.walletDescription}>
-                Generate a new Solana wallet
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.walletOption}
-            onPress={() => setShowImportModal(true)}
-            disabled={isConnecting}
-          >
-            <View style={[styles.walletIcon, { backgroundColor: colors.accent.emerald + '20' }]}>
-              <Ionicons name="download" size={24} color={colors.accent.emerald} />
-            </View>
-            <View style={styles.walletInfo}>
-              <Text style={styles.walletName}>Import Wallet</Text>
-              <Text style={styles.walletDescription}>
-                Use seed phrase or private key
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-          </TouchableOpacity>
-
-          {/* External Wallet Options */}
-          <Text style={styles.sectionTitle}>Connect External Wallet</Text>
-
-          <TouchableOpacity
-            style={styles.walletOption}
-            onPress={() => handleConnect(WalletProvider.PHANTOM)}
-            disabled={isConnecting}
-          >
-            <View style={[styles.walletIcon, { backgroundColor: '#AB9FF2' + '20' }]}>
-              <Ionicons name="wallet" size={24} color="#AB9FF2" />
-            </View>
-            <View style={styles.walletInfo}>
-              <Text style={styles.walletName}>Phantom</Text>
-              <Text style={styles.walletDescription}>
-                {availableWallets.includes(WalletProvider.PHANTOM) 
-                  ? 'Installed' 
-                  : 'Tap to install'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.walletOption}
-            onPress={() => handleConnect(WalletProvider.SOLFLARE)}
-            disabled={isConnecting}
-          >
-            <View style={[styles.walletIcon, { backgroundColor: '#FC8E0E' + '20' }]}>
-              <Ionicons name="sunny" size={24} color="#FC8E0E" />
-            </View>
-            <View style={styles.walletInfo}>
-              <Text style={styles.walletName}>Solflare</Text>
-              <Text style={styles.walletDescription}>
-                {availableWallets.includes(WalletProvider.SOLFLARE) 
-                  ? 'Installed' 
-                  : 'Tap to install'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-          </TouchableOpacity>
-
-          {/* Watch Only Option */}
-          <Text style={styles.sectionTitle}>Watch Only</Text>
-          
-          <TouchableOpacity
-            style={styles.walletOption}
-            onPress={() => setShowWatchOnlyModal(true)}
-            disabled={isConnecting}
-          >
-            <View style={[styles.walletIcon, { backgroundColor: colors.text.tertiary + '20' }]}>
-              <Ionicons name="eye" size={24} color={colors.text.tertiary} />
-            </View>
-            <View style={styles.walletInfo}>
-              <Text style={styles.walletName}>Watch Only</Text>
-              <Text style={styles.walletDescription}>
-                View any wallet without private key
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
-          </TouchableOpacity>
-
-          {isConnecting && (
-            <View style={styles.connectingState}>
-              <Text style={styles.connectingText}>Connecting to wallet...</Text>
-              <Text style={styles.connectingSubtext}>
-                Please approve the connection in your wallet app
-              </Text>
-            </View>
-          )}
-
-          {/* Network Status */}
-          <Card style={styles.networkCard}>
-            <View style={styles.networkRow}>
-              <View style={[styles.networkDot, isHealthy && styles.networkDotHealthy]} />
-              <Text style={styles.networkLabel}>Network</Text>
-              <Text style={styles.networkValue}>{getNetworkName(network)}</Text>
-            </View>
-          </Card>
-        </ScrollView>
-
-        {/* Create Wallet Modal */}
-        <Modal
-          visible={showCreateModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setShowCreateModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Create New Wallet</Text>
-                <TouchableOpacity onPress={() => setShowCreateModal(false)}>
-                  <Ionicons name="close" size={24} color={colors.text.secondary} />
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.modalDescription}>
-                Create a new Solana wallet. You'll receive a 12-word seed phrase that you must store securely.
-              </Text>
-
-              <Text style={styles.inputLabel}>Wallet Name (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="My Wallet"
-                placeholderTextColor={colors.text.tertiary}
-                value={walletName}
-                onChangeText={setWalletName}
-              />
-
-              <View style={styles.warningBox}>
-                <Ionicons name="warning" size={20} color={colors.status.warning} />
-                <Text style={styles.warningText}>
-                  Never share your seed phrase. Anyone with it can access your funds.
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={[styles.createButton, isCreating && styles.createButtonDisabled]}
-                onPress={handleCreateWallet}
-                disabled={isCreating}
-              >
-                {isCreating ? (
-                  <ActivityIndicator color={colors.text.inverse} />
-                ) : (
-                  <>
-                    <Ionicons name="add-circle" size={20} color={colors.text.inverse} />
-                    <Text style={styles.createButtonText}>Create Wallet</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Import Wallet Modal */}
-        <Modal
-          visible={showImportModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setShowImportModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Import Wallet</Text>
-                <TouchableOpacity onPress={() => setShowImportModal(false)}>
-                  <Ionicons name="close" size={24} color={colors.text.secondary} />
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.modalDescription}>
-                Enter your 12 or 24 word seed phrase to import an existing wallet.
-              </Text>
-
-              <Text style={styles.inputLabel}>Wallet Name (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Imported Wallet"
-                placeholderTextColor={colors.text.tertiary}
-                value={walletName}
-                onChangeText={setWalletName}
-              />
-
-              <Text style={styles.inputLabel}>Seed Phrase</Text>
-              <TextInput
-                style={[styles.input, styles.seedInput]}
-                placeholder="Enter your seed phrase..."
-                placeholderTextColor={colors.text.tertiary}
-                value={importSeedPhrase}
-                onChangeText={setImportSeedPhrase}
-                multiline
-                numberOfLines={4}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-
-              <TouchableOpacity
-                style={[styles.createButton, isCreating && styles.createButtonDisabled]}
-                onPress={handleImportWallet}
-                disabled={isCreating}
-              >
-                {isCreating ? (
-                  <ActivityIndicator color={colors.text.inverse} />
-                ) : (
-                  <>
-                    <Ionicons name="download" size={20} color={colors.text.inverse} />
-                    <Text style={styles.createButtonText}>Import Wallet</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Seed Phrase Display Modal */}
-        <Modal
-          visible={showSeedPhraseModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => {}}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Your Seed Phrase</Text>
-              </View>
-
-              <View style={styles.warningBox}>
-                <Ionicons name="warning" size={20} color={colors.status.error} />
-                <Text style={[styles.warningText, { color: colors.status.error }]}>
-                  Write this down and store it securely. This is the ONLY way to recover your wallet!
-                </Text>
-              </View>
-
-              <View style={styles.seedPhraseBox}>
-                {seedPhrase.split(' ').map((word, index) => (
-                  <View key={index} style={styles.seedWord}>
-                    <Text style={styles.seedWordNumber}>{index + 1}</Text>
-                    <Text style={styles.seedWordText}>{word}</Text>
-                  </View>
-                ))}
-              </View>
-
-              <TouchableOpacity style={styles.copyButton} onPress={handleCopySeedPhrase}>
-                <Ionicons name="copy-outline" size={18} color={colors.brand.primary} />
-                <Text style={styles.copyButtonText}>Copy Seed Phrase</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.acknowledgeButton}
-                onPress={handleSeedPhraseAcknowledged}
-              >
-                <Ionicons name="checkmark-circle" size={20} color={colors.text.inverse} />
-                <Text style={styles.acknowledgeButtonText}>I've Saved My Seed Phrase</Text>
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-
-        {/* Watch Only Modal */}
-        <Modal
-          visible={showWatchOnlyModal}
-          animationType="slide"
-          transparent={true}
-          onRequestClose={() => setShowWatchOnlyModal(false)}
-        >
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContent}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>Watch Only Wallet</Text>
-                <TouchableOpacity onPress={() => setShowWatchOnlyModal(false)}>
-                  <Ionicons name="close" size={24} color={colors.text.secondary} />
-                </TouchableOpacity>
-              </View>
-
-              <Text style={styles.modalDescription}>
-                Enter any Solana address to view its balance and transactions. You won't be able to sign transactions.
-              </Text>
-
-              <Text style={styles.inputLabel}>Wallet Name (Optional)</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Watch Only"
-                placeholderTextColor={colors.text.tertiary}
-                value={walletName}
-                onChangeText={setWalletName}
-              />
-
-              <Text style={styles.inputLabel}>Wallet Address</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter Solana address..."
-                placeholderTextColor={colors.text.tertiary}
-                value={watchOnlyAddress}
-                onChangeText={setWatchOnlyAddress}
-                autoCapitalize="none"
-                autoCorrect={false}
-              />
-
-              <TouchableOpacity
-                style={[styles.createButton, isCreating && styles.createButtonDisabled]}
-                onPress={handleAddWatchOnly}
-                disabled={isCreating}
-              >
-                {isCreating ? (
-                  <ActivityIndicator color={colors.text.inverse} />
-                ) : (
-                  <>
-                    <Ionicons name="eye" size={20} color={colors.text.inverse} />
-                    <Text style={styles.createButtonText}>Add Watch Only</Text>
-                  </>
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Modal>
-      </SafeAreaView>
-    );
-  }
-
-  // Connected view
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={isRefreshing}
-            onRefresh={handleRefresh}
-            tintColor={colors.brand.primary}
-          />
-        }
-      >
-        <View style={styles.header}>
-          <GradientText style={styles.title}>Wallet</GradientText>
-          <TouchableOpacity style={styles.qrButton}>
-            <Ionicons name="qr-code-outline" size={22} color={colors.text.primary} />
-          </TouchableOpacity>
-        </View>
-
-        {/* Balance Card */}
-        <LinearGradient
-          colors={[colors.brand.primary, colors.accent.pink]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={styles.balanceCard}
-        >
-          <LinearGradient
-            colors={['rgba(255,255,255,0.2)', 'transparent', 'rgba(255,255,255,0.05)']}
-            locations={[0, 0.3, 1]}
-            style={[StyleSheet.absoluteFill, { borderRadius: 24 }]}
-          />
-          
-          <View style={styles.balanceHeader}>
-            <Text style={styles.balanceLabel}>zkRUNE Balance</Text>
-            <View style={styles.providerBadge}>
-              <Text style={styles.providerText}>
-                {getWalletTypeName()}
-              </Text>
-            </View>
-          </View>
-          
-          <Text style={styles.balanceAmount}>
-            {zkRuneBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
-          </Text>
-          <Text style={styles.balanceUsd}>
-            ≈ ${(zkRuneBalance * 0.1).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD
-          </Text>
-          
-          <View style={styles.balanceActions}>
-            <TouchableOpacity 
-              style={styles.balanceAction}
-              onPress={() => Alert.alert('Send zkRUNE', 'Send functionality coming soon!')}
-            >
-              <Ionicons name="arrow-up" size={18} color={colors.text.primary} />
-              <Text style={styles.balanceActionText}>Send</Text>
-            </TouchableOpacity>
-            <View style={styles.balanceDivider} />
-            <TouchableOpacity 
-              style={styles.balanceAction}
-              onPress={handleCopyAddress}
-            >
-              <Ionicons name="arrow-down" size={18} color={colors.text.primary} />
-              <Text style={styles.balanceActionText}>Receive</Text>
-            </TouchableOpacity>
-          </View>
-        </LinearGradient>
-
-        {/* Address Card */}
-        <Card style={styles.addressCard}>
-          <View style={styles.addressRow}>
-            <View>
-              <Text style={styles.addressLabel}>Wallet Address</Text>
-              <Text style={styles.addressValue}>
-                {connection && shortenAddress(connection.publicKey)}
-              </Text>
-            </View>
-            <View style={styles.addressActions}>
-              <TouchableOpacity style={styles.addressBtn} onPress={handleCopyAddress}>
-                <Ionicons name="copy-outline" size={18} color={colors.brand.primary} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.addressBtn}>
-                <Ionicons name="share-outline" size={18} color={colors.brand.primary} />
-              </TouchableOpacity>
-            </View>
-          </View>
-        </Card>
-
-        {/* SOL Balance */}
-        <Card style={styles.solCard}>
-          <View style={styles.solRow}>
-            <View style={styles.solIcon}>
-              <Text style={styles.solSymbol}>◎</Text>
-            </View>
-            <View style={styles.solInfo}>
-              <Text style={styles.solLabel}>SOL Balance</Text>
-              <Text style={styles.solValue}>{balance.toFixed(4)} SOL</Text>
-            </View>
-          </View>
-        </Card>
-
-        {/* Recent Transactions */}
-        <Text style={styles.sectionTitle}>Recent Activity</Text>
-        
-        {transactions.length > 0 ? (
-          <Card noPadding>
-            {transactions.map((tx, index) => (
-              <View 
-                key={tx.signature}
-                style={[
-                  styles.txItem,
-                  index < transactions.length - 1 && styles.txItemBorder
-                ]}
-              >
-                <View style={[
-                  styles.txIcon,
-                  { backgroundColor: tx.err ? colors.status.error + '15' : colors.status.success + '15' }
-                ]}>
-                  <Ionicons 
-                    name={tx.err ? 'close' : 'checkmark'} 
-                    size={16} 
-                    color={tx.err ? colors.status.error : colors.status.success} 
-                  />
-                </View>
-                <View style={styles.txInfo}>
-                  <Text style={styles.txSignature}>
-                    {tx.signature.slice(0, 8)}...{tx.signature.slice(-8)}
-                  </Text>
-                  <Text style={styles.txTime}>
-                    {tx.blockTime ? new Date(tx.blockTime * 1000).toLocaleDateString() : 'Pending'}
-                  </Text>
-                </View>
-                <Text style={[styles.txStatus, tx.err && styles.txStatusError]}>
-                  {tx.err ? 'Failed' : 'Success'}
-                </Text>
-              </View>
-            ))}
-          </Card>
-        ) : (
-          <Card style={styles.emptyCard}>
-            <Ionicons name="receipt-outline" size={32} color={colors.text.tertiary} />
-            <Text style={styles.emptyText}>No recent transactions</Text>
-          </Card>
-        )}
-
-        {/* Disconnect Button */}
-        <TouchableOpacity style={styles.disconnectButton} onPress={handleDisconnect}>
-          <Ionicons name="log-out-outline" size={20} color={colors.status.error} />
-          <Text style={styles.disconnectText}>Disconnect Wallet</Text>
-        </TouchableOpacity>
-
-        <View style={{ height: 100 }} />
-      </ScrollView>
-
+  const modals = (
+    <>
       {/* Create Wallet Modal */}
       <Modal
         visible={showCreateModal}
@@ -899,7 +388,383 @@ export function WalletScreen({ navigation }: any) {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+
+      {/* Watch Only Modal */}
+      <Modal
+        visible={showWatchOnlyModal}
+        animationType="slide"
+        transparent={true}
+        onRequestClose={() => setShowWatchOnlyModal(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Watch Only Wallet</Text>
+              <TouchableOpacity onPress={() => setShowWatchOnlyModal(false)}>
+                <Ionicons name="close" size={24} color={colors.text.secondary} />
+              </TouchableOpacity>
+            </View>
+
+            <Text style={styles.modalDescription}>
+              Enter any Solana address to view its balance and transactions. You won't be able to sign transactions.
+            </Text>
+
+            <Text style={styles.inputLabel}>Wallet Name (Optional)</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Watch Only"
+              placeholderTextColor={colors.text.tertiary}
+              value={walletName}
+              onChangeText={setWalletName}
+            />
+
+            <Text style={styles.inputLabel}>Wallet Address</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Solana address..."
+              placeholderTextColor={colors.text.tertiary}
+              value={watchOnlyAddress}
+              onChangeText={setWatchOnlyAddress}
+              autoCapitalize="none"
+              autoCorrect={false}
+            />
+
+            <TouchableOpacity
+              style={[styles.createButton, isCreating && styles.createButtonDisabled]}
+              onPress={handleAddWatchOnly}
+              disabled={isCreating}
+            >
+              {isCreating ? (
+                <ActivityIndicator color={colors.text.inverse} />
+              ) : (
+                <>
+                  <Ionicons name="eye" size={20} color={colors.text.inverse} />
+                  <Text style={styles.createButtonText}>Add Watch Only</Text>
+                </>
+              )}
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </>
+  );
+
+  // Not connected view
+  if (!isConnected) {
+    return (
+      <>
+        <SafeAreaView style={styles.container} edges={['top']}>
+          <ScrollView
+            style={styles.scroll}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+          >
+            <View style={styles.header}>
+              <GradientText style={styles.title}>Wallet</GradientText>
+            </View>
+
+            {/* Connect Wallet Card */}
+            <LinearGradient
+              colors={[colors.brand.primary + '15', 'transparent']}
+              style={styles.connectCard}
+            >
+              <View style={styles.connectIcon}>
+                <Ionicons name="wallet-outline" size={48} color={colors.brand.primary} />
+              </View>
+              <Text style={styles.connectTitle}>Connect Your Wallet</Text>
+              <Text style={styles.connectDescription}>
+                Connect your Solana wallet to view balances, generate proofs, and interact with zkRune
+              </Text>
+            </LinearGradient>
+
+            {/* Create New Wallet Option */}
+            <Text style={styles.sectionTitle}>Create New Wallet</Text>
+
+            <TouchableOpacity
+              style={styles.walletOption}
+              onPress={() => setShowCreateModal(true)}
+              disabled={isConnecting}
+            >
+              <View style={[styles.walletIcon, { backgroundColor: colors.brand.primary + '20' }]}>
+                <Ionicons name="add-circle" size={24} color={colors.brand.primary} />
+              </View>
+              <View style={styles.walletInfo}>
+                <Text style={styles.walletName}>Create New Wallet</Text>
+                <Text style={styles.walletDescription}>
+                  Generate a new Solana wallet
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.walletOption}
+              onPress={() => setShowImportModal(true)}
+              disabled={isConnecting}
+            >
+              <View style={[styles.walletIcon, { backgroundColor: colors.accent.emerald + '20' }]}>
+                <Ionicons name="download" size={24} color={colors.accent.emerald} />
+              </View>
+              <View style={styles.walletInfo}>
+                <Text style={styles.walletName}>Import Wallet</Text>
+                <Text style={styles.walletDescription}>
+                  Use seed phrase or private key
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            {/* External Wallet Options */}
+            <Text style={styles.sectionTitle}>Connect External Wallet</Text>
+
+            <TouchableOpacity
+              style={styles.walletOption}
+              onPress={() => handleConnect(WalletProvider.PHANTOM)}
+              disabled={isConnecting}
+            >
+              <View style={[styles.walletIcon, { backgroundColor: '#AB9FF2' + '20' }]}>
+                <Ionicons name="wallet" size={24} color="#AB9FF2" />
+              </View>
+              <View style={styles.walletInfo}>
+                <Text style={styles.walletName}>Phantom</Text>
+                <Text style={styles.walletDescription}>
+                  {availableWallets.includes(WalletProvider.PHANTOM) 
+                    ? 'Installed' 
+                    : 'Tap to install'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.walletOption}
+              onPress={() => handleConnect(WalletProvider.SOLFLARE)}
+              disabled={isConnecting}
+            >
+              <View style={[styles.walletIcon, { backgroundColor: '#FC8E0E' + '20' }]}>
+                <Ionicons name="sunny" size={24} color="#FC8E0E" />
+              </View>
+              <View style={styles.walletInfo}>
+                <Text style={styles.walletName}>Solflare</Text>
+                <Text style={styles.walletDescription}>
+                  {availableWallets.includes(WalletProvider.SOLFLARE) 
+                    ? 'Installed' 
+                    : 'Tap to install'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            {/* Watch Only Option */}
+            <Text style={styles.sectionTitle}>Watch Only</Text>
+            
+            <TouchableOpacity
+              style={styles.walletOption}
+              onPress={() => setShowWatchOnlyModal(true)}
+              disabled={isConnecting}
+            >
+              <View style={[styles.walletIcon, { backgroundColor: colors.text.tertiary + '20' }]}>
+                <Ionicons name="eye" size={24} color={colors.text.tertiary} />
+              </View>
+              <View style={styles.walletInfo}>
+                <Text style={styles.walletName}>Watch Only</Text>
+                <Text style={styles.walletDescription}>
+                  View any wallet without private key
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={colors.text.tertiary} />
+            </TouchableOpacity>
+
+            {isConnecting && (
+              <View style={styles.connectingState}>
+                <Text style={styles.connectingText}>Connecting to wallet...</Text>
+                <Text style={styles.connectingSubtext}>
+                  Please approve the connection in your wallet app
+                </Text>
+              </View>
+            )}
+
+            {/* Network Status */}
+            <Card style={styles.networkCard}>
+              <View style={styles.networkRow}>
+                <View style={[styles.networkDot, isHealthy && styles.networkDotHealthy]} />
+                <Text style={styles.networkLabel}>Network</Text>
+                <Text style={styles.networkValue}>{getNetworkName(network)}</Text>
+              </View>
+            </Card>
+          </ScrollView>
+        </SafeAreaView>
+        {modals}
+      </>
+    );
+  }
+
+  // Connected view
+  return (
+    <>
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <ScrollView
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={isRefreshing}
+              onRefresh={handleRefresh}
+              tintColor={colors.brand.primary}
+            />
+          }
+        >
+          <View style={styles.header}>
+            <GradientText style={styles.title}>Wallet</GradientText>
+            <TouchableOpacity style={styles.qrButton} onPress={() => navigation.navigate('Scan')}>
+              <Ionicons name="qr-code-outline" size={22} color={colors.text.primary} />
+            </TouchableOpacity>
+          </View>
+
+          {/* Balance Card */}
+          <LinearGradient
+            colors={[colors.brand.primary, colors.brand.secondary]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.balanceCard}
+          >
+            <LinearGradient
+              colors={['rgba(255,255,255,0.2)', 'transparent', 'rgba(255,255,255,0.05)']}
+              locations={[0, 0.3, 1]}
+              style={[StyleSheet.absoluteFill, { borderRadius: 24 }]}
+            />
+            
+            <View style={styles.balanceHeader}>
+              <Text style={styles.balanceLabel}>zkRUNE Balance</Text>
+              <View style={styles.providerBadge}>
+                <Text style={styles.providerText}>
+                  {getWalletTypeName()}
+                </Text>
+              </View>
+            </View>
+            
+            <Text style={styles.balanceAmount}>
+              {zkRuneBalance.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+            </Text>
+            <Text style={styles.balanceUsd}>
+              ≈ ${(zkRuneBalance * tokenPrice).toLocaleString(undefined, { minimumFractionDigits: 2 })} USD
+            </Text>
+            
+            <View style={styles.balanceActions}>
+              <TouchableOpacity 
+                style={styles.balanceAction}
+                onPress={() => Alert.alert('Send zkRUNE', 'Send functionality coming soon!')}
+              >
+                <Ionicons name="arrow-up" size={18} color={colors.text.primary} />
+                <Text style={styles.balanceActionText}>Send</Text>
+              </TouchableOpacity>
+              <View style={styles.balanceDivider} />
+              <TouchableOpacity 
+                style={styles.balanceAction}
+                onPress={handleCopyAddress}
+              >
+                <Ionicons name="arrow-down" size={18} color={colors.text.primary} />
+                <Text style={styles.balanceActionText}>Receive</Text>
+              </TouchableOpacity>
+            </View>
+          </LinearGradient>
+
+          {/* Address Card */}
+          <Card style={styles.addressCard}>
+            <View style={styles.addressRow}>
+              <View>
+                <Text style={styles.addressLabel}>Wallet Address</Text>
+                <Text style={styles.addressValue}>
+                  {connection && shortenAddress(connection.publicKey)}
+                </Text>
+              </View>
+              <View style={styles.addressActions}>
+                <TouchableOpacity style={styles.addressBtn} onPress={handleCopyAddress}>
+                  <Ionicons name="copy-outline" size={18} color={colors.brand.primary} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.addressBtn}
+                  onPress={() => {
+                    if (connection) {
+                      Share.share({ message: connection.publicKey });
+                    }
+                  }}
+                >
+                  <Ionicons name="share-outline" size={18} color={colors.brand.primary} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </Card>
+
+          {/* SOL Balance */}
+          <Card style={styles.solCard}>
+            <View style={styles.solRow}>
+              <View style={styles.solIcon}>
+                <Text style={styles.solSymbol}>◎</Text>
+              </View>
+              <View style={styles.solInfo}>
+                <Text style={styles.solLabel}>SOL Balance</Text>
+                <Text style={styles.solValue}>{balance.toFixed(4)} SOL</Text>
+              </View>
+            </View>
+          </Card>
+
+          {/* Recent Transactions */}
+          <Text style={styles.sectionTitle}>Recent Activity</Text>
+          
+          {transactions.length > 0 ? (
+            <Card noPadding>
+              {transactions.map((tx, index) => (
+                <View 
+                  key={tx.signature}
+                  style={[
+                    styles.txItem,
+                    index < transactions.length - 1 && styles.txItemBorder
+                  ]}
+                >
+                  <View style={[
+                    styles.txIcon,
+                    { backgroundColor: tx.err ? colors.status.error + '15' : colors.status.success + '15' }
+                  ]}>
+                    <Ionicons 
+                      name={tx.err ? 'close' : 'checkmark'} 
+                      size={16} 
+                      color={tx.err ? colors.status.error : colors.status.success} 
+                    />
+                  </View>
+                  <View style={styles.txInfo}>
+                    <Text style={styles.txSignature}>
+                      {tx.signature.slice(0, 8)}...{tx.signature.slice(-8)}
+                    </Text>
+                    <Text style={styles.txTime}>
+                      {tx.blockTime ? new Date(tx.blockTime * 1000).toLocaleDateString() : 'Pending'}
+                    </Text>
+                  </View>
+                  <Text style={[styles.txStatus, tx.err && styles.txStatusError]}>
+                    {tx.err ? 'Failed' : 'Success'}
+                  </Text>
+                </View>
+              ))}
+            </Card>
+          ) : (
+            <Card style={styles.emptyCard}>
+              <Ionicons name="receipt-outline" size={32} color={colors.text.tertiary} />
+              <Text style={styles.emptyText}>No recent transactions</Text>
+            </Card>
+          )}
+
+          {/* Disconnect Button */}
+          <TouchableOpacity style={styles.disconnectButton} onPress={handleDisconnect}>
+            <Ionicons name="log-out-outline" size={20} color={colors.status.error} />
+            <Text style={styles.disconnectText}>Disconnect Wallet</Text>
+          </TouchableOpacity>
+
+          <View style={{ height: 100 }} />
+        </ScrollView>
+      </SafeAreaView>
+      {modals}
+    </>
   );
 }
 

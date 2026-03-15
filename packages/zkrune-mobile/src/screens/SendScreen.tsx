@@ -19,6 +19,8 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, typography, spacing, layout } from '../theme';
 import { Card, GradientText, Button } from '../components/ui';
+import { PublicKey } from '@solana/web3.js';
+import * as Clipboard from 'expo-clipboard';
 import { useWallet, useSolana, usePrice } from '../hooks';
 
 type TokenType = 'SOL' | 'zkRUNE';
@@ -45,6 +47,13 @@ export function SendScreen({ navigation }: any) {
 
     if (!recipientAddress.trim()) {
       Alert.alert('Error', 'Please enter a recipient address');
+      return;
+    }
+
+    try {
+      new PublicKey(recipientAddress);
+    } catch {
+      Alert.alert('Invalid Address', 'Please enter a valid Solana wallet address.');
       return;
     }
 
@@ -96,7 +105,6 @@ export function SendScreen({ navigation }: any) {
 
   const handlePaste = async () => {
     try {
-      const Clipboard = await import('expo-clipboard');
       const text = await Clipboard.getStringAsync();
       if (text) {
         setRecipientAddress(text);

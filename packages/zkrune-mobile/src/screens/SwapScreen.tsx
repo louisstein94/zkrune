@@ -135,8 +135,8 @@ export function SwapScreen({ navigation }: any) {
     await new Promise(resolve => setTimeout(resolve, 2000));
     
     Alert.alert(
-      'Swap Successful!',
-      `Swapped ${fromAmount} ${fromToken.symbol} for ${toAmount.toFixed(4)} ${toToken.symbol}`,
+      'Demo Mode',
+      'Swap simulation complete. Real swaps will be available when Jupiter integration is live.',
       [{ text: 'OK', onPress: () => setFromAmount('') }]
     );
     
@@ -475,10 +475,7 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
   },
   swapArrowButton: {
-    position: 'absolute',
-    left: '50%',
-    top: '50%',
-    transform: [{ translateX: -20 }, { translateY: -20 }],
+    alignSelf: 'center',
     zIndex: 10,
   },
   swapArrow: {

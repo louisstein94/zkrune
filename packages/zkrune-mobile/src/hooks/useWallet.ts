@@ -191,7 +191,6 @@ export function useWallet(): UseWalletReturn {
     notifyListeners(null);
     setBalance(0);
     setZkRuneBalance(0);
-    setHasNativeWallet(false);
   }, []);
 
   // Refresh balance

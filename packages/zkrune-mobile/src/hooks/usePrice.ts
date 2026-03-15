@@ -6,6 +6,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { priceService, TokenPrice } from '../services/priceService';
 
+let globalInterval: ReturnType<typeof setInterval> | null = null;
+let globalListenerCount = 0;
+
 export interface UsePriceReturn {
   zkRunePrice: TokenPrice | null;
   solPrice: number;
@@ -41,12 +44,21 @@ export function usePrice(): UsePriceReturn {
     }
   }, []);
 
-  // Fetch prices on mount and every 60 seconds
   useEffect(() => {
     fetchPrices();
-    
-    const interval = setInterval(fetchPrices, 60000);
-    return () => clearInterval(interval);
+
+    globalListenerCount++;
+    if (globalListenerCount === 1 && !globalInterval) {
+      globalInterval = setInterval(fetchPrices, 60000);
+    }
+
+    return () => {
+      globalListenerCount--;
+      if (globalListenerCount === 0 && globalInterval) {
+        clearInterval(globalInterval);
+        globalInterval = null;
+      }
+    };
   }, [fetchPrices]);
 
   const formatPrice = useCallback((price: number) => {

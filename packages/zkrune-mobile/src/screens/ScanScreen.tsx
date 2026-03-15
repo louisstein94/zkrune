@@ -17,6 +17,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { CameraView, useCameraPermissions } from 'expo-camera';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
+import { Buffer } from 'buffer';
 import { colors, typography, spacing, layout } from '../theme';
 import { Button, Card } from '../components/ui';
 import { useZkProof } from '../hooks';
@@ -38,6 +39,7 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
     message: string;
   } | null>(null);
 
+  const [torchEnabled, setTorchEnabled] = useState(false);
   const { verifyProof, templates } = useZkProof();
 
   const handleBarCodeScanned = async ({ type, data }: { type: string; data: string }) => {
@@ -61,7 +63,11 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
         proofData = JSON.parse(data);
       }
 
-      if (!proofData || !proofData.p || !proofData.s || !proofData.t) {
+      if (typeof proofData !== 'object' || proofData === null) {
+        throw new Error('Invalid QR data format');
+      }
+
+      if (!proofData.p || !proofData.s || !proofData.t) {
         throw new Error('Invalid proof format');
       }
 
@@ -214,6 +220,7 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
       <CameraView
         style={StyleSheet.absoluteFill}
         facing="back"
+        enableTorch={torchEnabled}
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
         barcodeScannerSettings={{
           barcodeTypes: ['qr'],
@@ -228,8 +235,8 @@ export function ScanScreen({ navigation }: ScanScreenProps) {
             <Ionicons name="close" size={28} color={colors.text.primary} />
           </TouchableOpacity>
           <Text style={styles.scannerTitle}>Scan QR Code</Text>
-          <TouchableOpacity style={styles.flashButton}>
-            <Ionicons name="flash-outline" size={24} color={colors.text.primary} />
+          <TouchableOpacity style={styles.flashButton} onPress={() => setTorchEnabled(prev => !prev)}>
+            <Ionicons name={torchEnabled ? "flash" : "flash-outline"} size={24} color={colors.text.primary} />
           </TouchableOpacity>
         </SafeAreaView>
 

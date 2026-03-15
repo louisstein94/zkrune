@@ -18,10 +18,12 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import * as Clipboard from 'expo-clipboard';
+import { Linking } from 'react-native';
 import { colors, typography, spacing, layout } from '../theme';
 import { Button, Card, GradientText } from '../components/ui';
 import { useZkProof, useWallet } from '../hooks';
 import { ProofType, ProofInput } from '../services';
+import { verifyProofOnChain, isTemplateSupported } from '../services/solanaVerifier';
 
 export function ProofScreen({ navigation }: any) {
   const { 
@@ -47,6 +49,9 @@ export function ProofScreen({ navigation }: any) {
   
   const [selectedTemplate, setSelectedTemplate] = useState<ProofType | null>(null);
   const [inputValues, setInputValues] = useState<Record<string, string>>({});
+  const [isVerifyingOnChain, setIsVerifyingOnChain] = useState(false);
+  const [onChainTxHash, setOnChainTxHash] = useState<string | null>(null);
+  const [onChainError, setOnChainError] = useState<string | null>(null);
   
   const canGoBack = navigation.canGoBack();
 
@@ -110,7 +115,11 @@ export function ProofScreen({ navigation }: any) {
       publicInputs,
     };
 
-    await generateProof(input);
+    try {
+      await generateProof(input);
+    } catch (error: any) {
+      Alert.alert('Proof Generation Failed', error.message || 'An unexpected error occurred.');
+    }
   };
 
   const handleCopyProof = async () => {
@@ -130,6 +139,29 @@ export function ProofScreen({ navigation }: any) {
     clearCurrentProof();
     setSelectedTemplate(null);
     setInputValues({});
+    setOnChainTxHash(null);
+    setOnChainError(null);
+  };
+
+  const handleVerifyOnChain = async () => {
+    if (!currentProof) return;
+    
+    setIsVerifyingOnChain(true);
+    setOnChainError(null);
+    setOnChainTxHash(null);
+
+    try {
+      const result = await verifyProofOnChain(currentProof);
+      if (result.success && result.signature) {
+        setOnChainTxHash(result.signature);
+      } else {
+        setOnChainError(result.error || 'Verification failed');
+      }
+    } catch (err: any) {
+      setOnChainError(err.message || 'Unexpected error');
+    } finally {
+      setIsVerifyingOnChain(false);
+    }
   };
 
   // Show result screen if proof is generated
@@ -163,7 +195,7 @@ export function ProofScreen({ navigation }: any) {
             </Text>
             {currentProof.isRealProof && (
               <View style={styles.realProofBadge}>
-                <Ionicons name="shield-checkmark" size={16} color="#10B981" />
+                <Ionicons name="shield-checkmark" size={16} color="#34D399" />
                 <Text style={styles.realProofBadgeText}>REAL SNARKJS</Text>
               </View>
             )}
@@ -238,16 +270,16 @@ export function ProofScreen({ navigation }: any) {
               <Text style={styles.detailLabel}>Proof Type</Text>
               <View style={[
                 styles.verifiedBadge,
-                currentProof.isRealProof && { backgroundColor: '#8B5CF620' }
+                currentProof.isRealProof && { backgroundColor: '#A78BFA20' }
               ]}>
                 <Ionicons 
                   name={currentProof.isRealProof ? 'hardware-chip' : 'code-working'} 
                   size={14} 
-                  color={currentProof.isRealProof ? '#8B5CF6' : colors.text.secondary} 
+                  color={currentProof.isRealProof ? '#A78BFA' : colors.text.secondary} 
                 />
                 <Text style={[
                   styles.verifiedText,
-                  currentProof.isRealProof && { color: '#8B5CF6' }
+                  currentProof.isRealProof && { color: '#A78BFA' }
                 ]}>
                   {currentProof.isRealProof ? 'Real ZK' : 'Simulated'}
                 </Text>
@@ -260,6 +292,70 @@ export function ProofScreen({ navigation }: any) {
               </View>
             )}
           </Card>
+
+          {/* Solana On-Chain Verification */}
+          {currentProof.isRealProof && isTemplateSupported(currentProof.type) && (
+            <Card style={styles.solanaCard}>
+              <View style={styles.solanaHeader}>
+                <View style={styles.solanaHeaderLeft}>
+                  <Ionicons name="shield-checkmark" size={22} color="#9945FF" />
+                  <Text style={styles.solanaTitle}>Verify on Solana</Text>
+                </View>
+                <View style={styles.solanaBadge}>
+                  <Text style={styles.solanaBadgeText}>MAINNET</Text>
+                </View>
+              </View>
+              
+              <Text style={styles.solanaDescription}>
+                Submit this proof to Solana for cryptographic verification using Groth16 pairing checks on-chain.
+              </Text>
+
+              {onChainError && (
+                <View style={styles.solanaErrorBox}>
+                  <Ionicons name="alert-circle" size={16} color={colors.status.error} />
+                  <Text style={styles.solanaErrorText}>{onChainError}</Text>
+                </View>
+              )}
+
+              {onChainTxHash ? (
+                <View style={styles.solanaSuccessBox}>
+                  <View style={styles.solanaSuccessHeader}>
+                    <Ionicons name="checkmark-circle" size={28} color={colors.status.success} />
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.solanaSuccessTitle}>Verified On-Chain!</Text>
+                      <Text style={styles.solanaSuccessSubtitle}>Groth16 pairing check passed</Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.solanaExplorerLink}
+                    onPress={() => Linking.openURL(`https://solscan.io/tx/${onChainTxHash}`)}
+                  >
+                    <Text style={styles.solanaExplorerText}>View on Solscan</Text>
+                    <Ionicons name="open-outline" size={14} color="#9945FF" />
+                  </TouchableOpacity>
+                </View>
+              ) : (
+                <TouchableOpacity
+                  style={[
+                    styles.solanaVerifyButton,
+                    isVerifyingOnChain && styles.solanaVerifyButtonDisabled,
+                    !isConnected && styles.solanaVerifyButtonDisabled,
+                  ]}
+                  onPress={handleVerifyOnChain}
+                  disabled={isVerifyingOnChain || !isConnected}
+                >
+                  {isVerifyingOnChain ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Ionicons name="flash" size={18} color="#FFFFFF" />
+                  )}
+                  <Text style={styles.solanaVerifyButtonText}>
+                    {isVerifyingOnChain ? 'Verifying...' : !isConnected ? 'Connect Wallet First' : 'Verify On-Chain'}
+                  </Text>
+                </TouchableOpacity>
+              )}
+            </Card>
+          )}
 
           {/* Actions */}
           <View style={styles.actionButtons}>
@@ -441,7 +537,7 @@ export function ProofScreen({ navigation }: any) {
         {/* Circuit Ready Badge */}
         {selectedTemplate && circuitReady && (
           <View style={styles.readyBadge}>
-            <Ionicons name="checkmark-circle" size={18} color="#10B981" />
+            <Ionicons name="checkmark-circle" size={18} color="#34D399" />
             <Text style={styles.readyText}>Circuit ready - Real ZK proofs enabled!</Text>
           </View>
         )}
@@ -769,7 +865,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-    backgroundColor: '#10B98120',
+    backgroundColor: '#34D39920',
     paddingHorizontal: spacing[3],
     paddingVertical: spacing[2],
     borderRadius: 20,
@@ -777,7 +873,7 @@ const styles = StyleSheet.create({
   },
   realProofBadgeText: {
     ...typography.styles.bodySmall,
-    color: '#10B981',
+    color: '#34D399',
     fontWeight: '700',
     letterSpacing: 1,
   },
@@ -815,7 +911,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing[2],
-    backgroundColor: '#10B98115',
+    backgroundColor: '#34D39915',
     paddingHorizontal: spacing[4],
     paddingVertical: spacing[3],
     borderRadius: layout.radius.md,
@@ -823,7 +919,7 @@ const styles = StyleSheet.create({
   },
   readyText: {
     ...typography.styles.bodySmall,
-    color: '#10B981',
+    color: '#34D399',
     fontWeight: '500',
   },
   statusText: {
@@ -831,5 +927,106 @@ const styles = StyleSheet.create({
     color: colors.text.secondary,
     textAlign: 'center',
     marginBottom: spacing[2],
+  },
+  solanaCard: {
+    backgroundColor: '#9945FF10',
+    borderColor: '#9945FF30',
+    marginBottom: spacing[4],
+  },
+  solanaHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: spacing[2],
+  },
+  solanaHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[2],
+  },
+  solanaTitle: {
+    ...typography.styles.body,
+    color: '#9945FF',
+    fontWeight: '700',
+  },
+  solanaBadge: {
+    backgroundColor: '#9945FF25',
+    paddingHorizontal: spacing[2],
+    paddingVertical: 2,
+    borderRadius: 6,
+  },
+  solanaBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: '#9945FF',
+    letterSpacing: 0.5,
+  },
+  solanaDescription: {
+    ...typography.styles.bodySmall,
+    color: colors.text.secondary,
+    lineHeight: 20,
+    marginBottom: spacing[4],
+  },
+  solanaErrorBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing[2],
+    backgroundColor: colors.status.error + '15',
+    borderRadius: 10,
+    padding: spacing[3],
+    marginBottom: spacing[3],
+  },
+  solanaErrorText: {
+    ...typography.styles.bodySmall,
+    color: colors.status.error,
+    flex: 1,
+  },
+  solanaSuccessBox: {
+    backgroundColor: colors.status.success + '15',
+    borderRadius: 12,
+    padding: spacing[4],
+  },
+  solanaSuccessHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[3],
+    marginBottom: spacing[3],
+  },
+  solanaSuccessTitle: {
+    ...typography.styles.body,
+    color: colors.status.success,
+    fontWeight: '700',
+  },
+  solanaSuccessSubtitle: {
+    ...typography.styles.bodySmall,
+    color: colors.status.success,
+    opacity: 0.8,
+  },
+  solanaExplorerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing[1],
+  },
+  solanaExplorerText: {
+    ...typography.styles.bodySmall,
+    color: '#9945FF',
+    fontWeight: '500',
+  },
+  solanaVerifyButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: spacing[2],
+    backgroundColor: '#9945FF',
+    paddingVertical: spacing[3],
+    borderRadius: 12,
+  },
+  solanaVerifyButtonDisabled: {
+    opacity: 0.5,
+  },
+  solanaVerifyButtonText: {
+    color: '#FFFFFF',
+    fontWeight: '600',
+    fontSize: 15,
   },
 });

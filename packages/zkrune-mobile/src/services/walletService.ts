@@ -15,6 +15,7 @@ global.Buffer = global.Buffer || Buffer;
 let Keypair: typeof import('@solana/web3.js').Keypair;
 let bip39: typeof import('bip39');
 let nacl: typeof import('tweetnacl');
+let derivePath: (path: string, seed: string) => { key: Uint8Array };
 
 // Crypto modules ready flag
 let cryptoReady = false;
@@ -29,6 +30,8 @@ const initCrypto = async (): Promise<boolean> => {
     Keypair = web3.Keypair;
     bip39 = await import('bip39');
     nacl = (await import('tweetnacl')).default;
+    const hdKey = await import('ed25519-hd-key');
+    derivePath = hdKey.derivePath;
     cryptoReady = true;
     console.log('[Wallet] Crypto modules loaded successfully');
     return true;
@@ -576,9 +579,11 @@ class WalletService {
    */
   async disconnect(): Promise<boolean> {
     try {
-      // Clear connection from storage
       await secureStorage.removeWallet();
+      await secureStorage.remove('zkrune_wallet_sk' as any);
+      await secureStorage.remove('zkrune_wallet_mnemonic' as any);
       this._connection = null;
+      this._nativeWallet = null;
       return true;
     } catch (error) {
       console.error('[Wallet] Failed to disconnect:', error);
@@ -743,7 +748,12 @@ class WalletService {
    * Get wallet provider display name
    */
   getProviderName(provider: WalletProvider): string {
-    return provider === WalletProvider.PHANTOM ? 'Phantom' : 'Solflare';
+    switch (provider) {
+      case WalletProvider.PHANTOM: return 'Phantom';
+      case WalletProvider.SOLFLARE: return 'Solflare';
+      case WalletProvider.NATIVE: return 'zkRune Wallet';
+      default: return 'Unknown';
+    }
   }
 
   /**
@@ -916,20 +926,16 @@ class WalletService {
   }
 
   private async _deriveKeypairFromMnemonic(mnemonic: string): Promise<any> {
-    if (!bip39 || !nacl || !Keypair) {
-      throw new Error('Crypto modules not initialized');
+    if (!bip39 || !Keypair || !derivePath) {
+      await initCrypto();
+      if (!bip39 || !Keypair || !derivePath) {
+        throw new Error('Crypto modules not initialized');
+      }
     }
 
-    // Convert mnemonic to seed
     const seed = await bip39.mnemonicToSeed(mnemonic);
-    
-    // Use first 32 bytes of seed directly (simple derivation)
-    // Note: This is compatible with Solana CLI and most wallets
-    const seedArray = new Uint8Array(seed);
-    const keypairSeed = seedToKeypair(seedArray);
-    
-    // Create Solana keypair from the generated keys
-    return Keypair.fromSecretKey(keypairSeed.secretKey);
+    const derivedSeed = derivePath(SOLANA_DERIVATION_PATH, Buffer.from(seed).toString('hex'));
+    return Keypair.fromSeed(derivedSeed.key);
   }
 
   private async _addToWalletList(connection: WalletConnection): Promise<void> {
@@ -965,9 +971,20 @@ class WalletService {
   }
 
   private async _getEncryptionPublicKey(): Promise<string> {
-    // In production, generate a proper encryption keypair
-    // For now, return a placeholder
-    return 'zkRune-dapp-encryption-key';
+    const existingKey = await secureStorage.get('zkrune_dh_pubkey' as any);
+    if (existingKey) return existingKey;
+
+    if (!nacl) {
+      await initCrypto();
+      if (!nacl) throw new Error('Crypto modules not available');
+    }
+
+    const keypair = nacl.box.keyPair();
+    const pubKeyBase64 = Buffer.from(keypair.publicKey).toString('base64');
+    const secKeyBase64 = Buffer.from(keypair.secretKey).toString('base64');
+    await secureStorage.set('zkrune_dh_pubkey' as any, pubKeyBase64);
+    await secureStorage.set('zkrune_dh_seckey' as any, secKeyBase64);
+    return pubKeyBase64;
   }
 }
 

@@ -5,6 +5,7 @@
 
 import * as Notifications from 'expo-notifications';
 import * as Device from 'expo-device';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 import { secureStorage, STORAGE_KEYS } from './secureStorage';
 
@@ -111,7 +112,7 @@ class NotificationService {
 
       // Get Expo push token
       const tokenData = await Notifications.getExpoPushTokenAsync({
-        projectId: 'your-project-id', // Replace with actual Expo project ID
+        projectId: Constants.expoConfig?.extra?.eas?.projectId || 'your-project-id',
       });
 
       this._expoPushToken = tokenData.data;
@@ -120,7 +121,9 @@ class NotificationService {
       this._settings.enabled = true;
       await this._saveSettings();
 
-      console.log('[Notifications] Push token:', this._expoPushToken);
+      if (__DEV__) {
+        console.log('[Notifications] Push token:', this._expoPushToken);
+      }
       return this._expoPushToken;
     } catch (error) {
       console.error('[Notifications] Failed to get push token:', error);
@@ -332,14 +335,14 @@ class NotificationService {
       description: 'Notifications about proof generation and verification',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#8B5CF6',
+      lightColor: '#A78BFA',
     });
 
     await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNELS.GOVERNANCE, {
       name: 'Governance',
       description: 'Notifications about proposals and voting',
       importance: Notifications.AndroidImportance.DEFAULT,
-      lightColor: '#06B6D4',
+      lightColor: '#818CF8',
     });
 
     await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNELS.TRANSACTIONS, {
@@ -347,7 +350,7 @@ class NotificationService {
       description: 'Notifications about token transfers',
       importance: Notifications.AndroidImportance.HIGH,
       vibrationPattern: [0, 250, 250, 250],
-      lightColor: '#10B981',
+      lightColor: '#818CF8',
     });
 
     await Notifications.setNotificationChannelAsync(NOTIFICATION_CHANNELS.ALERTS, {
@@ -355,7 +358,7 @@ class NotificationService {
       description: 'Important security notifications',
       importance: Notifications.AndroidImportance.MAX,
       vibrationPattern: [0, 500, 250, 500],
-      lightColor: '#EF4444',
+      lightColor: '#F87171',
     });
   }
 

@@ -37,7 +37,7 @@ export function useBiometric(): UseBiometricReturn {
   // Check biometric status on mount
   useEffect(() => {
     checkStatus();
-  }, []);
+  }, [checkStatus]);
 
   // Check biometric status
   const checkStatus = useCallback(async (): Promise<void> => {
