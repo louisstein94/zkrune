@@ -88,7 +88,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
     setTimeout(() => {
       const inputCount = nodes.filter(n => n.type === 'input').length;
       const outputCount = nodes.filter(n => n.type === 'output').length;
-      addToast(`Test basarili! ${inputCount} giris, ${outputCount} cikis — derlemeye hazir.`, 'success');
+      addToast(`Test passed! ${inputCount} inputs, ${outputCount} outputs — ready to compile.`, 'success');
       setIsTesting(false);
     }, 1200);
   };
@@ -97,7 +97,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
     const validation = validateCircuit(nodes, edges);
     
     if (!validation.valid) {
-      addToast('Derleme yapilamaz: ' + validation.errors[0], 'error');
+      addToast('Cannot compile: ' + validation.errors[0], 'error');
       return;
     }
 
@@ -113,14 +113,14 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
       a.click();
       URL.revokeObjectURL(url);
 
-      addToast('Circom kodu indirildi! circom komutuyla derleyebilirsiniz.', 'success');
+      addToast('Circom code downloaded! Compile with the circom CLI.', 'success');
       setIsCompiling(false);
     }, 1500);
   };
 
   const saveCircuit = () => {
     if (nodes.length === 0) {
-      addToast('Kaydedilecek devre yok.', 'info');
+      addToast('No circuit to save.', 'info');
       return;
     }
 
@@ -138,7 +138,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
     a.download = `zkrune-circuit-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
-    addToast('Devre dosyasi kaydedildi.', 'success');
+    addToast('Circuit saved.', 'success');
   };
 
   const loadCircuit = () => {
@@ -156,12 +156,12 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
           const circuit = JSON.parse(event.target?.result as string);
           if (circuit.nodes && circuit.edges) {
             onLoad(circuit.nodes, circuit.edges);
-            addToast(`"${circuit.name || 'Devre'}" yuklendi.`, 'success');
+            addToast(`"${circuit.name || 'Circuit'}" loaded.`, 'success');
           } else {
-            addToast('Gecersiz devre dosyasi.', 'error');
+            addToast('Invalid circuit file.', 'error');
           }
         } catch {
-          addToast('Dosya okunamadi.', 'error');
+          addToast('Failed to read file.', 'error');
         }
       };
       reader.readAsText(file);
@@ -173,7 +173,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
   const clearCircuit = () => {
     onClear();
     setShowClearConfirm(false);
-    addToast('Canvas temizlendi.', 'info');
+    addToast('Canvas cleared.', 'info');
   };
 
   const hasNodes = nodes.length > 0;
@@ -184,13 +184,13 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
         onClick={loadCircuit}
         className="px-3 py-1.5 text-xs border border-zk-gray/20 text-zk-gray rounded-md hover:text-white hover:border-zk-gray/40 transition-all"
       >
-        Yukle
+        Load
       </button>
       <button
         onClick={saveCircuit}
         className="px-3 py-1.5 text-xs border border-zk-gray/20 text-zk-gray rounded-md hover:text-white hover:border-zk-gray/40 transition-all"
       >
-        Kaydet
+        Save
       </button>
 
       {hasNodes && !showClearConfirm && (
@@ -198,7 +198,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
           onClick={() => setShowClearConfirm(true)}
           className="px-3 py-1.5 text-xs border border-zk-gray/15 text-zk-gray/60 rounded-md hover:text-red-400 hover:border-red-500/30 transition-all"
         >
-          Temizle
+          Clear
         </button>
       )}
 
@@ -208,13 +208,13 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
             onClick={clearCircuit}
             className="px-3 py-1.5 text-xs bg-red-500/15 border border-red-500/30 text-red-400 rounded-md hover:bg-red-500/25 transition-all"
           >
-            Evet, temizle
+            Yes, clear
           </button>
           <button
             onClick={() => setShowClearConfirm(false)}
             className="px-2 py-1.5 text-xs text-zk-gray hover:text-white transition-colors"
           >
-            Vazgec
+            Cancel
           </button>
         </div>
       )}
@@ -226,14 +226,14 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
         disabled={isTesting || !hasNodes}
         className="px-3 py-1.5 text-xs border border-zk-secondary/20 text-zk-secondary/80 rounded-md hover:border-zk-secondary/40 hover:text-zk-secondary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
       >
-        {isTesting ? 'Test ediliyor...' : 'Test'}
+        {isTesting ? 'Testing...' : 'Test'}
       </button>
       <button 
         onClick={compileAndDeploy}
         disabled={isCompiling || !hasNodes}
         className="px-4 py-1.5 text-xs bg-zk-primary text-white rounded-md hover:bg-zk-primary/90 transition-all font-medium disabled:opacity-30 disabled:cursor-not-allowed"
       >
-        {isCompiling ? 'Derleniyor...' : 'Derle'}
+        {isCompiling ? 'Compiling...' : 'Compile'}
       </button>
 
       {/* Toast notifications */}

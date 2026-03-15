@@ -108,22 +108,22 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
                 </svg>
               </div>
-              <h3 className="font-hatton text-xl text-white mb-2">Devreyi tasarlamaya basla</h3>
+              <h3 className="font-hatton text-xl text-white mb-2">Start building your circuit</h3>
               <p className="text-sm text-zk-gray mb-4 leading-relaxed">
-                Soldaki panelden bilesenleri ekleyerek baslayabilir veya hazir sablonlardan birini secebilirsin.
+                Add components from the left panel or choose a ready-made template to get started.
               </p>
               <div className="flex flex-col gap-2 text-xs text-zk-gray/70">
                 <div className="flex items-center gap-2 justify-center">
                   <span className="w-5 h-5 rounded bg-zk-primary/20 flex items-center justify-center text-zk-primary font-bold text-[10px]">1</span>
-                  <span>Bilesenleri tiklayarak ekle</span>
+                  <span>Click components to add them</span>
                 </div>
                 <div className="flex items-center gap-2 justify-center">
                   <span className="w-5 h-5 rounded bg-zk-primary/20 flex items-center justify-center text-zk-primary font-bold text-[10px]">2</span>
-                  <span>Noktaları surukleyerek bagla</span>
+                  <span>Drag handles to connect nodes</span>
                 </div>
                 <div className="flex items-center gap-2 justify-center">
                   <span className="w-5 h-5 rounded bg-zk-primary/20 flex items-center justify-center text-zk-primary font-bold text-[10px]">3</span>
-                  <span>Circom kodunu derle ve indir</span>
+                  <span>Compile and download Circom code</span>
                 </div>
               </div>
             </div>
@@ -148,11 +148,11 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
           <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
             <div className="flex items-center gap-3 px-4 py-2 bg-zk-dark/90 backdrop-blur-sm border border-zk-gray/20 rounded-lg text-xs">
               <span className="text-zk-gray">
-                <span className="text-white font-medium">{nodes.length}</span> bilesen
+                <span className="text-white font-medium">{nodes.length}</span> nodes
               </span>
               <span className="w-px h-3 bg-zk-gray/30" />
               <span className="text-zk-gray">
-                <span className="text-white font-medium">{edges.length}</span> baglanti
+                <span className="text-white font-medium">{edges.length}</span> connections
               </span>
               <span className="w-px h-3 bg-zk-gray/30" />
               <span className="text-zk-gray">
@@ -161,7 +161,7 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
               {!validation.valid && (
                 <>
                   <span className="w-px h-3 bg-zk-gray/30" />
-                  <span className="text-red-400 font-medium">{validation.errors.length} hata</span>
+                  <span className="text-red-400 font-medium">{validation.errors.length} errors</span>
                 </>
               )}
             </div>
@@ -177,7 +177,7 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
               </svg>
-              {showCodePanel ? 'Kodu gizle' : 'Kodu goster'}
+              {showCodePanel ? 'Hide Code' : 'View Code'}
             </button>
           </div>
         )}
@@ -187,7 +187,7 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
         <div className="w-80 bg-zk-dark border-l border-zk-gray/20 overflow-auto flex flex-col">
           <div className="p-5 border-b border-zk-gray/10">
             <div className="flex items-center justify-between mb-3">
-              <h3 className="font-hatton text-base text-white">Circom Kodu</h3>
+              <h3 className="font-hatton text-base text-white">Circom Code</h3>
               <button
                 onClick={() => setShowCodePanel(false)}
                 className="text-zk-gray hover:text-white transition-colors"
@@ -215,7 +215,7 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
                   <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Devre gecerli — derlemeye hazir
+                  Circuit valid — ready to compile
                 </p>
               </div>
             )}
@@ -224,7 +224,7 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
           <div className="flex-1 p-5 overflow-auto">
             <div className="bg-zk-darker border border-zk-gray/20 rounded-lg p-4">
               <pre className="text-xs text-zk-gray font-mono whitespace-pre leading-relaxed">
-                {generatedCode || '// Bilesen ekleyerek baslayın...'}
+                {generatedCode || '// Add components to get started...'}
               </pre>
             </div>
           </div>
@@ -239,7 +239,7 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
                   : 'bg-zk-primary/10 border border-zk-primary/30 text-zk-primary hover:bg-zk-primary/20 disabled:opacity-40 disabled:cursor-not-allowed'
               }`}
             >
-              {codeCopied ? 'Kopyalandı!' : 'Kodu kopyala'}
+              {codeCopied ? 'Copied!' : 'Copy Code'}
             </button>
           </div>
         </div>

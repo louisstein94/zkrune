@@ -67,13 +67,13 @@ export default function BuilderPage() {
                       : 'border border-zk-gray/20 text-zk-gray hover:text-white hover:border-zk-gray/40'
                   }`}
                 >
-                  Sablonlar
+                  Templates
                 </button>
                 <button
                   onClick={loadRandomCircuit}
                   className="px-3 py-1.5 text-xs border border-zk-accent/20 text-zk-accent/80 rounded-md hover:border-zk-accent/40 hover:text-zk-accent transition-all"
                 >
-                  Rastgele ornek
+                  Random Example
                 </button>
               </div>
             </div>
@@ -92,7 +92,7 @@ export default function BuilderPage() {
           <div className="px-6 py-4 bg-zk-dark/80 border-b border-zk-gray/20">
             <div className="max-w-6xl mx-auto">
               {/* Featured */}
-              <p className="text-xs font-medium text-zk-gray uppercase tracking-wider mb-3">Populer sablonlar</p>
+              <p className="text-xs font-medium text-zk-gray uppercase tracking-wider mb-3">Popular Templates</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 mb-4">
                 {featuredTemplates.map((template) => (
                   <button
@@ -116,7 +116,7 @@ export default function BuilderPage() {
               </div>
 
               {/* Others */}
-              <p className="text-xs font-medium text-zk-gray uppercase tracking-wider mb-3">Diger sablonlar</p>
+              <p className="text-xs font-medium text-zk-gray uppercase tracking-wider mb-3">More Templates</p>
               <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-2">
                 {otherTemplates.map((template) => (
                   <button

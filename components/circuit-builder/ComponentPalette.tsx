@@ -10,46 +10,46 @@ interface ComponentPaletteProps {
 
 const components = [
   {
-    category: "Girisler",
-    description: "Devrenin veri alacagi kaynaklar",
+    category: "Inputs",
+    description: "Data sources for your circuit",
     defaultOpen: true,
     items: [
-      { type: "input", label: "Gizli Giris", hint: "Sadece kanıtlayıcı bilir", iconType: "private", data: { label: "Private Value", fieldType: "private" } },
-      { type: "input", label: "Acik Giris", hint: "Herkes gorebilir", iconType: "public", data: { label: "Public Value", fieldType: "public" } },
+      { type: "input", label: "Private Input", hint: "Only the prover knows", iconType: "private", data: { label: "Private Value", fieldType: "private" } },
+      { type: "input", label: "Public Input", hint: "Visible to everyone", iconType: "public", data: { label: "Public Value", fieldType: "public" } },
     ],
   },
   {
-    category: "Islemler",
-    description: "Temel matematik ve karsilastirma",
+    category: "Operations",
+    description: "Math and comparison logic",
     defaultOpen: true,
     items: [
-      { type: "operation", label: "Topla", hint: "A + B", icon: "+", data: { label: "Add", operation: "add" } },
-      { type: "operation", label: "Cikar", hint: "A - B", icon: "-", data: { label: "Subtract", operation: "subtract" } },
-      { type: "operation", label: "Carp", hint: "A × B", icon: "×", data: { label: "Multiply", operation: "multiply" } },
-      { type: "operation", label: "Buyuktur", hint: "A > B", icon: ">", data: { label: "Greater Than", operation: "gt" } },
-      { type: "operation", label: "Kucuktur", hint: "A < B", icon: "<", data: { label: "Less Than", operation: "lt" } },
-      { type: "operation", label: "Esittir", hint: "A = B", icon: "=", data: { label: "Equal", operation: "eq" } },
+      { type: "operation", label: "Add", hint: "A + B", icon: "+", data: { label: "Add", operation: "add" } },
+      { type: "operation", label: "Subtract", hint: "A - B", icon: "-", data: { label: "Subtract", operation: "subtract" } },
+      { type: "operation", label: "Multiply", hint: "A × B", icon: "×", data: { label: "Multiply", operation: "multiply" } },
+      { type: "operation", label: "Greater Than", hint: "A > B", icon: ">", data: { label: "Greater Than", operation: "gt" } },
+      { type: "operation", label: "Less Than", hint: "A < B", icon: "<", data: { label: "Less Than", operation: "lt" } },
+      { type: "operation", label: "Equal", hint: "A = B", icon: "=", data: { label: "Equal", operation: "eq" } },
     ],
   },
   {
-    category: "Gelismis",
-    description: "ZK-ozel kriptografik islemler",
+    category: "Advanced",
+    description: "ZK-specific cryptographic ops",
     defaultOpen: false,
     items: [
-      { type: "advanced", label: "Aralik Kontrolu", hint: "Deger min-max icerisinde mi?", iconType: "range-check", data: { label: "Range Check", operation: "range-check" } },
-      { type: "advanced", label: "Hash", hint: "Poseidon hash fonksiyonu", iconType: "hash", data: { label: "Poseidon Hash", operation: "hash" } },
-      { type: "advanced", label: "Kosul", hint: "Eger A ise B yap", iconType: "conditional", data: { label: "IF/THEN", operation: "conditional" } },
-      { type: "advanced", label: "Merkle Kaniti", hint: "Bir listenin uyesi mi?", iconType: "merkle-proof", data: { label: "Merkle Proof", operation: "merkle-proof" } },
-      { type: "advanced", label: "Mod", hint: "Bolumden kalan", iconType: "modulo", data: { label: "Modulo", operation: "modulo" } },
+      { type: "advanced", label: "Range Check", hint: "Is value within min-max?", iconType: "range-check", data: { label: "Range Check", operation: "range-check" } },
+      { type: "advanced", label: "Hash", hint: "Poseidon hash function", iconType: "hash", data: { label: "Poseidon Hash", operation: "hash" } },
+      { type: "advanced", label: "Conditional", hint: "If A then do B", iconType: "conditional", data: { label: "IF/THEN", operation: "conditional" } },
+      { type: "advanced", label: "Merkle Proof", hint: "Prove list membership", iconType: "merkle-proof", data: { label: "Merkle Proof", operation: "merkle-proof" } },
+      { type: "advanced", label: "Modulo", hint: "Remainder of division", iconType: "modulo", data: { label: "Modulo", operation: "modulo" } },
     ],
   },
   {
-    category: "Cikislar",
-    description: "Devrenin urettigi sonuclar",
+    category: "Outputs",
+    description: "Results your circuit produces",
     defaultOpen: true,
     items: [
-      { type: "output", label: "Evet/Hayir Sonuc", hint: "true veya false dondurur", iconType: "boolean", data: { label: "Result", outputType: "boolean" } },
-      { type: "output", label: "Sayisal Sonuc", hint: "Sayisal bir deger dondurur", iconType: "number", data: { label: "Value", outputType: "number" } },
+      { type: "output", label: "Boolean Output", hint: "Returns true or false", iconType: "boolean", data: { label: "Result", outputType: "boolean" } },
+      { type: "output", label: "Number Output", hint: "Returns a numeric value", iconType: "number", data: { label: "Value", outputType: "number" } },
     ],
   },
 ];
@@ -66,8 +66,8 @@ export default function ComponentPalette({ onAddNode }: ComponentPaletteProps) {
   return (
     <div className="w-56 bg-zk-dark border-r border-zk-gray/20 flex flex-col">
       <div className="p-4 border-b border-zk-gray/10">
-        <h3 className="font-hatton text-base text-white">Bilesenler</h3>
-        <p className="text-[11px] text-zk-gray mt-0.5">Tiklayarak ekle</p>
+        <h3 className="font-hatton text-base text-white">Components</h3>
+        <p className="text-[11px] text-zk-gray mt-0.5">Click to add</p>
       </div>
 
       <div className="flex-1 overflow-auto p-3 space-y-1">
