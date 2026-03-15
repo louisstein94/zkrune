@@ -246,8 +246,8 @@ export async function POST(request: NextRequest) {
 
     // Determine achieved tier based on total burned
     let achievedTier: PremiumTier = 'FREE';
-    if (newTotalBurned >= PREMIUM_TIERS.ENTERPRISE.burnRequired) {
-      achievedTier = 'ENTERPRISE';
+    if (newTotalBurned >= PREMIUM_TIERS.PROTOCOL.burnRequired) {
+      achievedTier = 'PROTOCOL';
     } else if (newTotalBurned >= PREMIUM_TIERS.PRO.burnRequired) {
       achievedTier = 'PRO';
     } else if (newTotalBurned >= PREMIUM_TIERS.BUILDER.burnRequired) {

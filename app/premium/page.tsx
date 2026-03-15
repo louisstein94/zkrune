@@ -169,15 +169,15 @@ export default function PremiumPage() {
         {/* Page Title */}
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-white mb-4">
-            Premium Features
+            Privacy Infrastructure Tiers
           </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Burn zkRUNE tokens to unlock premium features. Tokens are permanently burned, 
-            making zkRUNE deflationary while giving you exclusive access.
+            Burn zkRUNE to unlock advanced privacy tools. Thresholds scale with circulating supply —
+            as more tokens are burned, requirements decrease for everyone.
           </p>
           {tokenStats && (
             <p className="text-sm text-[#8B5CF6] mt-2">
-              Burn prices adjust dynamically based on market cap. Current rates are optimized for {formatUsd(tokenStats.marketCap)} MC.
+              Current circulating supply: {formatNumber(tokenStats.circulatingSupply)} zkRUNE · Burned: {formatNumber(tokenStats.burned)} zkRUNE
             </p>
           )}
         </div>
@@ -192,7 +192,7 @@ export default function PremiumPage() {
                   {status.tier === 'FREE' && 'Free'}
                   {status.tier === 'BUILDER' && 'Builder'}
                   {status.tier === 'PRO' && 'Pro'}
-                  {status.tier === 'ENTERPRISE' && 'Enterprise'}
+                  {status.tier === 'PROTOCOL' && 'Protocol'}
                   {status.tier !== 'FREE' && (
                     <span className="text-sm px-2 py-1 bg-[#6366F1]/20 text-[#6366F1] rounded">
                       ACTIVE
@@ -206,7 +206,7 @@ export default function PremiumPage() {
                   {formatTokenAmount(status.totalBurned)} zkRUNE
                 </div>
               </div>
-              {status.tier !== 'ENTERPRISE' && (
+              {status.tier !== 'PROTOCOL' && (
                 <div className="text-right">
                   <div className="text-sm text-gray-400 mb-1">Next Tier</div>
                   {(() => {
@@ -385,20 +385,20 @@ export default function PremiumPage() {
         {/* Info Section */}
         <div className="mt-8 grid md:grid-cols-3 gap-6">
           <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <div className="text-[#6366F1] text-2xl mb-3">Deflationary</div>
-            <h4 className="text-white font-semibold mb-2">Token Burn Reduces Supply</h4>
+            <div className="text-[#6366F1] text-2xl mb-3">Supply-Linked</div>
+            <h4 className="text-white font-semibold mb-2">Burns Shrink Requirements</h4>
             <p className="text-gray-400 text-sm">
-              Every token burned is permanently destroyed, reducing total supply and 
-              increasing scarcity over time.
+              Tier thresholds are a fixed percentage of circulating supply. As more tokens
+              are burned, the cost to unlock every tier drops proportionally.
             </p>
           </div>
           
           <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <div className="text-[#8B5CF6] text-2xl mb-3">Permanent</div>
-            <h4 className="text-white font-semibold mb-2">Lifetime Access</h4>
+            <div className="text-[#8B5CF6] text-2xl mb-3">Privacy-Native</div>
+            <h4 className="text-white font-semibold mb-2">Real ZK Infrastructure</h4>
             <p className="text-gray-400 text-sm">
-              Once unlocked, your tier remains active for 1 year. No monthly subscriptions, 
-              no recurring fees.
+              Each tier unlocks actual privacy primitives — private verification,
+              custom circuits, encrypted storage, and on-chain privacy vaults.
             </p>
           </div>
           

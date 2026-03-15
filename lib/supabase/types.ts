@@ -238,7 +238,7 @@ export interface Database {
         Row: {
           id: string;
           wallet: string;
-          tier: 'FREE' | 'BUILDER' | 'PRO' | 'ENTERPRISE';
+          tier: 'FREE' | 'BUILDER' | 'PRO' | 'PROTOCOL';
           total_burned: number;
           unlocked_at: string | null;
           expires_at: string | null;
@@ -248,7 +248,7 @@ export interface Database {
         Insert: {
           id?: string;
           wallet: string;
-          tier?: 'FREE' | 'BUILDER' | 'PRO' | 'ENTERPRISE';
+          tier?: 'FREE' | 'BUILDER' | 'PRO' | 'PROTOCOL';
           total_burned?: number;
           unlocked_at?: string | null;
           expires_at?: string | null;
@@ -258,7 +258,7 @@ export interface Database {
         Update: {
           id?: string;
           wallet?: string;
-          tier?: 'FREE' | 'BUILDER' | 'PRO' | 'ENTERPRISE';
+          tier?: 'FREE' | 'BUILDER' | 'PRO' | 'PROTOCOL';
           total_burned?: number;
           unlocked_at?: string | null;
           expires_at?: string | null;

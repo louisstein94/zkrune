@@ -79,28 +79,16 @@ export function useTokenStats(): UseTokenStatsResult {
   };
 }
 
-// Calculate dynamic burn amounts based on market cap
+// Calculate dynamic burn amounts from circulating supply.
+// Burn thresholds are defined as basis points of supply in PREMIUM_TIERS,
+// so as tokens are burned the requirements shrink proportionally.
 export function calculateDynamicBurnTiers(stats: TokenStats | null) {
-  if (!stats) {
-    return {
-      BUILDER: 100,
-      PRO: 500,
-      ENTERPRISE: 2000
-    };
-  }
+  const supply = stats?.circulatingSupply ?? 1_000_000_000;
 
-  // Dynamic pricing based on market cap
-  // At $1000 MC: 100/500/2000 tokens
-  // At $10000 MC: 50/250/1000 tokens
-  // At $100000 MC: 25/125/500 tokens
-  // Formula: base * (1000 / marketCap) ^ 0.3
-
-  const mcMultiplier = Math.pow(1000 / Math.max(stats.marketCap, 100), 0.3);
-  
   return {
-    BUILDER: Math.max(10, Math.round(100 * mcMultiplier)),
-    PRO: Math.max(50, Math.round(500 * mcMultiplier)),
-    ENTERPRISE: Math.max(200, Math.round(2000 * mcMultiplier))
+    BUILDER:  Math.max(1_000, Math.floor(supply * 1  / 10_000)),
+    PRO:      Math.max(5_000, Math.floor(supply * 5  / 10_000)),
+    PROTOCOL: Math.max(20_000, Math.floor(supply * 20 / 10_000)),
   };
 }
 

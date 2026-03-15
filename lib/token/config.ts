@@ -33,65 +33,83 @@ export const ZKRUNE_TOKEN = {
   STAKE_VAULT_AUTHORITY: process.env.NEXT_PUBLIC_STAKE_VAULT_AUTHORITY || '',
 } as const;
 
-// Premium feature tiers
+// Total token supply — burn thresholds are derived from this.
+export const TOTAL_SUPPLY = 1_000_000_000;
+
+// Premium feature tiers — burn amounts expressed as basis points of total supply.
+//   Builder  = 1 bps  (0.01%)  = 100,000 zkRUNE
+//   Pro      = 5 bps  (0.05%)  = 500,000 zkRUNE
+//   Protocol = 20 bps (0.20%)  = 2,000,000 zkRUNE
 export const PREMIUM_TIERS = {
   FREE: {
     name: 'Free',
+    burnBps: 0,
     burnRequired: 0,
     features: [
-      'Basic proof generation',
+      'Basic ZK proof generation',
       '5 proofs per day',
-      'Community templates',
-      'Basic export',
+      'Community privacy templates',
+      'Public verification only',
     ],
     proofLimit: 5,
     templateAccess: 'community',
   },
   BUILDER: {
     name: 'Builder',
-    burnRequired: 100, // 100 zkRUNE tokens
+    burnBps: 1,
+    burnRequired: Math.floor(TOTAL_SUPPLY * 1 / 10_000),
     features: [
       'Unlimited proof generation',
-      'All templates',
-      'Priority circuit loading',
-      'Code export',
-      'API access',
+      'All privacy templates',
+      'Private off-chain verification',
+      'SDK API access',
+      'Proof batching',
     ],
-    proofLimit: -1, // unlimited
+    proofLimit: -1,
     templateAccess: 'all',
   },
   PRO: {
     name: 'Pro',
-    burnRequired: 500, // 500 zkRUNE tokens
+    burnBps: 5,
+    burnRequired: Math.floor(TOTAL_SUPPLY * 5 / 10_000),
     features: [
       'Everything in Builder',
-      'Custom circuit builder',
-      'Gasless proofs',
-      'Priority support',
-      'Early access to new features',
+      'Custom circuit deployment',
+      'Private transaction builder',
+      'Multi-proof composition',
+      'Encrypted proof storage',
     ],
     proofLimit: -1,
     templateAccess: 'all',
-    gaslessProofs: true,
+    customCircuits: true,
   },
-  ENTERPRISE: {
-    name: 'Enterprise',
-    burnRequired: 2000, // 2000 zkRUNE tokens
+  PROTOCOL: {
+    name: 'Protocol',
+    burnBps: 20,
+    burnRequired: Math.floor(TOTAL_SUPPLY * 20 / 10_000),
     features: [
       'Everything in Pro',
-      'White-label solution',
-      'Custom integrations',
-      'Dedicated support',
-      'SLA guarantee',
+      'Private RPC relay',
+      'Confidential smart contract toolkit',
+      'On-chain privacy vault',
+      'Dedicated verification infra',
+      'Custom compliance modules',
     ],
     proofLimit: -1,
     templateAccess: 'all',
-    gaslessProofs: true,
-    whiteLabel: true,
+    customCircuits: true,
+    privateRelay: true,
   },
 } as const;
 
 export type PremiumTier = keyof typeof PREMIUM_TIERS;
+
+// Recalculate burn thresholds against a live circulating supply.
+export function getBurnRequired(tier: PremiumTier, circulatingSupply?: number): number {
+  const supply = circulatingSupply ?? TOTAL_SUPPLY;
+  const bps = PREMIUM_TIERS[tier].burnBps;
+  return Math.floor(supply * bps / 10_000);
+}
 
 // Governance configuration
 export const GOVERNANCE_CONFIG = {

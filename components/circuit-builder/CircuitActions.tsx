@@ -1,7 +1,7 @@
 "use client";
 
 import { Node, Edge } from 'reactflow';
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { generateCircomCode, validateCircuit } from '@/lib/circuitGenerator';
 
 interface CircuitActionsProps {
@@ -11,79 +11,119 @@ interface CircuitActionsProps {
   onClear: () => void;
 }
 
+type ToastType = 'success' | 'error' | 'info';
+interface Toast {
+  id: number;
+  message: string;
+  type: ToastType;
+}
+
+function InlineToast({ toast, onDismiss }: { toast: Toast; onDismiss: () => void }) {
+  useEffect(() => {
+    const timer = setTimeout(onDismiss, 4000);
+    return () => clearTimeout(timer);
+  }, [onDismiss]);
+
+  const styles = {
+    success: 'bg-emerald-500/15 border-emerald-500/30 text-emerald-300',
+    error: 'bg-red-500/15 border-red-500/30 text-red-300',
+    info: 'bg-blue-500/15 border-blue-500/30 text-blue-300',
+  };
+
+  const icons = {
+    success: (
+      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+      </svg>
+    ),
+    error: (
+      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3l9 16H3L12 3z" />
+      </svg>
+    ),
+    info: (
+      <svg className="w-3.5 h-3.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    ),
+  };
+
+  return (
+    <div className={`flex items-center gap-2 px-3 py-2 rounded-lg border text-xs animate-in fade-in slide-in-from-top-2 ${styles[toast.type]}`}>
+      {icons[toast.type]}
+      <span>{toast.message}</span>
+      <button onClick={onDismiss} className="ml-1 opacity-60 hover:opacity-100">
+        <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+  );
+}
+
 export default function CircuitActions({ nodes, edges, onLoad, onClear }: CircuitActionsProps) {
   const [isTesting, setIsTesting] = useState(false);
   const [isCompiling, setIsCompiling] = useState(false);
+  const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const addToast = useCallback((message: string, type: ToastType) => {
+    const id = Date.now();
+    setToasts(prev => [...prev.slice(-2), { id, message, type }]);
+  }, []);
+
+  const removeToast = useCallback((id: number) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  }, []);
 
   const testCircuit = async () => {
-    // Validate first
     const validation = validateCircuit(nodes, edges);
     
     if (!validation.valid) {
-      alert('Circuit has errors:\n' + validation.errors.join('\n'));
+      addToast(validation.errors[0], 'error');
       return;
     }
 
     setIsTesting(true);
-
-    // Simulate testing with sample inputs
     setTimeout(() => {
-      const testResults = {
-        passed: true,
-        message: 'Circuit validation passed!',
-        sampleInputs: nodes.filter(n => n.type === 'input').map(n => n.data.label),
-        outputs: nodes.filter(n => n.type === 'output').map(n => n.data.label),
-      };
-
-      alert(`Test Passed!\n\nInputs: ${testResults.sampleInputs.join(', ')}\nOutputs: ${testResults.outputs.join(', ')}\n\nCircuit is ready to compile!`);
+      const inputCount = nodes.filter(n => n.type === 'input').length;
+      const outputCount = nodes.filter(n => n.type === 'output').length;
+      addToast(`Test basarili! ${inputCount} giris, ${outputCount} cikis — derlemeye hazir.`, 'success');
       setIsTesting(false);
-    }, 1500);
+    }, 1200);
   };
 
   const compileAndDeploy = async () => {
-    // Validate first
     const validation = validateCircuit(nodes, edges);
     
     if (!validation.valid) {
-      alert('Cannot compile - circuit has errors:\n' + validation.errors.join('\n'));
+      addToast('Derleme yapilamaz: ' + validation.errors[0], 'error');
       return;
     }
 
     setIsCompiling(true);
-
-    // Generate Circom code
     const circomCode = generateCircomCode(nodes, edges);
 
-    // Simulate compilation
     setTimeout(() => {
-      const success = confirm(
-        'Circuit is ready to compile!\n\n' +
-        'This would:\n' +
-        '1. Save circuit.circom file\n' +
-        '2. Compile to WASM\n' +
-        '3. Generate proving keys\n' +
-        '4. Deploy to your templates\n\n' +
-        'Continue with compilation? (This feature is in beta)'
-      );
+      const blob = new Blob([circomCode], { type: 'text/plain' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `custom-circuit-${Date.now()}.circom`;
+      a.click();
+      URL.revokeObjectURL(url);
 
-      if (success) {
-        // Download the Circom code
-        const blob = new Blob([circomCode], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `custom-circuit-${Date.now()}.circom`;
-        a.click();
-        URL.revokeObjectURL(url);
-
-        alert('Circom code downloaded!\n\nNext steps:\n1. Compile with: circom your-circuit.circom\n2. Generate keys with snarkjs\n3. Test your proof!');
-      }
-
+      addToast('Circom kodu indirildi! circom komutuyla derleyebilirsiniz.', 'success');
       setIsCompiling(false);
-    }, 2000);
+    }, 1500);
   };
 
   const saveCircuit = () => {
+    if (nodes.length === 0) {
+      addToast('Kaydedilecek devre yok.', 'info');
+      return;
+    }
+
     const circuit = {
       name: `Circuit-${Date.now()}`,
       nodes,
@@ -98,6 +138,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
     a.download = `zkrune-circuit-${Date.now()}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    addToast('Devre dosyasi kaydedildi.', 'success');
   };
 
   const loadCircuit = () => {
@@ -115,11 +156,12 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
           const circuit = JSON.parse(event.target?.result as string);
           if (circuit.nodes && circuit.edges) {
             onLoad(circuit.nodes, circuit.edges);
+            addToast(`"${circuit.name || 'Devre'}" yuklendi.`, 'success');
           } else {
-            alert('Invalid circuit file');
+            addToast('Gecersiz devre dosyasi.', 'error');
           }
-        } catch (error) {
-          alert('Failed to load circuit');
+        } catch {
+          addToast('Dosya okunamadi.', 'error');
         }
       };
       reader.readAsText(file);
@@ -129,55 +171,83 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
   };
 
   const clearCircuit = () => {
-    if (confirm('Clear all nodes and start fresh?')) {
-      onClear();
-    }
+    onClear();
+    setShowClearConfirm(false);
+    addToast('Canvas temizlendi.', 'info');
   };
 
+  const hasNodes = nodes.length > 0;
+
   return (
-    <div className="flex flex-col sm:flex-row gap-3">
-      {/* File Actions */}
-      <div className="flex gap-2">
-        <button
-          onClick={loadCircuit}
-          className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
-        >
-          Load
-        </button>
-        <button
-          onClick={saveCircuit}
-          className="px-4 py-2 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary transition-all text-sm"
-        >
-          Save
-        </button>
-        <button
-          onClick={clearCircuit}
-          className="px-4 py-2 border border-red-500/30 text-red-400 rounded-lg hover:border-red-500 transition-all text-sm"
-        >
-          Clear
-        </button>
-      </div>
+    <div className="flex items-center gap-2 relative">
+      <button
+        onClick={loadCircuit}
+        className="px-3 py-1.5 text-xs border border-zk-gray/20 text-zk-gray rounded-md hover:text-white hover:border-zk-gray/40 transition-all"
+      >
+        Yukle
+      </button>
+      <button
+        onClick={saveCircuit}
+        className="px-3 py-1.5 text-xs border border-zk-gray/20 text-zk-gray rounded-md hover:text-white hover:border-zk-gray/40 transition-all"
+      >
+        Kaydet
+      </button>
 
-      {/* Divider */}
-      <div className="hidden sm:block w-px bg-zk-gray/20" />
+      {hasNodes && !showClearConfirm && (
+        <button
+          onClick={() => setShowClearConfirm(true)}
+          className="px-3 py-1.5 text-xs border border-zk-gray/15 text-zk-gray/60 rounded-md hover:text-red-400 hover:border-red-500/30 transition-all"
+        >
+          Temizle
+        </button>
+      )}
 
-      {/* Action Buttons */}
-      <div className="flex gap-2">
-        <button 
-          onClick={testCircuit}
-          disabled={isTesting}
-          className="px-4 py-2 bg-zk-secondary/20 border border-zk-secondary/30 text-zk-secondary rounded-lg hover:bg-zk-secondary/30 transition-all text-sm disabled:opacity-50"
-        >
-          {isTesting ? 'Testing...' : 'Test'}
-        </button>
-        <button 
-          onClick={compileAndDeploy}
-          disabled={isCompiling}
-          className="px-6 py-2 bg-zk-primary text-white rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium disabled:opacity-50"
-        >
-          {isCompiling ? 'Compiling...' : 'Compile'}
-        </button>
-      </div>
+      {showClearConfirm && (
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={clearCircuit}
+            className="px-3 py-1.5 text-xs bg-red-500/15 border border-red-500/30 text-red-400 rounded-md hover:bg-red-500/25 transition-all"
+          >
+            Evet, temizle
+          </button>
+          <button
+            onClick={() => setShowClearConfirm(false)}
+            className="px-2 py-1.5 text-xs text-zk-gray hover:text-white transition-colors"
+          >
+            Vazgec
+          </button>
+        </div>
+      )}
+
+      <div className="w-px h-4 bg-zk-gray/20 mx-1" />
+
+      <button 
+        onClick={testCircuit}
+        disabled={isTesting || !hasNodes}
+        className="px-3 py-1.5 text-xs border border-zk-secondary/20 text-zk-secondary/80 rounded-md hover:border-zk-secondary/40 hover:text-zk-secondary transition-all disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        {isTesting ? 'Test ediliyor...' : 'Test'}
+      </button>
+      <button 
+        onClick={compileAndDeploy}
+        disabled={isCompiling || !hasNodes}
+        className="px-4 py-1.5 text-xs bg-zk-primary text-white rounded-md hover:bg-zk-primary/90 transition-all font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+      >
+        {isCompiling ? 'Derleniyor...' : 'Derle'}
+      </button>
+
+      {/* Toast notifications */}
+      {toasts.length > 0 && (
+        <div className="absolute top-full right-0 mt-2 z-50 space-y-1.5 min-w-[280px]">
+          {toasts.map(toast => (
+            <InlineToast
+              key={toast.id}
+              toast={toast}
+              onDismiss={() => removeToast(toast.id)}
+            />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

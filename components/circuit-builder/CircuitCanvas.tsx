@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useRef } from 'react';
 import ReactFlow, {
   Node,
   Edge,
@@ -13,6 +13,8 @@ import ReactFlow, {
   OnEdgesChange,
   OnConnect,
   NodeTypes,
+  useReactFlow,
+  ReactFlowProvider,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -37,57 +39,42 @@ interface CircuitCanvasProps {
   onEdgesChange?: (edges: Edge[]) => void;
 }
 
-export default function CircuitCanvas({ 
+function CircuitCanvasInner({ 
   initialNodes = [], 
   initialEdges = [],
   onNodesChange: externalNodesChange,
   onEdgesChange: externalEdgesChange,
 }: CircuitCanvasProps) {
-  // Default example circuit
-  const defaultNodes: Node[] = [
-    {
-      id: 'example-1',
-      type: 'input',
-      position: { x: 100, y: 100 },
-      data: { label: 'Birth Year', fieldType: 'private' },
-    },
-    {
-      id: 'example-2',
-      type: 'operation',
-      position: { x: 400, y: 100 },
-      data: { label: 'Calculate Age', operation: 'subtract' },
-    },
-    {
-      id: 'example-3',
-      type: 'output',
-      position: { x: 700, y: 100 },
-      data: { label: 'Is 18+', outputType: 'boolean' },
-    },
-  ];
-
-  const defaultEdges: Edge[] = [
-    { id: 'e1-2', source: 'example-1', target: 'example-2', animated: true },
-    { id: 'e2-3', source: 'example-2', target: 'example-3', animated: true },
-  ];
-
-  const [nodes, setNodes] = useState<Node[]>(defaultNodes);
-  const [edges, setEdges] = useState<Edge[]>(defaultEdges);
-
-  // Update nodes when initialNodes change
-  useEffect(() => {
-    if (initialNodes.length > 0) {
-      setNodes(initialNodes);
-    }
-  }, [initialNodes]);
-
-  // Update edges when initialEdges change
-  useEffect(() => {
-    if (initialEdges.length > 0) {
-      setEdges(initialEdges);
-    }
-  }, [initialEdges]);
+  const [nodes, setNodes] = useState<Node[]>([]);
+  const [edges, setEdges] = useState<Edge[]>([]);
+  const [showCodePanel, setShowCodePanel] = useState(false);
+  const [codeCopied, setCodeCopied] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string>('');
   const [validation, setValidation] = useState<{ valid: boolean; errors: string[] }>({ valid: true, errors: [] });
+  const nodeCountRef = useRef(0);
+
+  useEffect(() => {
+    setNodes(initialNodes);
+  }, [initialNodes]);
+
+  useEffect(() => {
+    setEdges(initialEdges);
+  }, [initialEdges]);
+
+  useEffect(() => {
+    if (nodes.length > 0) {
+      setGeneratedCode(generateCircomCode(nodes, edges));
+      setValidation(validateCircuit(nodes, edges));
+    } else {
+      setGeneratedCode('');
+      setValidation({ valid: true, errors: [] });
+    }
+    externalNodesChange?.(nodes);
+  }, [nodes, edges]);
+
+  useEffect(() => {
+    externalEdgesChange?.(edges);
+  }, [edges]);
 
   const onNodesChange: OnNodesChange = useCallback(
     (changes) => setNodes((nds) => applyNodeChanges(changes, nds)),
@@ -105,36 +92,64 @@ export default function CircuitCanvas({
   );
 
   const addNode = (type: string, nodeData: any) => {
+    const col = nodeCountRef.current % 3;
+    const row = Math.floor(nodeCountRef.current / 3);
+    nodeCountRef.current += 1;
+
     const newNode: Node = {
       id: `node-${Date.now()}`,
       type,
-      position: { x: Math.random() * 300 + 100, y: Math.random() * 300 + 100 },
+      position: { x: 200 + col * 280, y: 120 + row * 160 },
       data: nodeData,
     };
     setNodes((nds) => [...nds, newNode]);
   };
 
-  // Update generated code when nodes/edges change
-  const updateCode = useCallback(() => {
-    const code = generateCircomCode(nodes, edges);
-    setGeneratedCode(code);
-    
-    const validationResult = validateCircuit(nodes, edges);
-    setValidation(validationResult);
-  }, [nodes, edges]);
+  const handleCopyCode = () => {
+    const code = generatedCode || generateCircomCode(nodes, edges);
+    navigator.clipboard.writeText(code);
+    setCodeCopied(true);
+    setTimeout(() => setCodeCopied(false), 2000);
+  };
 
-  // Auto-update code
-  useCallback(() => {
-    updateCode();
-  }, [nodes, edges, updateCode]);
+  const isEmpty = nodes.length === 0;
+  const complexity = estimateCircuitComplexity(nodes, edges);
 
   return (
     <div className="flex h-[calc(100vh-140px)]">
-      {/* Component Palette */}
       <ComponentPalette onAddNode={addNode} />
 
-      {/* Canvas */}
-      <div className="flex-1 bg-zk-darker">
+      <div className="flex-1 bg-zk-darker relative">
+        {isEmpty && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center pointer-events-none">
+            <div className="text-center max-w-md pointer-events-auto">
+              <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-zk-primary/10 border border-zk-primary/20 flex items-center justify-center">
+                <svg className="w-8 h-8 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 4v16m8-8H4" />
+                </svg>
+              </div>
+              <h3 className="font-hatton text-xl text-white mb-2">Devreyi tasarlamaya basla</h3>
+              <p className="text-sm text-zk-gray mb-4 leading-relaxed">
+                Soldaki panelden bilesenleri ekleyerek baslayabilir veya hazir sablonlardan birini secebilirsin.
+              </p>
+              <div className="flex flex-col gap-2 text-xs text-zk-gray/70">
+                <div className="flex items-center gap-2 justify-center">
+                  <span className="w-5 h-5 rounded bg-zk-primary/20 flex items-center justify-center text-zk-primary font-bold text-[10px]">1</span>
+                  <span>Bilesenleri tiklayarak ekle</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <span className="w-5 h-5 rounded bg-zk-primary/20 flex items-center justify-center text-zk-primary font-bold text-[10px]">2</span>
+                  <span>Noktaları surukleyerek bagla</span>
+                </div>
+                <div className="flex items-center gap-2 justify-center">
+                  <span className="w-5 h-5 rounded bg-zk-primary/20 flex items-center justify-center text-zk-primary font-bold text-[10px]">3</span>
+                  <span>Circom kodunu derle ve indir</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         <ReactFlow
           nodes={nodes}
           edges={edges}
@@ -148,66 +163,118 @@ export default function CircuitCanvas({
           <Background color="#6366F1" gap={20} size={1} className="opacity-5" />
           <Controls className="bg-zk-dark border border-zk-gray/20 rounded-lg" />
         </ReactFlow>
-      </div>
 
-      {/* Code Preview Panel */}
-      <div className="w-80 bg-zk-dark border-l border-zk-gray/20 p-6 overflow-auto">
-        <div className="mb-4">
-          <h3 className="font-hatton text-xl text-white mb-2">
-            Circuit Info
-          </h3>
-          <div className="space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-zk-gray">Nodes:</span>
-              <span className="text-white">{nodes.length}</span>
+        {/* Bottom bar with stats & code toggle */}
+        {!isEmpty && (
+          <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between z-10">
+            <div className="flex items-center gap-3 px-4 py-2 bg-zk-dark/90 backdrop-blur-sm border border-zk-gray/20 rounded-lg text-xs">
+              <span className="text-zk-gray">
+                <span className="text-white font-medium">{nodes.length}</span> bilesen
+              </span>
+              <span className="w-px h-3 bg-zk-gray/30" />
+              <span className="text-zk-gray">
+                <span className="text-white font-medium">{edges.length}</span> baglanti
+              </span>
+              <span className="w-px h-3 bg-zk-gray/30" />
+              <span className="text-zk-gray">
+                ~<span className="text-white font-medium">{complexity.constraints}</span> constraint
+              </span>
+              {!validation.valid && (
+                <>
+                  <span className="w-px h-3 bg-zk-gray/30" />
+                  <span className="text-red-400 font-medium">{validation.errors.length} hata</span>
+                </>
+              )}
             </div>
-            <div className="flex justify-between">
-              <span className="text-zk-gray">Connections:</span>
-              <span className="text-white">{edges.length}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zk-gray">Est. Constraints:</span>
-              <span className="text-white">{estimateCircuitComplexity(nodes, edges).constraints}</span>
-            </div>
-            <div className="flex justify-between">
-              <span className="text-zk-gray">Est. Time:</span>
-              <span className="text-white">{estimateCircuitComplexity(nodes, edges).estimatedTime}</span>
-            </div>
-          </div>
-        </div>
 
-        {/* Validation */}
-        {!validation.valid && (
-          <div className="mb-4 p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
-            <p className="text-xs text-red-400 font-medium mb-2">Validation Errors:</p>
-            {validation.errors.map((error, i) => (
-              <p key={i} className="text-xs text-red-300">• {error}</p>
-            ))}
+            <button
+              onClick={() => setShowCodePanel(!showCodePanel)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-medium transition-all ${
+                showCodePanel
+                  ? 'bg-zk-primary text-white'
+                  : 'bg-zk-dark/90 backdrop-blur-sm border border-zk-gray/20 text-zk-gray hover:text-white hover:border-zk-primary/50'
+              }`}
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+              </svg>
+              {showCodePanel ? 'Kodu gizle' : 'Kodu goster'}
+            </button>
           </div>
         )}
+      </div>
 
-        <div className="mb-4">
-          <h3 className="font-hatton text-lg text-white mb-3">
-            Generated Circom
-          </h3>
-          <div className="bg-zk-darker border border-zk-gray/20 rounded-lg p-4 max-h-96 overflow-auto">
-            <pre className="text-xs text-zk-gray font-mono whitespace-pre">
-              {generatedCode || generateCircomCode(nodes, edges)}
-            </pre>
+      {/* Code Panel - Only visible when toggled */}
+      {showCodePanel && (
+        <div className="w-80 bg-zk-dark border-l border-zk-gray/20 overflow-auto flex flex-col">
+          <div className="p-5 border-b border-zk-gray/10">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="font-hatton text-base text-white">Circom Kodu</h3>
+              <button
+                onClick={() => setShowCodePanel(false)}
+                className="text-zk-gray hover:text-white transition-colors"
+              >
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {!validation.valid && (
+              <div className="p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg mb-3">
+                {validation.errors.map((error, i) => (
+                  <p key={i} className="text-xs text-red-300 flex items-start gap-1.5">
+                    <span className="text-red-400 mt-0.5">&#x2022;</span>
+                    {error}
+                  </p>
+                ))}
+              </div>
+            )}
+
+            {validation.valid && nodes.length > 0 && (
+              <div className="p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-lg mb-3">
+                <p className="text-xs text-emerald-300 flex items-center gap-1.5">
+                  <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  </svg>
+                  Devre gecerli — derlemeye hazir
+                </p>
+              </div>
+            )}
+          </div>
+
+          <div className="flex-1 p-5 overflow-auto">
+            <div className="bg-zk-darker border border-zk-gray/20 rounded-lg p-4">
+              <pre className="text-xs text-zk-gray font-mono whitespace-pre leading-relaxed">
+                {generatedCode || '// Bilesen ekleyerek baslayın...'}
+              </pre>
+            </div>
+          </div>
+
+          <div className="p-4 border-t border-zk-gray/10">
+            <button 
+              onClick={handleCopyCode}
+              disabled={!generatedCode}
+              className={`w-full py-2.5 rounded-lg text-sm font-medium transition-all ${
+                codeCopied
+                  ? 'bg-emerald-500/20 border border-emerald-500/30 text-emerald-400'
+                  : 'bg-zk-primary/10 border border-zk-primary/30 text-zk-primary hover:bg-zk-primary/20 disabled:opacity-40 disabled:cursor-not-allowed'
+              }`}
+            >
+              {codeCopied ? 'Kopyalandı!' : 'Kodu kopyala'}
+            </button>
           </div>
         </div>
-
-        <button 
-          onClick={() => {
-            navigator.clipboard.writeText(generatedCode || generateCircomCode(nodes, edges));
-            alert('Code copied!');
-          }}
-          className="w-full py-2 bg-zk-primary/10 border border-zk-primary/30 text-zk-primary rounded-lg text-sm hover:bg-zk-primary/20 transition-all"
-        >
-          Copy Code
-        </button>
-      </div>
+      )}
     </div>
+  );
+}
+
+export default function CircuitCanvas(props: CircuitCanvasProps) {
+  return (
+    <ReactFlowProvider>
+      <CircuitCanvasInner {...props} />
+    </ReactFlowProvider>
   );
 }
 

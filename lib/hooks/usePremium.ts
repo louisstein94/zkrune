@@ -123,15 +123,19 @@ export function usePremium(walletAddress?: string) {
 
   const hasFeatureAccess = useCallback((feature: string): boolean => {
     const featureRequirements: Record<string, PremiumTier[]> = {
-      'unlimited-proofs': ['BUILDER', 'PRO', 'ENTERPRISE'],
-      'all-templates': ['BUILDER', 'PRO', 'ENTERPRISE'],
-      'code-export': ['BUILDER', 'PRO', 'ENTERPRISE'],
-      'api-access': ['BUILDER', 'PRO', 'ENTERPRISE'],
-      'custom-circuits': ['PRO', 'ENTERPRISE'],
-      'gasless-proofs': ['PRO', 'ENTERPRISE'],
-      'priority-support': ['PRO', 'ENTERPRISE'],
-      'white-label': ['ENTERPRISE'],
-      'custom-integrations': ['ENTERPRISE'],
+      'unlimited-proofs': ['BUILDER', 'PRO', 'PROTOCOL'],
+      'all-templates': ['BUILDER', 'PRO', 'PROTOCOL'],
+      'private-verification': ['BUILDER', 'PRO', 'PROTOCOL'],
+      'api-access': ['BUILDER', 'PRO', 'PROTOCOL'],
+      'proof-batching': ['BUILDER', 'PRO', 'PROTOCOL'],
+      'custom-circuits': ['PRO', 'PROTOCOL'],
+      'private-tx-builder': ['PRO', 'PROTOCOL'],
+      'multi-proof-compose': ['PRO', 'PROTOCOL'],
+      'encrypted-proof-storage': ['PRO', 'PROTOCOL'],
+      'private-rpc-relay': ['PROTOCOL'],
+      'confidential-contracts': ['PROTOCOL'],
+      'privacy-vault': ['PROTOCOL'],
+      'compliance-modules': ['PROTOCOL'],
     };
 
     const requiredTiers = featureRequirements[feature];
@@ -141,7 +145,7 @@ export function usePremium(walletAddress?: string) {
   }, [status.tier]);
 
   const getTokensForNextTier = useCallback((): { tier: PremiumTier; tokensNeeded: number } | null => {
-    const tiers: PremiumTier[] = ['FREE', 'BUILDER', 'PRO', 'ENTERPRISE'];
+    const tiers: PremiumTier[] = ['FREE', 'BUILDER', 'PRO', 'PROTOCOL'];
     const currentIndex = tiers.indexOf(status.tier);
 
     if (currentIndex >= tiers.length - 1) return null;
@@ -154,9 +158,9 @@ export function usePremium(walletAddress?: string) {
   }, [status]);
 
   const getTierProgress = useCallback((): number => {
-    if (status.tier === 'ENTERPRISE') return 100;
+    if (status.tier === 'PROTOCOL') return 100;
 
-    const tiers: PremiumTier[] = ['FREE', 'BUILDER', 'PRO', 'ENTERPRISE'];
+    const tiers: PremiumTier[] = ['FREE', 'BUILDER', 'PRO', 'PROTOCOL'];
     const currentIndex = tiers.indexOf(status.tier);
     const nextTier = tiers[currentIndex + 1];
 

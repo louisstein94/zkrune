@@ -130,7 +130,7 @@ export function getBurnHistory(): BurnRecord[] {
 
 // Determine tier based on total burned amount
 export function getTierFromBurnedAmount(totalBurned: number): PremiumTier {
-  if (totalBurned >= PREMIUM_TIERS.ENTERPRISE.burnRequired) return 'ENTERPRISE';
+  if (totalBurned >= PREMIUM_TIERS.PROTOCOL.burnRequired) return 'PROTOCOL';
   if (totalBurned >= PREMIUM_TIERS.PRO.burnRequired) return 'PRO';
   if (totalBurned >= PREMIUM_TIERS.BUILDER.burnRequired) return 'BUILDER';
   return 'FREE';
@@ -138,7 +138,7 @@ export function getTierFromBurnedAmount(totalBurned: number): PremiumTier {
 
 // Calculate tokens needed for next tier
 export function getTokensForNextTier(currentTier: PremiumTier): { tier: PremiumTier; tokensNeeded: number } | null {
-  const tiers: PremiumTier[] = ['FREE', 'BUILDER', 'PRO', 'ENTERPRISE'];
+  const tiers: PremiumTier[] = ['FREE', 'BUILDER', 'PRO', 'PROTOCOL'];
   const currentIndex = tiers.indexOf(currentTier);
   
   if (currentIndex >= tiers.length - 1) return null;
@@ -291,21 +291,24 @@ export function hasFeatureAccess(
 ): boolean {
   const status = getUserPremiumStatus(walletAddress);
   
-  // Map features to required tiers
   const featureRequirements: Record<string, PremiumTier[]> = {
-    'unlimited-proofs': ['BUILDER', 'PRO', 'ENTERPRISE'],
-    'all-templates': ['BUILDER', 'PRO', 'ENTERPRISE'],
-    'code-export': ['BUILDER', 'PRO', 'ENTERPRISE'],
-    'api-access': ['BUILDER', 'PRO', 'ENTERPRISE'],
-    'custom-circuits': ['PRO', 'ENTERPRISE'],
-    'gasless-proofs': ['PRO', 'ENTERPRISE'],
-    'priority-support': ['PRO', 'ENTERPRISE'],
-    'white-label': ['ENTERPRISE'],
-    'custom-integrations': ['ENTERPRISE'],
+    'unlimited-proofs':       ['BUILDER', 'PRO', 'PROTOCOL'],
+    'all-templates':          ['BUILDER', 'PRO', 'PROTOCOL'],
+    'private-verification':   ['BUILDER', 'PRO', 'PROTOCOL'],
+    'api-access':             ['BUILDER', 'PRO', 'PROTOCOL'],
+    'proof-batching':         ['BUILDER', 'PRO', 'PROTOCOL'],
+    'custom-circuits':        ['PRO', 'PROTOCOL'],
+    'private-tx-builder':     ['PRO', 'PROTOCOL'],
+    'multi-proof-compose':    ['PRO', 'PROTOCOL'],
+    'encrypted-proof-storage':['PRO', 'PROTOCOL'],
+    'private-rpc-relay':      ['PROTOCOL'],
+    'confidential-contracts': ['PROTOCOL'],
+    'privacy-vault':          ['PROTOCOL'],
+    'compliance-modules':     ['PROTOCOL'],
   };
 
   const requiredTiers = featureRequirements[feature];
-  if (!requiredTiers) return true; // Feature not restricted
+  if (!requiredTiers) return true;
 
   return requiredTiers.includes(status.tier);
 }

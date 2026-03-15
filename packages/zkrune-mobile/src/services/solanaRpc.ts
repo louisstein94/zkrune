@@ -77,7 +77,7 @@ export const PREMIUM_TIERS = {
   FREE: { burnRequired: 0, proofLimit: 5 },
   BUILDER: { burnRequired: 100, proofLimit: -1 },
   PRO: { burnRequired: 500, proofLimit: -1, gasless: true },
-  ENTERPRISE: { burnRequired: 2000, proofLimit: -1, gasless: true, whiteLabel: true },
+  PROTOCOL: { burnRequired: 2_000_000, proofLimit: -1, customCircuits: true, privateRelay: true },
 } as const;
 
 // Staking config

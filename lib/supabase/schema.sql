@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS staking_positions (
 CREATE TABLE IF NOT EXISTS premium_status (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet TEXT UNIQUE NOT NULL,
-  tier TEXT DEFAULT 'FREE' CHECK (tier IN ('FREE', 'BUILDER', 'PRO', 'ENTERPRISE')),
+  tier TEXT DEFAULT 'FREE' CHECK (tier IN ('FREE', 'BUILDER', 'PRO', 'PROTOCOL')),
   total_burned NUMERIC DEFAULT 0,
   unlocked_at TIMESTAMPTZ,
   expires_at TIMESTAMPTZ,
