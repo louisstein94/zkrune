@@ -163,7 +163,7 @@ bot.on("message:document", async (ctx) => {
     const file = await ctx.getFile();
     const url = `https://api.telegram.org/file/bot${BOT_TOKEN}/${file.file_path}`;
     const res = await fetch(url);
-    const payload: ProofPayload = await res.json();
+    const payload = (await res.json()) as ProofPayload;
 
     const result = await verifyProof(payload);
 
