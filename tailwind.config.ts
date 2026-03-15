@@ -11,16 +11,12 @@ const config: Config = {
       colors: {
         background: "var(--background)",
         foreground: "var(--foreground)",
-        // zkRune Cyber Rune palette
-        'zk-primary': '#00FFA3',      // Neon green
-        'zk-secondary': '#6B4CFF',     // Mystic purple
-        'zk-dark': '#0A0E27',          // Deep void
-        'zk-darker': '#060814',        // Darker void
-        'zk-gray': '#999999',          // Medium gray
-        'zk-accent': '#FF3366',        // Electric pink
-        // Zcash branding
-        'zcash-gold': '#F4B728',       // Zcash official gold
-        'zcash-dark': '#231F20',       // Zcash dark
+        'zk-primary': '#6366F1',      // Indigo
+        'zk-secondary': '#34D399',     // Emerald
+        'zk-dark': '#111827',          // Dark slate
+        'zk-darker': '#0B0F1A',        // Deep background
+        'zk-gray': '#9CA3AF',          // Neutral gray
+        'zk-accent': '#8B5CF6',        // Violet
       },
       fontFamily: {
         'hatton': ['var(--font-hatton)', 'serif'],

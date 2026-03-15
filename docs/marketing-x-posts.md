@@ -1,6 +1,6 @@
 # zkRune — X (Twitter) Marketing Postları
 
-Web3 privacy playbook’a göre hazırlanmış postlar: Build in Public, eğitim, kanıt odaklı içerik ve topluluk.
+Ürün odaklı içerik stratejisi: privacy verification infrastructure positioning, developer adoption ve kullanım senaryoları.
 
 ---
 
@@ -279,6 +279,81 @@ Weekly X Space: Privacy on Solana — ZK, client-side proving, and why "server-s
 
 ---
 
+## 8. Mobile APK — Yeni Sürüm Duyurusu
+
+**Ana post (önerilen):**
+```
+zkRune Mobile v0.2.0 — APK out now 📱
+
+ZK proofs in your pocket. No server. No compromise.
+
+• 6 templates: age, balance, membership, credentials, voting, reputation
+• Phantom & Solflare — connect via deep link
+• Offline: download circuits, prove without internet
+• Face ID / Touch ID — biometric lock
+• Proofs generated on-device. Secrets never leave your phone.
+
+Android: [APK download link]
+
+Privacy isn’t desktop-only. Try it. 🔐
+```
+
+**Kısa versiyon (link + hook):**
+```
+zkRune Mobile is live.
+
+Generate ZK proofs on your Android. Phantom/Solflare, offline circuits, biometric lock. All proof gen on-device.
+
+APK: [link]
+
+🔐
+```
+
+**Thread açılışı (1/4):**
+```
+We shipped zkRune on mobile.
+
+Same promise: your secrets never leave the device. Proofs generated on your phone. No server. Real Groth16.
+
+Here’s what’s in the new APK. 🧵
+```
+
+**Thread 2/4 — Özellikler:**
+```
+• 6 proof templates (age, balance, membership, credentials, voting, reputation)
+• Connect Phantom or Solflare via deep link — no copy-paste keys
+• Download circuits once → generate proofs offline
+• Face ID / Touch ID / fingerprint for sensitive actions
+• Encrypted storage (expo-secure-store). Push for governance & proofs.
+```
+
+**Thread 3/4 — Teknik:**
+```
+Still 100% client-side. Circuit runs on device. Only the proof goes out. Same architecture as zkrune.com, now in your pocket.
+
+React Native + Expo. Solana-ready. Dark UI, glassmorphism, zkRune branding.
+```
+
+**Thread 4/4 — CTA:**
+```
+Android APK: [link]
+
+iOS build coming. Follow @rune_zk for updates.
+
+If you’re on Solana and care about privacy — this is for you. 🔐
+```
+
+**Meme / engagement:**
+```
+"Prove you're 18+ without sending your birthdate to 12 ad networks"
+
+We put that in an app. On your phone. Offline-capable.
+
+zkRune Mobile APK is live. [link] 📱
+```
+
+---
+
 ## Linkler (bio / link tree)
 
 - **Site:** zkrune.com  
@@ -292,4 +367,4 @@ Weekly X Space: Privacy on Solana — ZK, client-side proving, and why "server-s
 
 ---
 
-*Bu dosya, "Build in Public", eğitim, kanıt odaklı içerik ve topluluk playbook’una göre hazırlanmıştır. İstediğin tweet’i kopyalayıp düzenleyerek kullanabilirsin.*
+*Bu dosya, ürün odaklı içerik stratejisine göre hazırlanmıştır. İstediğin tweet’i kopyalayıp düzenleyerek kullanabilirsin.*

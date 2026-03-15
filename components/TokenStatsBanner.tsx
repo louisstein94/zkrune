@@ -12,7 +12,7 @@ export default function TokenStatsBanner({ compact = false, showBuyButton = true
 
   if (isLoading || !stats) {
     return (
-      <div className="bg-gradient-to-r from-[#00FFA3]/5 to-[#6B4CFF]/5 border border-white/10 rounded-xl p-4 animate-pulse">
+      <div className="bg-gradient-to-r from-[#6366F1]/5 to-[#8B5CF6]/5 border border-white/10 rounded-xl p-4 animate-pulse">
         <div className="flex justify-between items-center">
           <div className="flex gap-6">
             <div className="h-10 w-24 bg-white/10 rounded" />
@@ -36,14 +36,14 @@ export default function TokenStatsBanner({ compact = false, showBuyButton = true
         </div>
         <div className="border-l border-white/10 pl-4">
           <span className="text-gray-400">MC:</span>
-          <span className="font-medium text-[#00FFA3] ml-1">{formatUsd(stats.marketCap)}</span>
+          <span className="font-medium text-[#6366F1] ml-1">{formatUsd(stats.marketCap)}</span>
         </div>
         {showBuyButton && (
           <a
             href="https://pump.fun/coin/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[#00FFA3] hover:text-[#00cc82] transition font-medium"
+            className="text-[#6366F1] hover:text-[#4F46E5] transition font-medium"
           >
             Buy →
           </a>
@@ -53,7 +53,7 @@ export default function TokenStatsBanner({ compact = false, showBuyButton = true
   }
 
   return (
-    <div className="bg-gradient-to-r from-[#00FFA3]/10 to-[#6B4CFF]/10 border border-white/10 rounded-xl p-4">
+    <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 border border-white/10 rounded-xl p-4">
       <div className="flex flex-wrap justify-between items-center gap-4">
         <div className="flex flex-wrap items-center gap-6">
           <div>
@@ -67,7 +67,7 @@ export default function TokenStatsBanner({ compact = false, showBuyButton = true
           </div>
           <div className="border-l border-white/10 pl-6">
             <div className="text-xs text-gray-400 uppercase tracking-wider">Market Cap</div>
-            <div className="text-lg font-bold text-[#00FFA3]">{formatUsd(stats.marketCap)}</div>
+            <div className="text-lg font-bold text-[#6366F1]">{formatUsd(stats.marketCap)}</div>
           </div>
           <div className="border-l border-white/10 pl-6">
             <div className="text-xs text-gray-400 uppercase tracking-wider">Total Burned</div>
@@ -79,7 +79,7 @@ export default function TokenStatsBanner({ compact = false, showBuyButton = true
           </div>
           <div className="border-l border-white/10 pl-6">
             <div className="text-xs text-gray-400 uppercase tracking-wider">Liquidity</div>
-            <div className="text-lg font-bold text-[#6B4CFF]">{formatUsd(stats.liquidity)}</div>
+            <div className="text-lg font-bold text-[#8B5CF6]">{formatUsd(stats.liquidity)}</div>
           </div>
         </div>
         {showBuyButton && (
@@ -87,7 +87,7 @@ export default function TokenStatsBanner({ compact = false, showBuyButton = true
             href="https://pump.fun/coin/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-5 py-2.5 bg-[#00FFA3] text-black rounded-lg hover:bg-[#00cc82] transition font-bold text-sm"
+            className="px-5 py-2.5 bg-[#6366F1] text-white rounded-lg hover:bg-[#4F46E5] transition font-bold text-sm"
           >
             Buy zkRUNE on Pump.fun
           </a>

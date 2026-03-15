@@ -228,6 +228,75 @@ export async function loadCircuitFiles(type: ProofType): Promise<{
   }
 }
 
+const PROOF_HTML_DIR = `${FileSystem.cacheDirectory}proof-html/`;
+
+/**
+ * Build proof HTML and write to a temp file, loading circuit files sequentially
+ * to avoid holding all base64 strings in memory at the same time.
+ * Returns the file URI for WebView to load.
+ */
+export async function buildProofHTMLFile(
+  type: ProofType,
+  inputs: Record<string, string>,
+): Promise<string | null> {
+  try {
+    const paths = getCircuitPaths(type);
+
+    await FileSystem.makeDirectoryAsync(PROOF_HTML_DIR, { intermediates: true });
+
+    const inputsJson = JSON.stringify(inputs);
+    const vkeyString = await FileSystem.readAsStringAsync(paths.vkeyPath);
+
+    // Read wasm, embed, then let it GC before reading zkey
+    const wasmBase64 = await FileSystem.readAsStringAsync(paths.wasmPath, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const zkeyBase64 = await FileSystem.readAsStringAsync(paths.zkeyPath, {
+      encoding: FileSystem.EncodingType.Base64,
+    });
+
+    const html = `<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<script src="https://unpkg.com/snarkjs@0.7.0/build/snarkjs.min.js"></script>
+</head><body><script>
+function b64(b){var s=atob(b),a=new Uint8Array(s.length);for(var i=0;i<s.length;i++)a[i]=s.charCodeAt(i);return a;}
+function msg(d){if(window.ReactNativeWebView)window.ReactNativeWebView.postMessage(JSON.stringify(d));}
+async function run(){try{
+msg({type:'status',message:'Starting proof generation...'});
+var w=b64("${wasmBase64}");
+var z=b64("${zkeyBase64}");
+var vk=${vkeyString};
+msg({type:'status',message:'Running groth16.fullProve...'});
+var t=Date.now();
+var r=await snarkjs.groth16.fullProve(${inputsJson},w,z);
+var pt=Date.now()-t;
+msg({type:'status',message:'Verifying proof...'});
+var ok=await snarkjs.groth16.verify(vk,r.publicSignals,r.proof);
+msg({type:'success',proof:r.proof,publicSignals:r.publicSignals,verified:ok,generationTime:pt});
+}catch(e){msg({type:'error',message:e.message||'Unknown error'});}}
+window.onload=run;
+</script></body></html>`;
+
+    const filePath = `${PROOF_HTML_DIR}proof-${Date.now()}.html`;
+    await FileSystem.writeAsStringAsync(filePath, html);
+
+    return filePath;
+  } catch (error) {
+    console.error(`[ZkBridge] Failed to build proof HTML for ${type}:`, error);
+    return null;
+  }
+}
+
+/**
+ * Clean up temp proof HTML files
+ */
+export async function cleanupProofHTML(): Promise<void> {
+  try {
+    await FileSystem.deleteAsync(PROOF_HTML_DIR, { idempotent: true });
+  } catch {}
+}
+
 /**
  * Get total cache size
  */

@@ -12,12 +12,4 @@ config.resolver.extraNodeModules = {
   process: require.resolve('process/browser'),
 };
 
-// Ensure shim is loaded first
-config.serializer = {
-  ...config.serializer,
-  getModulesRunBeforeMainModule: () => [
-    require.resolve('./shim.js'),
-  ],
-};
-
 module.exports = config;

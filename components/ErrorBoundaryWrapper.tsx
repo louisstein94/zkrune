@@ -82,7 +82,7 @@ function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError
         <div className="space-y-3">
           <button
             onClick={resetError}
-            className="w-full py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
+            className="w-full py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
           >
             Tekrar Dene
           </button>

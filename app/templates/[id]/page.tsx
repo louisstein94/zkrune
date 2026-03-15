@@ -534,11 +534,11 @@ export default function TemplatePage() {
                         id="tutorial-generate-button"
                         onClick={generateAgeProof}
                         disabled={isGenerating || !birthDate || isUnderMaintenance}
-                        className="w-full py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                        className="w-full py-4 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                       >
                         {isGenerating ? (
                           <>
-                            <div className="w-5 h-5 border-2 border-zk-darker/30 border-t-zk-darker rounded-full animate-spin" />
+                            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                             Generating Proof...
                           </>
                         ) : isUnderMaintenance ? (
@@ -611,7 +611,7 @@ export default function TemplatePage() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
                         {proof.isValid ? (
-                          <svg className="w-10 h-10 text-[#F4B728]" fill="currentColor" viewBox="0 0 20 20">
+                          <svg className="w-10 h-10 text-zk-secondary" fill="currentColor" viewBox="0 0 20 20">
                             <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                           </svg>
                         ) : (

@@ -24,7 +24,7 @@ export default function SuccessCelebration({ show, templateName, onClose }: Succ
         id: i,
         x: Math.random() * 100,
         delay: Math.random() * 0.5,
-        color: ['#00FFA3', '#6B4CFF', '#FFD166'][Math.floor(Math.random() * 3)]
+        color: ['#6366F1', '#8B5CF6', '#FFD166'][Math.floor(Math.random() * 3)]
       }));
       setConfetti(particles);
 
@@ -116,7 +116,7 @@ export default function SuccessCelebration({ show, templateName, onClose }: Succ
           </button>
           <button
             onClick={() => window.location.href = '/templates'}
-            className="flex-1 px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105"
+            className="flex-1 px-6 py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105"
           >
             Try Another
           </button>

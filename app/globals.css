@@ -3,14 +3,14 @@
 @tailwind utilities;
 
 :root {
-  --background: #0A0E1A;
-  --foreground: #ffffff;
+  --background: #0B0F1A;
+  --foreground: #F3F4F6;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0A0E1A;
-    --foreground: #ffffff;
+    --background: #0B0F1A;
+    --foreground: #F3F4F6;
   }
 }
 
@@ -33,16 +33,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #1A1F2E;
+  background: #1F2937;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #00FFA3;
+  background: #4B5563;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #00CC82;
+  background: #6B7280;
 }
 
 /* Noise texture */
@@ -197,11 +197,11 @@ body {
 
 /* Gradient backgrounds */
 .gradient-primary {
-  background: linear-gradient(135deg, #00FFA3 0%, #F4B728 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%);
 }
 
 .gradient-text {
-  background: linear-gradient(135deg, #00FFA3 0%, #F4B728 100%);
+  background: linear-gradient(135deg, #6366F1 0%, #34D399 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -219,7 +219,7 @@ body {
 
 /* Subtle text shadow for depth */
 .text-glow {
-  text-shadow: 0 0 40px rgba(0, 255, 163, 0.15);
+  text-shadow: 0 0 40px rgba(99, 102, 241, 0.2);
 }
 
 /* Glass morphism */

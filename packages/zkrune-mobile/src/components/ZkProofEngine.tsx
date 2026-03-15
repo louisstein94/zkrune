@@ -8,10 +8,10 @@ import { View, StyleSheet } from 'react-native';
 import { WebView, WebViewMessageEvent } from 'react-native-webview';
 import {
   ProofType,
-  generateProofHTML,
-  loadCircuitFiles,
   isCircuitCached,
   downloadCircuit,
+  buildProofHTMLFile,
+  cleanupProofHTML,
 } from '../services/zkProofBridge';
 
 export interface ZkProofResult {
@@ -48,7 +48,7 @@ interface Props {
 
 export const ZkProofEngine = forwardRef<ZkProofEngineRef, Props>(({ onReady }, ref) => {
   const webViewRef = useRef<WebView>(null);
-  const [html, setHtml] = useState<string>('');
+  const [htmlUri, setHtmlUri] = useState<string>('');
   const [isGenerating, setIsGenerating] = useState(false);
   
   // Promise resolver for current operation
@@ -79,14 +79,16 @@ export const ZkProofEngine = forwardRef<ZkProofEngineRef, Props>(({ onReady }, r
           generationTime: data.generationTime,
         });
         setIsGenerating(false);
-        setHtml('');
+        setHtmlUri('');
+        cleanupProofHTML();
       } else if (data.type === 'error') {
         resolverRef.current?.resolve({
           success: false,
           error: data.message,
         });
         setIsGenerating(false);
-        setHtml('');
+        setHtmlUri('');
+        cleanupProofHTML();
       }
     } catch (error) {
       console.error('[ZkEngine] Failed to parse WebView message:', error);
@@ -104,7 +106,6 @@ export const ZkProofEngine = forwardRef<ZkProofEngineRef, Props>(({ onReady }, r
         return { success: false, error: 'Already generating a proof' };
       }
 
-      // Check if circuit is cached
       const cached = await isCircuitCached(type);
       if (!cached) {
         return { success: false, error: 'Circuit not downloaded. Please download first.' };
@@ -112,27 +113,17 @@ export const ZkProofEngine = forwardRef<ZkProofEngineRef, Props>(({ onReady }, r
 
       onProgress?.('Loading circuit files...');
 
-      // Load circuit files
-      const files = await loadCircuitFiles(type);
-      if (!files) {
-        return { success: false, error: 'Failed to load circuit files' };
+      const filePath = await buildProofHTMLFile(type, inputs);
+      if (!filePath) {
+        return { success: false, error: 'Failed to prepare proof computation' };
       }
 
       onProgress?.('Preparing proof computation...');
 
-      // Generate HTML for WebView
-      const proofHtml = generateProofHTML(
-        type,
-        inputs,
-        files.wasmBase64,
-        files.zkeyBase64,
-        files.vkeyJson
-      );
-
       return new Promise((resolve) => {
         resolverRef.current = { resolve, onProgress };
         setIsGenerating(true);
-        setHtml(proofHtml);
+        setHtmlUri(filePath);
       });
     },
 
@@ -156,13 +147,14 @@ export const ZkProofEngine = forwardRef<ZkProofEngineRef, Props>(({ onReady }, r
   // Always render container (for ref), only render WebView when generating
   return (
     <View style={styles.container}>
-      {html ? (
+      {htmlUri ? (
         <WebView
           ref={webViewRef}
-          source={{ html }}
+          source={{ uri: htmlUri }}
           onMessage={handleMessage}
           javaScriptEnabled={true}
           domStorageEnabled={true}
+          allowFileAccess={true}
           originWhitelist={['*']}
           onError={(error) => {
             console.error('[ZkEngine] WebView error:', error);
@@ -171,7 +163,8 @@ export const ZkProofEngine = forwardRef<ZkProofEngineRef, Props>(({ onReady }, r
               error: 'WebView error',
             });
             setIsGenerating(false);
-            setHtml('');
+            setHtmlUri('');
+            cleanupProofHTML();
           }}
           style={styles.webview}
         />

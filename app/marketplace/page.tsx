@@ -75,7 +75,7 @@ export default function MarketplacePage() {
       {/* Header */}
       <header className="border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#00FFA3]">
+          <Link href="/" className="text-2xl font-bold text-[#6366F1]">
             zkRune
           </Link>
           <div className="flex items-center gap-4">
@@ -88,7 +88,7 @@ export default function MarketplacePage() {
             <Link href="/staking" className="text-gray-400 hover:text-white transition">
               Staking
             </Link>
-            <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
+            <WalletMultiButton className="!bg-[#6366F1] hover:!bg-[#5b4bd4] !text-white" />
           </div>
         </div>
       </header>
@@ -113,7 +113,7 @@ export default function MarketplacePage() {
               <div className="text-gray-400 text-sm">Templates</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#00FFA3]">{stats.totalCreators}</div>
+              <div className="text-2xl font-bold text-[#6366F1]">{stats.totalCreators}</div>
               <div className="text-gray-400 text-sm">Creators</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
@@ -121,7 +121,7 @@ export default function MarketplacePage() {
               <div className="text-gray-400 text-sm">Sales</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400">
+              <div className="text-2xl font-bold text-violet-400">
                 {formatTokenAmount(stats.totalVolume)}
               </div>
               <div className="text-gray-400 text-sm">Volume (zkRUNE)</div>
@@ -156,7 +156,7 @@ export default function MarketplacePage() {
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search templates..."
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#00FFA3] focus:outline-none"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#6366F1] focus:outline-none"
             />
           </div>
           <div className="flex gap-2 flex-wrap">
@@ -164,7 +164,7 @@ export default function MarketplacePage() {
               onClick={() => setSelectedCategory('all')}
               className={`px-4 py-2 rounded-lg transition ${
                 selectedCategory === 'all'
-                  ? 'bg-[#00FFA3] text-black'
+                  ? 'bg-[#6366F1] text-white'
                   : 'bg-white/5 text-gray-400 hover:bg-white/10'
               }`}
             >
@@ -176,7 +176,7 @@ export default function MarketplacePage() {
                 onClick={() => setSelectedCategory(category)}
                 className={`px-4 py-2 rounded-lg capitalize transition ${
                   selectedCategory === category
-                    ? 'bg-[#00FFA3] text-black'
+                    ? 'bg-[#6366F1] text-white'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10'
                 }`}
               >
@@ -207,7 +207,7 @@ export default function MarketplacePage() {
         </div>
 
         {/* Become a Creator */}
-        <div className="mt-12 bg-gradient-to-r from-[#6B4CFF]/20 to-[#00FFA3]/20 border border-white/10 rounded-xl p-8 text-center">
+        <div className="mt-12 bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 border border-white/10 rounded-xl p-8 text-center">
           <h3 className="text-2xl font-bold text-white mb-4">Become a Creator</h3>
           <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
             Share your ZK circuit templates and earn {MARKETPLACE_CONFIG.CREATOR_SHARE}% 
@@ -215,7 +215,7 @@ export default function MarketplacePage() {
           </p>
           <Link
             href="/builder"
-            className="inline-block px-8 py-3 bg-[#6B4CFF] text-white font-semibold rounded-lg hover:bg-[#5a3de6] transition"
+            className="inline-block px-8 py-3 bg-[#6366F1] text-white font-semibold rounded-lg hover:bg-[#5b4bd4] transition"
           >
             Create Template
           </Link>
@@ -239,8 +239,8 @@ function FeaturedTemplateCard({
   connected: boolean;
 }) {
   return (
-    <div className="bg-gradient-to-br from-[#6B4CFF]/10 to-[#00FFA3]/10 border border-[#6B4CFF]/30 rounded-xl p-6 relative overflow-hidden">
-      <div className="absolute top-4 right-4 px-3 py-1 bg-[#00FFA3] text-black text-xs font-bold rounded-full">
+    <div className="bg-gradient-to-br from-[#6366F1]/10 to-[#8B5CF6]/10 border border-[#8B5CF6]/30 rounded-xl p-6 relative overflow-hidden">
+      <div className="absolute top-4 right-4 px-3 py-1 bg-[#6366F1] text-white text-xs font-bold rounded-full">
         FEATURED
       </div>
       
@@ -260,7 +260,7 @@ function FeaturedTemplateCard({
 
       <div className="flex items-center gap-4 mb-4 text-sm">
         <div className="flex items-center gap-1">
-          <span className="text-yellow-400">star</span>
+          <span className="text-emerald-400">star</span>
           <span className="text-white">{template.rating.toFixed(1)}</span>
           <span className="text-gray-500">({template.ratingCount})</span>
         </div>
@@ -269,7 +269,7 @@ function FeaturedTemplateCard({
 
       <div className="flex items-center justify-between">
         <div>
-          <span className="text-2xl font-bold text-[#00FFA3]">
+          <span className="text-2xl font-bold text-[#6366F1]">
             {formatTokenAmount(template.price)}
           </span>
           <span className="text-gray-400 ml-1">zkRUNE</span>
@@ -283,7 +283,7 @@ function FeaturedTemplateCard({
           <button
             onClick={() => onPurchase(template.id)}
             disabled={isLoading}
-            className="px-6 py-2 bg-[#6B4CFF] text-white font-medium rounded-lg hover:bg-[#5a3de6] transition disabled:opacity-50"
+            className="px-6 py-2 bg-[#6366F1] text-white font-medium rounded-lg hover:bg-[#5b4bd4] transition disabled:opacity-50"
           >
             Purchase
           </button>
@@ -326,7 +326,7 @@ function TemplateCard({
 
       <div className="flex items-center gap-4 mb-4 text-sm">
         <div className="flex items-center gap-1">
-          <span className="text-yellow-400">star</span>
+          <span className="text-emerald-400">star</span>
           <span className="text-white">{template.rating.toFixed(1)}</span>
         </div>
         <div className="text-gray-400">{template.downloads} downloads</div>
@@ -345,7 +345,7 @@ function TemplateCard({
 
       <div className="flex items-center justify-between pt-4 border-t border-white/10">
         <div>
-          <span className="text-xl font-bold text-[#00FFA3]">
+          <span className="text-xl font-bold text-[#6366F1]">
             {formatTokenAmount(template.price)}
           </span>
           <span className="text-gray-400 ml-1 text-sm">zkRUNE</span>
@@ -359,7 +359,7 @@ function TemplateCard({
           <button
             onClick={() => onPurchase(template.id)}
             disabled={isLoading}
-            className="px-4 py-2 bg-[#6B4CFF] text-white text-sm font-medium rounded-lg hover:bg-[#5a3de6] transition disabled:opacity-50"
+            className="px-4 py-2 bg-[#6366F1] text-white text-sm font-medium rounded-lg hover:bg-[#5b4bd4] transition disabled:opacity-50"
           >
             Buy
           </button>

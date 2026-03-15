@@ -7,8 +7,8 @@ export function ChooseIcon({ className = "w-12 h-12" }: { className?: string }) 
       <path d="M16.5 6L17.5 7L19.5 5" stroke="white" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
       <defs>
         <linearGradient id="choose-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -22,8 +22,8 @@ export function GenerateIcon({ className = "w-12 h-12" }: { className?: string }
       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="0.5" className="text-zk-primary opacity-20" />
       <defs>
         <linearGradient id="generate-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -38,8 +38,8 @@ export function DeployIcon({ className = "w-12 h-12" }: { className?: string }) 
       <circle cx="12" cy="12" r="2" fill="url(#deploy-gradient)" />
       <defs>
         <linearGradient id="deploy-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>

@@ -111,7 +111,7 @@ if (isValid) {
           onClick={() => setExportFormat("json")}
           className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
             exportFormat === "json"
-              ? "bg-zk-primary text-zk-darker"
+              ? "bg-zk-primary text-white"
               : "bg-zk-darker text-zk-gray hover:text-white"
           }`}
         >
@@ -121,7 +121,7 @@ if (isValid) {
           onClick={() => setExportFormat("code")}
           className={`flex-1 py-2 px-4 rounded-lg text-sm font-medium transition-all ${
             exportFormat === "code"
-              ? "bg-zk-primary text-zk-darker"
+              ? "bg-zk-primary text-white"
               : "bg-zk-darker text-zk-gray hover:text-white"
           }`}
         >

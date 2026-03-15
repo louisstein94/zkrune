@@ -13,8 +13,8 @@ export default function MobileNav() {
   const navItems = [
     { label: 'Home', href: '/', icon: '🏠' },
     { label: 'Templates', href: '/templates', icon: '' },
-    { label: 'Builder', href: '/builder', icon: '' },
-    { label: 'Zcash', href: '/zcash', icon: '' },
+    { label: 'Token', href: '/governance', icon: '' },
+    { label: 'Roadmap', href: '/roadmap', icon: '' },
     { label: 'Docs', href: '/docs', icon: '' },
   ];
 

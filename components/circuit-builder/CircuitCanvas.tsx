@@ -145,7 +145,7 @@ export default function CircuitCanvas({
           fitView
           className="bg-zk-darker"
         >
-          <Background color="#00FFA3" gap={20} size={1} className="opacity-5" />
+          <Background color="#6366F1" gap={20} size={1} className="opacity-5" />
           <Controls className="bg-zk-dark border border-zk-gray/20 rounded-lg" />
         </ReactFlow>
       </div>

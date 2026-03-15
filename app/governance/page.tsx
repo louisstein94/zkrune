@@ -60,7 +60,7 @@ export default function GovernancePage() {
       case 'active': return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'passed': return 'bg-blue-500/20 text-blue-400 border-blue-500/30';
       case 'rejected': return 'bg-red-500/20 text-red-400 border-red-500/30';
-      case 'executed': return 'bg-purple-500/20 text-purple-400 border-purple-500/30';
+      case 'executed': return 'bg-violet-500/20 text-violet-400 border-violet-500/30';
       default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30';
     }
   }
@@ -83,7 +83,7 @@ export default function GovernancePage() {
       {/* Header */}
       <header className="border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#00FFA3]">
+          <Link href="/" className="text-2xl font-bold text-[#6366F1]">
             zkRune
           </Link>
           <div className="flex items-center gap-4">
@@ -96,7 +96,7 @@ export default function GovernancePage() {
             <Link href="/staking" className="text-gray-400 hover:text-white transition">
               Staking
             </Link>
-            <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
+            <WalletMultiButton className="!bg-[#6366F1] hover:!bg-[#5b4bd4] !text-white" />
           </div>
         </div>
       </header>
@@ -120,7 +120,7 @@ export default function GovernancePage() {
               <div className="text-gray-400 text-sm">Total Proposals</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-[#00FFA3]">{stats.activeProposals}</div>
+              <div className="text-2xl font-bold text-[#6366F1]">{stats.activeProposals}</div>
               <div className="text-gray-400 text-sm">Active</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
@@ -128,7 +128,7 @@ export default function GovernancePage() {
               <div className="text-gray-400 text-sm">Passed</div>
             </div>
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
-              <div className="text-2xl font-bold text-purple-400">{stats.totalVoters}</div>
+              <div className="text-2xl font-bold text-violet-400">{stats.totalVoters}</div>
               <div className="text-gray-400 text-sm">Unique Voters</div>
             </div>
           </div>
@@ -140,7 +140,7 @@ export default function GovernancePage() {
             onClick={() => setActiveTab('active')}
             className={`px-6 py-2 rounded-lg font-medium transition ${
               activeTab === 'active'
-                ? 'bg-[#00FFA3] text-black'
+                ? 'bg-[#6366F1] text-white'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -150,7 +150,7 @@ export default function GovernancePage() {
             onClick={() => setActiveTab('all')}
             className={`px-6 py-2 rounded-lg font-medium transition ${
               activeTab === 'all'
-                ? 'bg-[#00FFA3] text-black'
+                ? 'bg-[#6366F1] text-white'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -160,7 +160,7 @@ export default function GovernancePage() {
             onClick={() => setActiveTab('create')}
             className={`px-6 py-2 rounded-lg font-medium transition ${
               activeTab === 'create'
-                ? 'bg-[#6B4CFF] text-white'
+                ? 'bg-[#8B5CF6] text-white'
                 : 'bg-white/5 text-gray-400 hover:bg-white/10'
             }`}
           >
@@ -204,21 +204,21 @@ export default function GovernancePage() {
           <h3 className="text-lg font-semibold text-white mb-4">How Governance Works</h3>
           <div className="grid md:grid-cols-3 gap-6 text-sm">
             <div>
-              <div className="text-[#00FFA3] font-medium mb-2">Voting Power</div>
+              <div className="text-[#6366F1] font-medium mb-2">Voting Power</div>
               <p className="text-gray-400">
                 Your voting power is calculated using quadratic voting: sqrt(token_balance). 
                 This ensures fairer representation.
               </p>
             </div>
             <div>
-              <div className="text-[#00FFA3] font-medium mb-2">Requirements</div>
+              <div className="text-[#6366F1] font-medium mb-2">Requirements</div>
               <p className="text-gray-400">
                 Minimum {GOVERNANCE_CONFIG.MIN_TOKENS_TO_VOTE} zkRUNE to vote. 
                 Minimum {GOVERNANCE_CONFIG.MIN_TOKENS_TO_PROPOSE} zkRUNE to create proposals.
               </p>
             </div>
             <div>
-              <div className="text-[#00FFA3] font-medium mb-2">Voting Period</div>
+              <div className="text-[#6366F1] font-medium mb-2">Voting Period</div>
               <p className="text-gray-400">
                 Proposals are open for {GOVERNANCE_CONFIG.VOTING_PERIOD_DAYS} days. 
                 Quorum of {GOVERNANCE_CONFIG.QUORUM_PERCENTAGE}% participation required.
@@ -252,7 +252,7 @@ function ProposalCard({
         <div>
           <div className="flex items-center gap-3 mb-2">
             <span className={`px-2 py-1 text-xs font-medium rounded border ${
-              proposal.type === 'template' ? 'bg-purple-500/20 text-purple-400 border-purple-500/30' :
+              proposal.type === 'template' ? 'bg-violet-500/20 text-violet-400 border-violet-500/30' :
               proposal.type === 'feature' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
               'bg-gray-500/20 text-gray-400 border-gray-500/30'
             }`}>
@@ -262,7 +262,7 @@ function ProposalCard({
               proposal.status === 'active' ? 'bg-green-500/20 text-green-400 border-green-500/30' :
               proposal.status === 'passed' ? 'bg-blue-500/20 text-blue-400 border-blue-500/30' :
               proposal.status === 'rejected' ? 'bg-red-500/20 text-red-400 border-red-500/30' :
-              'bg-purple-500/20 text-purple-400 border-purple-500/30'
+              'bg-violet-500/20 text-violet-400 border-violet-500/30'
             }`}>
               {proposal.status.toUpperCase()}
             </span>
@@ -290,7 +290,7 @@ function ProposalCard({
           />
         </div>
         {proposal.quorumReached && (
-          <div className="text-xs text-[#00FFA3] mt-1">Quorum reached</div>
+          <div className="text-xs text-[#6366F1] mt-1">Quorum reached</div>
         )}
       </div>
 
@@ -373,7 +373,7 @@ function CreateProposalForm({
     return (
       <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center">
         <p className="text-gray-400 mb-4">Connect your wallet to create proposals</p>
-        <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
+        <WalletMultiButton className="!bg-[#6366F1] hover:!bg-[#5b4bd4] !text-white" />
       </div>
     );
   }
@@ -402,7 +402,7 @@ function CreateProposalForm({
               onClick={() => setType('template')}
               className={`px-4 py-2 rounded-lg transition ${
                 type === 'template'
-                  ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
+                  ? 'bg-violet-500/20 text-violet-400 border border-violet-500/30'
                   : 'bg-white/5 text-gray-400 border border-white/10'
               }`}
             >
@@ -429,7 +429,7 @@ function CreateProposalForm({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             required
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#00FFA3] focus:outline-none"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#6366F1] focus:outline-none"
             placeholder="Proposal title..."
           />
         </div>
@@ -441,7 +441,7 @@ function CreateProposalForm({
             onChange={(e) => setDescription(e.target.value)}
             required
             rows={4}
-            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#00FFA3] focus:outline-none resize-none"
+            className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#6366F1] focus:outline-none resize-none"
             placeholder="Describe your proposal in detail..."
           />
         </div>
@@ -454,7 +454,7 @@ function CreateProposalForm({
               value={templateName}
               onChange={(e) => setTemplateName(e.target.value)}
               required
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#00FFA3] focus:outline-none"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#6366F1] focus:outline-none"
               placeholder="e.g., KYC Verification"
             />
           </div>
@@ -468,7 +468,7 @@ function CreateProposalForm({
               value={featureName}
               onChange={(e) => setFeatureName(e.target.value)}
               required
-              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#00FFA3] focus:outline-none"
+              className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-2 text-white focus:border-[#6366F1] focus:outline-none"
               placeholder="e.g., Multi-chain Verification"
             />
           </div>
@@ -476,7 +476,7 @@ function CreateProposalForm({
 
         <button
           type="submit"
-          className="w-full py-3 bg-[#00FFA3] text-black font-semibold rounded-lg hover:bg-[#00cc82] transition"
+          className="w-full py-3 bg-[#6366F1] text-white font-semibold rounded-lg hover:bg-[#5b4bd4] transition"
         >
           Submit Proposal
         </button>

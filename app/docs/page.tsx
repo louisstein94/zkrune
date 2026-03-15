@@ -430,7 +430,7 @@ export default function DocsPage() {
                   href="https://github.com/louisstein94/zkrune#real-zk-circuits-optional"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-block px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
+                  className="inline-block px-6 py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
                 >
                   View Compile Guide on GitHub
                 </a>
@@ -532,7 +532,7 @@ export default function DocsPage() {
                   href="https://github.com/louisstein94/zkrune"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
+                  className="px-6 py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all"
                 >
                   View on GitHub →
                 </a>

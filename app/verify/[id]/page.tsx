@@ -24,12 +24,12 @@ export default function VerifyPage() {
 
       <div className="pt-32 px-8 pb-12">
         <div className="max-w-4xl mx-auto">
-          {/* Privacy Hack Banner */}
-          <div className="mb-8 p-4 bg-purple-500/10 border border-purple-500/30 rounded-xl">
+          {/* Verification Banner */}
+          <div className="mb-8 p-4 bg-zk-primary/10 border border-zk-primary/30 rounded-xl">
             <div className="flex items-start gap-3">
-              <span className="text-2xl font-bold">SPH</span>
+              <div className="w-2.5 h-2.5 rounded-full bg-zk-primary mt-1.5" />
               <div>
-                <h3 className="text-purple-400 font-medium mb-1">Solana Privacy Hack 2026</h3>
+                <h3 className="text-zk-primary font-medium mb-1">Proof Verification</h3>
                 <p className="text-sm text-zk-gray">
                   This is a proof verification page. To verify your own ZK proofs,{" "}
                   <Link href="/verify-proof" className="text-zk-primary underline">click here</Link>.
@@ -59,7 +59,7 @@ export default function VerifyPage() {
           <div className="bg-zk-dark/30 border border-zk-primary/30 rounded-2xl p-8 mb-8">
             {/* Status */}
             <div className="flex items-center gap-4 mb-6 pb-6 border-b border-zk-gray/20">
-              <svg className="w-16 h-16 text-[#F4B728]" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-16 h-16 text-zk-secondary" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <div>
@@ -112,7 +112,7 @@ export default function VerifyPage() {
           {/* Privacy Notice */}
           <div className="bg-zk-secondary/10 border border-zk-secondary/30 rounded-xl p-6 mb-8">
             <div className="flex items-start gap-4">
-              <div className="text-3xl font-bold text-purple-400">ZK</div>
+              <div className="text-3xl font-bold text-violet-400">ZK</div>
               <div>
                 <h3 className="font-medium text-zk-secondary mb-2">
                   Privacy Protected
@@ -137,7 +137,7 @@ export default function VerifyPage() {
             </Link>
             <Link
               href="/#templates"
-              className="flex-1 py-3 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all text-center"
+              className="flex-1 py-3 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all text-center"
             >
               Create Your Own
             </Link>

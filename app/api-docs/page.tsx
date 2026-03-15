@@ -392,7 +392,7 @@ console.log(data.proof);`}
                 <button
                   onClick={testClientSide}
                   disabled={isLoading}
-                  className="w-full px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
+                  className="w-full px-6 py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {isLoading ? (
                     <>

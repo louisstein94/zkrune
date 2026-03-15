@@ -24,7 +24,7 @@ export function TouchButton({
   const baseStyles = 'font-medium rounded-xl transition-all active:scale-95 touch-manipulation';
   
   const variantStyles = {
-    primary: 'bg-zk-primary text-zk-darker hover:bg-zk-primary/90 shadow-lg shadow-zk-primary/20',
+    primary: 'bg-zk-primary text-white hover:bg-zk-primary/90 shadow-lg shadow-zk-primary/20',
     secondary: 'border-2 border-zk-primary text-zk-primary hover:bg-zk-primary/10',
     ghost: 'text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10',
   };

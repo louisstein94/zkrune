@@ -78,12 +78,12 @@ export default function RuneAnimation() {
 
         // Glow effect
         ctx.shadowBlur = 20;
-        ctx.shadowColor = index % 2 === 0 ? "#00FFA3" : "#6B4CFF";
+        ctx.shadowColor = index % 2 === 0 ? "#6366F1" : "#8B5CF6";
 
         // Color gradient
         const gradient = ctx.createLinearGradient(-particle.size/2, -particle.size/2, particle.size/2, particle.size/2);
-        gradient.addColorStop(0, index % 2 === 0 ? "#00FFA3" : "#6B4CFF");
-        gradient.addColorStop(1, index % 2 === 0 ? "#6B4CFF" : "#00FFA3");
+        gradient.addColorStop(0, index % 2 === 0 ? "#6366F1" : "#8B5CF6");
+        gradient.addColorStop(1, index % 2 === 0 ? "#8B5CF6" : "#6366F1");
         
         ctx.fillStyle = gradient;
         ctx.globalAlpha = particle.opacity;
@@ -148,8 +148,8 @@ export default function RuneAnimation() {
       <svg className="absolute inset-0 w-full h-full opacity-10" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="circuit-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-            <stop offset="0%" stopColor="#00FFA3" />
-            <stop offset="100%" stopColor="#6B4CFF" />
+            <stop offset="0%" stopColor="#6366F1" />
+            <stop offset="100%" stopColor="#8B5CF6" />
           </linearGradient>
         </defs>
         <path

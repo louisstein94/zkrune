@@ -112,7 +112,7 @@ export default function HowItWorks() {
       <div className="max-w-7xl mx-auto mt-16 text-center">
         <a
           href="/templates"
-          className="inline-block px-8 py-4 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20"
+          className="inline-block px-8 py-4 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20"
         >
           Try Templates - Free
         </a>

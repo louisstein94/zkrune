@@ -7,8 +7,8 @@ export function AgeVerificationIcon({ className = "w-12 h-12" }: { className?: s
       <circle cx="12" cy="12" r="10" stroke="url(#age-gradient)" strokeWidth="1" opacity="0.3" />
       <defs>
         <linearGradient id="age-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -24,8 +24,8 @@ export function BalanceIcon({ className = "w-12 h-12" }: { className?: string })
       <circle cx="12" cy="12" r="10" stroke="url(#balance-gradient)" strokeWidth="1" opacity="0.2" />
       <defs>
         <linearGradient id="balance-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -42,8 +42,8 @@ export function MembershipIcon({ className = "w-12 h-12" }: { className?: string
       <circle cx="12" cy="12" r="11" stroke="url(#member-gradient)" strokeWidth="0.5" opacity="0.2" />
       <defs>
         <linearGradient id="member-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -61,8 +61,8 @@ export function RangeIcon({ className = "w-12 h-12" }: { className?: string }) {
       <path d="M19 8L16 12L19 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zk-secondary opacity-40" />
       <defs>
         <linearGradient id="range-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -80,8 +80,8 @@ export function VotingIcon({ className = "w-12 h-12" }: { className?: string }) 
       <path d="M15.5 17L16.5 18L18.5 16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-zk-primary" />
       <defs>
         <linearGradient id="vote-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>

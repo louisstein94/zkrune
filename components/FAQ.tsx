@@ -158,7 +158,7 @@ export default function FAQ() {
           <div className="flex flex-col sm:flex-row gap-3 md:gap-4 justify-center max-w-md mx-auto">
             <a
               href="/docs"
-              className="px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all text-center"
+              className="px-6 py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all text-center"
             >
               Read Documentation
             </a>

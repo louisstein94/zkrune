@@ -179,6 +179,5 @@ MIT
 
 ---
 
-**Built for ZypherPunk Hackathon 2025**  
 Powered by Zcash's Groth16 zk-SNARKs
 

@@ -154,6 +154,44 @@ export async function verifyProof(params: {
 }
 
 /**
+ * Verify a proof against the hosted zkRune verifier.
+ * This calls the production endpoint at zkrune.com which loads the trusted
+ * verification key server-side — the client never supplies the vKey.
+ *
+ * @example
+ * ```typescript
+ * const { isValid } = await verifyProofRemote({
+ *   circuitName: 'age-verification',
+ *   proof: result.proof.groth16Proof,
+ *   publicSignals: result.proof.publicSignals,
+ * });
+ * ```
+ */
+export async function verifyProofRemote(params: {
+  circuitName: string;
+  proof: any;
+  publicSignals: string[];
+  verifierUrl?: string;
+}): Promise<{ isValid: boolean; timing?: number; error?: string }> {
+  const url = params.verifierUrl || 'https://zkrune.com/api/verify-proof';
+  try {
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        circuitName: params.circuitName,
+        proof: params.proof,
+        publicSignals: params.publicSignals,
+      }),
+    });
+    const data = await res.json();
+    return { isValid: !!data.isValid, timing: data.timing, error: data.error };
+  } catch (err: any) {
+    return { isValid: false, error: err.message || 'Network error' };
+  }
+}
+
+/**
  * Available zkRune templates
  */
 export const templates = {

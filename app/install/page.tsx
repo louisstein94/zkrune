@@ -422,7 +422,7 @@ export default function InstallPage() {
           </p>
           <a
             href="/"
-            className="inline-block px-8 py-3 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105"
+            className="inline-block px-8 py-3 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105"
           >
             Go to Home
           </a>

@@ -10,8 +10,8 @@ export function RangeCheckIcon({ className = "w-6 h-6" }: { className?: string }
       <path d="M7 12H17" stroke="url(#range-grad)" strokeWidth="3" strokeLinecap="round" />
       <defs>
         <linearGradient id="range-grad" x1="0%" y1="0%" x2="100%" y2="0%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -25,8 +25,8 @@ export function HashIcon({ className = "w-6 h-6" }: { className?: string }) {
       <circle cx="12" cy="12" r="8" stroke="url(#hash-grad)" strokeWidth="1" opacity="0.3" />
       <defs>
         <linearGradient id="hash-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -41,8 +41,8 @@ export function ConditionalIcon({ className = "w-6 h-6" }: { className?: string 
       <path d="M12 15V21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
       <defs>
         <linearGradient id="cond-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -62,8 +62,8 @@ export function MerkleIcon({ className = "w-6 h-6" }: { className?: string }) {
       <path d="M12 6L6 10M12 6L18 10M6 10L3 16M6 10L9 16M18 10L15 16M18 10L21 16" stroke="url(#merkle-grad)" strokeWidth="1.5" />
       <defs>
         <linearGradient id="merkle-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>
@@ -79,8 +79,8 @@ export function ModuloIcon({ className = "w-6 h-6" }: { className?: string }) {
       <circle cx="12" cy="19" r="1.5" fill="currentColor" />
       <defs>
         <linearGradient id="mod-grad" x1="0%" y1="0%" x2="100%" y2="100%">
-          <stop offset="0%" stopColor="#00FFA3" />
-          <stop offset="100%" stopColor="#6B4CFF" />
+          <stop offset="0%" stopColor="#6366F1" />
+          <stop offset="100%" stopColor="#8B5CF6" />
         </linearGradient>
       </defs>
     </svg>

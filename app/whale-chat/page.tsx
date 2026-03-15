@@ -406,7 +406,7 @@ export default function WhaleChatPage() {
                 <button
                   onClick={() => addressInput && fetchPath(addressInput)}
                   disabled={!addressInput}
-                  className="w-full py-4 rounded-2xl bg-zk-primary text-zk-darker font-bold text-base hover:bg-zk-primary/90 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-2xl bg-zk-primary text-white font-bold text-base hover:bg-zk-primary/90 transition-all hover:scale-[1.01] active:scale-[0.99] disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:scale-100 flex items-center justify-center gap-2"
                 >
                   <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -488,7 +488,7 @@ export default function WhaleChatPage() {
                 {BigInt(pathData.balance) >= BigInt(WHALE_THRESHOLD) ? (
                   <button
                     onClick={generateProof}
-                    className="w-full py-4 rounded-2xl bg-zk-primary text-zk-darker font-bold text-base hover:bg-zk-primary/90 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3"
+                    className="w-full py-4 rounded-2xl bg-zk-primary text-white font-bold text-base hover:bg-zk-primary/90 transition-all hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3"
                   >
                     <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75m-3-7.036A11.959 11.959 0 013.598 6 11.99 11.99 0 003 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285z" />
@@ -571,7 +571,7 @@ export default function WhaleChatPage() {
                         href={TELEGRAM_LINK}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-zk-primary text-zk-darker font-bold hover:bg-zk-primary/90 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
+                        className="flex items-center justify-center gap-2 px-6 py-3 rounded-xl bg-zk-primary text-white font-bold hover:bg-zk-primary/90 transition-all hover:scale-105 active:scale-95 whitespace-nowrap"
                       >
                         <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
                           <path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/>

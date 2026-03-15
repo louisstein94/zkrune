@@ -276,7 +276,7 @@ function saveVotes(votes: Vote[]): void {
   localStorage.setItem(VOTES_KEY, JSON.stringify(votes));
 }
 
-// Default proposals for demo - Solana Privacy Hack focused
+// Default proposals for demo
 function getDefaultProposals(): Proposal[] {
   const now = new Date();
   const weekFromNow = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);

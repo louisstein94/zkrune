@@ -6,12 +6,15 @@
 // CRITICAL: Polyfills must be imported FIRST
 import './shim';
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { StatusBar, View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as SplashScreen from 'expo-splash-screen';
 import { Navigation } from './src/navigation';
 import { ZkProofEngine, ZkProofEngineRef } from './src/components/ZkProofEngine';
 import { zkProofService } from './src/services';
+
+SplashScreen.preventAutoHideAsync().catch(() => {});
 
 // Error Boundary for catching crashes
 class ErrorBoundary extends React.Component<
@@ -72,10 +75,21 @@ export default function App() {
   const zkEngineRef = useRef<ZkProofEngineRef>(null);
 
   useEffect(() => {
-    // Small delay to ensure everything is loaded
-    const timer = setTimeout(() => setIsReady(true), 100);
-    return () => clearTimeout(timer);
+    const prepare = async () => {
+      try {
+        await new Promise(resolve => setTimeout(resolve, 100));
+      } finally {
+        setIsReady(true);
+      }
+    };
+    prepare();
   }, []);
+
+  const onLayoutReady = useCallback(async () => {
+    if (isReady) {
+      await SplashScreen.hideAsync();
+    }
+  }, [isReady]);
 
   // Connect ZK Engine to service when ready
   useEffect(() => {
@@ -94,16 +108,12 @@ export default function App() {
   }, [isReady]);
 
   if (!isReady) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Text style={styles.loadingText}>zkRune</Text>
-      </View>
-    );
+    return null;
   }
 
   return (
     <ErrorBoundary>
-      <SafeAreaProvider>
+      <SafeAreaProvider onLayout={onLayoutReady}>
         <StatusBar barStyle="light-content" backgroundColor="transparent" translucent />
         <Navigation />
         {/* Hidden ZK Proof Engine - runs snarkjs in WebView */}
@@ -117,17 +127,6 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  loadingContainer: {
-    flex: 1,
-    backgroundColor: '#0A0A0F',
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loadingText: {
-    color: '#06B6D4',
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
   errorContainer: {
     flex: 1,
     backgroundColor: '#1a0a0a',

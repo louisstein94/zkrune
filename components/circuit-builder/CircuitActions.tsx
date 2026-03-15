@@ -173,7 +173,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
         <button 
           onClick={compileAndDeploy}
           disabled={isCompiling}
-          className="px-6 py-2 bg-zk-primary text-zk-darker rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium disabled:opacity-50"
+          className="px-6 py-2 bg-zk-primary text-white rounded-lg hover:bg-zk-primary/90 transition-all text-sm font-medium disabled:opacity-50"
         >
           {isCompiling ? 'Compiling...' : 'Compile'}
         </button>

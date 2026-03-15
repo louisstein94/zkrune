@@ -357,7 +357,7 @@ function addOwnedTemplate(templateId: string, userAddress: string): void {
   }
 }
 
-// Default marketplace templates - Solana Privacy Hack focused
+// Default marketplace templates
 function getDefaultMarketplaceTemplates(): MarketplaceTemplate[] {
   const now = new Date();
 

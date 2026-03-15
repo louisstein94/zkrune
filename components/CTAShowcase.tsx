@@ -68,7 +68,7 @@ export default function CTAShowcase() {
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <a
               href="/templates"
-              className="px-10 py-4 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-2xl shadow-zk-primary/20 text-lg"
+              className="px-10 py-4 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-2xl shadow-zk-primary/20 text-lg"
             >
               Try Templates →
             </a>
@@ -81,7 +81,7 @@ export default function CTAShowcase() {
           </div>
 
           <p className="mt-6 text-xs md:text-sm text-zk-gray px-4">
-            No credit card required • Open source • Built for ZypherPunk Hackathon
+            No credit card required • Open source • MIT licensed
           </p>
         </div>
       </div>

@@ -60,7 +60,8 @@ export default {
           color: "#8B5CF6"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-splash-screen"
     ],
     extra: {
       // Helius API key for faster RPC

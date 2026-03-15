@@ -131,7 +131,7 @@ if (containsMaliciousPattern(userInput)) {
 
 ### 1. **Trusted Setup**
 
-**Current:** Single-party ceremony (hackathon demo)
+**Current:** Multi-party ceremony completed (January 2026)
 ```
 ⚠️  Proving keys generated via single-party snarkjs zkey contribute
 ✅  Produces valid, verifiable proofs

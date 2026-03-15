@@ -195,16 +195,16 @@ export default function StakingPage() {
     <div className="min-h-screen bg-gradient-to-br from-[#0a0a0f] via-[#0d0d15] to-[#0a0a0f]">
       {/* Background Effects */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#00FFA3]/5 rounded-full blur-[120px]" />
-        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#6B4CFF]/5 rounded-full blur-[120px]" />
+        <div className="absolute top-0 left-1/4 w-96 h-96 bg-[#6366F1]/5 rounded-full blur-[120px]" />
+        <div className="absolute bottom-0 right-1/4 w-96 h-96 bg-[#8B5CF6]/5 rounded-full blur-[120px]" />
       </div>
 
       {/* Header */}
       <header className="relative border-b border-white/5 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#00FFA3] to-[#6B4CFF] flex items-center justify-center">
-              <span className="text-black font-bold text-sm">zk</span>
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
+              <span className="text-white font-bold text-sm">zk</span>
             </div>
             <span className="text-xl font-bold text-white">zkRune</span>
           </Link>
@@ -220,7 +220,7 @@ export default function StakingPage() {
                 Docs
               </Link>
             </nav>
-            <WalletMultiButton className="!bg-gradient-to-r !from-[#6B4CFF] !to-[#8B6CFF] hover:!opacity-90 !rounded-xl !h-10 !text-sm !font-medium" />
+            <WalletMultiButton className="!bg-gradient-to-r !from-[#6366F1] !to-[#8B5CF6] hover:!opacity-90 !rounded-xl !h-10 !text-sm !font-medium !text-white" />
           </div>
         </div>
       </header>
@@ -229,7 +229,7 @@ export default function StakingPage() {
       {notification && (
         <div className={`fixed top-20 right-4 z-50 px-6 py-4 rounded-xl border backdrop-blur-xl shadow-2xl animate-slide-in ${
           notification.type === 'success' 
-            ? 'bg-[#00FFA3]/10 border-[#00FFA3]/30 text-[#00FFA3]' 
+            ? 'bg-[#6366F1]/10 border-[#6366F1]/30 text-[#6366F1]' 
             : 'bg-red-500/10 border-red-500/30 text-red-400'
         }`}>
           <p className="font-medium">{notification.message}</p>
@@ -249,12 +249,12 @@ export default function StakingPage() {
       <main className="relative max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         {/* Hero Section */}
         <div className="text-center mb-12">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#00FFA3]/10 border border-[#00FFA3]/20 text-[#00FFA3] text-sm mb-6">
-            <span className="w-2 h-2 rounded-full bg-[#00FFA3] animate-pulse" />
+          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-[#6366F1]/10 border border-[#6366F1]/20 text-[#6366F1] text-sm mb-6">
+            <span className="w-2 h-2 rounded-full bg-[#6366F1] animate-pulse" />
             Devnet - Test Environment
           </div>
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
-            Stake <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#00FFA3] to-[#6B4CFF]">zkRUNE</span>
+            Stake <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#6366F1] to-[#8B5CF6]">zkRUNE</span>
           </h1>
           <p className="text-gray-400 text-lg max-w-xl mx-auto">
             Earn up to {(baseApy * 3).toFixed(0)}% APY by staking your tokens on-chain
@@ -264,12 +264,12 @@ export default function StakingPage() {
         {/* Test Guide & Faucet Section */}
         {showTestGuide && (
           <div className="relative mb-10">
-            <div className="absolute inset-0 bg-gradient-to-r from-[#6B4CFF]/20 via-[#00FFA3]/20 to-[#6B4CFF]/20 rounded-3xl blur-xl" />
+            <div className="absolute inset-0 bg-gradient-to-r from-[#8B5CF6]/20 via-[#6366F1]/20 to-[#8B5CF6]/20 rounded-3xl blur-xl" />
             <div className="relative bg-[#0d0d15]/90 border border-white/10 rounded-3xl overflow-hidden">
               {/* Header */}
               <div className="flex items-center justify-between px-6 py-4 border-b border-white/5">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6B4CFF] to-[#00FFA3] flex items-center justify-center">
+                  <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center">
                     <svg className="w-5 h-5 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                     </svg>
@@ -295,7 +295,7 @@ export default function StakingPage() {
                   {/* Step 1 */}
                   <div className="group">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#6B4CFF]/20 border border-[#6B4CFF]/30 flex items-center justify-center text-[#6B4CFF] font-bold text-sm group-hover:bg-[#6B4CFF]/30 transition">
+                      <div className="w-8 h-8 rounded-lg bg-[#8B5CF6]/20 border border-[#8B5CF6]/30 flex items-center justify-center text-[#8B5CF6] font-bold text-sm group-hover:bg-[#8B5CF6]/30 transition">
                         1
                       </div>
                       <h4 className="text-white font-medium">Switch to Devnet</h4>
@@ -308,20 +308,20 @@ export default function StakingPage() {
                   {/* Step 2 */}
                   <div className="group">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-[#00FFA3]/20 border border-[#00FFA3]/30 flex items-center justify-center text-[#00FFA3] font-bold text-sm group-hover:bg-[#00FFA3]/30 transition">
+                      <div className="w-8 h-8 rounded-lg bg-[#6366F1]/20 border border-[#6366F1]/30 flex items-center justify-center text-[#6366F1] font-bold text-sm group-hover:bg-[#6366F1]/30 transition">
                         2
                       </div>
                       <h4 className="text-white font-medium">Get Test Tokens</h4>
                     </div>
                     <p className="text-gray-400 text-sm leading-relaxed pl-11">
-                      Connect wallet and click the <span className="text-[#00FFA3] font-medium">Faucet</span> button below to receive free test zkRUNE tokens.
+                      Connect wallet and click the <span className="text-[#6366F1] font-medium">Faucet</span> button below to receive free test zkRUNE tokens.
                     </p>
                   </div>
                   
                   {/* Step 3 */}
                   <div className="group">
                     <div className="flex items-center gap-3 mb-3">
-                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-purple-400 font-bold text-sm group-hover:bg-purple-500/30 transition">
+                      <div className="w-8 h-8 rounded-lg bg-violet-500/20 border border-violet-500/30 flex items-center justify-center text-violet-400 font-bold text-sm group-hover:bg-violet-500/30 transition">
                         3
                       </div>
                       <h4 className="text-white font-medium">Start Staking</h4>
@@ -333,11 +333,11 @@ export default function StakingPage() {
                 </div>
                 
                 {/* Faucet Section */}
-                <div className="bg-gradient-to-r from-[#00FFA3]/5 to-[#6B4CFF]/5 border border-white/5 rounded-2xl p-5">
+                <div className="bg-gradient-to-r from-[#6366F1]/5 to-[#8B5CF6]/5 border border-white/5 rounded-2xl p-5">
                   <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#00FFA3] to-[#00DD8C] flex items-center justify-center flex-shrink-0">
-                        <svg className="w-6 h-6 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center flex-shrink-0">
+                        <svg className="w-6 h-6 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
                       </div>
@@ -357,7 +357,7 @@ export default function StakingPage() {
                     {connected ? (
                       <button
                         onClick={handleFaucetRequest}
-                        className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:shadow-lg hover:shadow-[#00FFA3]/20 transition-all flex items-center gap-2"
+                        className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold rounded-xl hover:shadow-lg hover:shadow-[#6366F1]/20 transition-all flex items-center gap-2"
                       >
                         <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
                           <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
@@ -365,7 +365,7 @@ export default function StakingPage() {
                         Request Test Tokens
                       </button>
                     ) : (
-                      <WalletMultiButton className="!bg-gradient-to-r !from-[#6B4CFF] !to-[#8B6CFF] hover:!opacity-90 !rounded-xl !h-12 !px-6 !text-sm !font-semibold" />
+                      <WalletMultiButton className="!bg-gradient-to-r !from-[#6366F1] !to-[#8B5CF6] hover:!opacity-90 !rounded-xl !h-12 !px-6 !text-sm !font-semibold !text-white" />
                     )}
                   </div>
                   
@@ -381,7 +381,7 @@ export default function StakingPage() {
                       href="https://faucet.solana.com" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-[#00FFA3] hover:underline"
+                      className="text-[#6366F1] hover:underline"
                     >
                       Need Devnet SOL?
                     </a>
@@ -410,9 +410,9 @@ export default function StakingPage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             {[
               { label: 'Total Staked', value: formatTokenAmount(poolState.totalStaked), color: 'text-white' },
-              { label: 'Stakers', value: poolState.totalStakers.toString(), color: 'text-[#00FFA3]' },
+              { label: 'Stakers', value: poolState.totalStakers.toString(), color: 'text-[#6366F1]' },
               { label: 'Reward Pool', value: formatTokenAmount(poolState.rewardPoolBalance), color: 'text-blue-400' },
-              { label: 'Distributed', value: formatTokenAmount(poolState.totalRewardsDistributed), color: 'text-purple-400' },
+              { label: 'Distributed', value: formatTokenAmount(poolState.totalRewardsDistributed), color: 'text-violet-400' },
             ].map((stat, i) => (
               <div key={i} className="bg-white/[0.02] border border-white/5 rounded-2xl p-5 text-center hover:bg-white/[0.04] transition">
                 <div className={`text-2xl font-bold ${stat.color}`}>{stat.value}</div>
@@ -424,7 +424,7 @@ export default function StakingPage() {
 
         {/* Wallet Balance Card */}
         {connected && (
-          <div className="bg-gradient-to-r from-[#6B4CFF]/10 to-[#00FFA3]/10 border border-white/5 rounded-2xl p-6 mb-8">
+          <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 border border-white/5 rounded-2xl p-6 mb-8">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div>
                 <div className="text-gray-400 text-sm mb-1">Your Balance</div>
@@ -455,17 +455,17 @@ export default function StakingPage() {
                 </div>
                 <div>
                   <div className="text-xs text-gray-500">Pending Rewards</div>
-                  <div className="text-lg font-semibold text-[#00FFA3]">{formatTokenAmount(userStake.pendingRewards)}</div>
+                  <div className="text-lg font-semibold text-[#6366F1]">{formatTokenAmount(userStake.pendingRewards)}</div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500">Lock Status</div>
-                  <div className={`text-lg font-semibold ${timeUntilUnlock?.isUnlocked ? 'text-[#00FFA3]' : 'text-orange-400'}`}>
+                  <div className={`text-lg font-semibold ${timeUntilUnlock?.isUnlocked ? 'text-[#6366F1]' : 'text-orange-400'}`}>
                     {timeUntilUnlock?.isUnlocked ? 'Unlocked' : formatTimeRemaining(timeUntilUnlock?.days || 0, timeUntilUnlock?.hours || 0, timeUntilUnlock?.minutes || 0)}
                   </div>
                 </div>
                 <div>
                   <div className="text-xs text-gray-500">Your APY</div>
-                  <div className="text-lg font-semibold text-purple-400">
+                  <div className="text-lg font-semibold text-violet-400">
                     {(baseApy * LOCK_PERIODS[userStake.lockPeriodIndex].multiplier).toFixed(0)}%
                   </div>
                 </div>
@@ -484,7 +484,7 @@ export default function StakingPage() {
                 onClick={() => setActiveTab('stake')}
                 className={`px-5 py-2.5 rounded-xl font-medium text-sm transition ${
                   activeTab === 'stake'
-                    ? 'bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black'
+                    ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10'
                 }`}
               >
@@ -495,7 +495,7 @@ export default function StakingPage() {
                 disabled={!userStake?.isActive}
                 className={`px-5 py-2.5 rounded-xl font-medium text-sm transition ${
                   activeTab === 'position'
-                    ? 'bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black'
+                    ? 'bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white'
                     : 'bg-white/5 text-gray-400 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed'
                 }`}
               >
@@ -513,14 +513,14 @@ export default function StakingPage() {
                       </svg>
                     </div>
                     <p className="text-gray-400 mb-4">Connect your wallet to start staking</p>
-                    <WalletMultiButton className="!bg-gradient-to-r !from-[#6B4CFF] !to-[#8B6CFF] !rounded-xl" />
+                    <WalletMultiButton className="!bg-gradient-to-r !from-[#6366F1] !to-[#8B5CF6] !rounded-xl !text-white" />
                   </div>
                 ) : userStake?.isActive ? (
                   <div className="text-center py-12">
                     <p className="text-gray-400 mb-4">You have an active stake position</p>
                     <button
                       onClick={() => setActiveTab('position')}
-                      className="px-6 py-3 bg-gradient-to-r from-[#6B4CFF] to-[#8B6CFF] text-white font-medium rounded-xl hover:opacity-90 transition"
+                      className="px-6 py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-medium rounded-xl hover:opacity-90 transition"
                     >
                       View Position
                     </button>
@@ -538,7 +538,7 @@ export default function StakingPage() {
                         {tokenBalance !== null && (
                           <button 
                             onClick={() => setStakeAmount(tokenBalance.toString())}
-                            className="text-xs text-[#00FFA3] hover:underline"
+                            className="text-xs text-[#6366F1] hover:underline"
                           >
                             Max: {formatTokenAmount(tokenBalance)}
                           </button>
@@ -550,7 +550,7 @@ export default function StakingPage() {
                           value={stakeAmount}
                           onChange={(e) => setStakeAmount(e.target.value)}
                           placeholder="0.00"
-                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-xl font-medium focus:border-[#00FFA3]/50 focus:outline-none focus:ring-1 focus:ring-[#00FFA3]/20 transition"
+                          className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-4 text-white text-xl font-medium focus:border-[#6366F1]/50 focus:outline-none focus:ring-1 focus:ring-[#6366F1]/20 transition"
                         />
                         <span className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-500 font-medium">zkRUNE</span>
                       </div>
@@ -566,15 +566,15 @@ export default function StakingPage() {
                             onClick={() => setSelectedPeriodIndex(index)}
                             className={`relative p-4 rounded-xl border transition overflow-hidden ${
                               selectedPeriodIndex === index
-                                ? 'border-[#00FFA3]/50 bg-[#00FFA3]/5'
+                                ? 'border-[#6366F1]/50 bg-[#6366F1]/5'
                                 : 'border-white/5 bg-white/[0.02] hover:bg-white/[0.04]'
                             }`}
                           >
                             {selectedPeriodIndex === index && (
-                              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#00FFA3]" />
+                              <div className="absolute top-2 right-2 w-2 h-2 rounded-full bg-[#6366F1]" />
                             )}
                             <div className="text-white font-semibold">{period.label}</div>
-                            <div className="text-[#00FFA3] text-xl font-bold mt-1">
+                            <div className="text-[#6366F1] text-xl font-bold mt-1">
                               {(baseApy * period.multiplier).toFixed(0)}%
                             </div>
                             <div className="text-gray-500 text-xs mt-1">{period.multiplier}x multiplier</div>
@@ -592,7 +592,7 @@ export default function StakingPage() {
                         </div>
                         <div className="flex justify-between text-sm">
                           <span className="text-gray-500">Yearly earnings</span>
-                          <span className="text-[#00FFA3] font-semibold">~{formatTokenAmount(estimatedYearly)} zkRUNE</span>
+                          <span className="text-[#6366F1] font-semibold">~{formatTokenAmount(estimatedYearly)} zkRUNE</span>
                         </div>
                       </div>
                     )}
@@ -601,7 +601,7 @@ export default function StakingPage() {
                     <button
                       onClick={handleStake}
                       disabled={isStaking || !stakeAmount || isLoading}
-                      className="w-full py-4 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed text-lg"
+                      className="w-full py-4 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed text-lg"
                     >
                       {isStaking ? (
                         <span className="flex items-center justify-center gap-2">
@@ -628,7 +628,7 @@ export default function StakingPage() {
                       </div>
                       <div className={`px-3 py-1.5 rounded-full text-sm font-medium ${
                         timeUntilUnlock?.isUnlocked 
-                          ? 'bg-[#00FFA3]/10 text-[#00FFA3]' 
+                          ? 'bg-[#6366F1]/10 text-[#6366F1]' 
                           : 'bg-orange-500/10 text-orange-400'
                       }`}>
                         {timeUntilUnlock?.isUnlocked ? 'Unlocked' : `${formatTimeRemaining(timeUntilUnlock?.days || 0, timeUntilUnlock?.hours || 0, timeUntilUnlock?.minutes || 0)} left`}
@@ -638,7 +638,7 @@ export default function StakingPage() {
                     <div className="grid grid-cols-2 gap-4">
                       <div className="bg-white/[0.02] rounded-xl p-4">
                         <div className="text-sm text-gray-500 mb-1">Pending Rewards</div>
-                        <div className="text-2xl font-bold text-[#00FFA3]">{formatTokenAmount(userStake.pendingRewards)}</div>
+                        <div className="text-2xl font-bold text-[#6366F1]">{formatTokenAmount(userStake.pendingRewards)}</div>
                       </div>
                       <div className="bg-white/[0.02] rounded-xl p-4">
                         <div className="text-sm text-gray-500 mb-1">Total Claimed</div>
@@ -654,7 +654,7 @@ export default function StakingPage() {
                         </div>
                         <div>
                           <span className="text-gray-500">APY</span>
-                          <div className="text-[#00FFA3] mt-1 font-semibold">
+                          <div className="text-[#6366F1] mt-1 font-semibold">
                             {(baseApy * LOCK_PERIODS[userStake.lockPeriodIndex].multiplier).toFixed(0)}%
                           </div>
                         </div>
@@ -673,7 +673,7 @@ export default function StakingPage() {
                       <button
                         onClick={handleClaim}
                         disabled={isClaiming || userStake.pendingRewards < 0.000001}
-                        className="flex-1 py-3.5 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-semibold rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-1 py-3.5 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-semibold rounded-xl hover:opacity-90 transition disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {isClaiming ? 'Claiming...' : 'Claim Rewards'}
                       </button>
@@ -701,7 +701,7 @@ export default function StakingPage() {
                     <p className="text-gray-400 mb-4">No active position</p>
                     <button
                       onClick={() => setActiveTab('stake')}
-                      className="px-6 py-3 bg-gradient-to-r from-[#00FFA3] to-[#00DD8C] text-black font-medium rounded-xl"
+                      className="px-6 py-3 bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] text-white font-medium rounded-xl"
                     >
                       Start Staking
                     </button>
@@ -723,7 +723,7 @@ export default function StakingPage() {
                       <span className="text-white">{period.label}</span>
                       <span className="text-gray-500 text-sm ml-2">({period.multiplier}x)</span>
                     </div>
-                    <span className="text-[#00FFA3] font-bold text-lg">{(baseApy * period.multiplier).toFixed(0)}%</span>
+                    <span className="text-[#6366F1] font-bold text-lg">{(baseApy * period.multiplier).toFixed(0)}%</span>
                   </div>
                 ))}
               </div>
@@ -740,7 +740,7 @@ export default function StakingPage() {
                   { step: '4', text: 'Unstake after lock ends' },
                 ].map((item) => (
                   <div key={item.step} className="flex items-start gap-3">
-                    <div className="w-6 h-6 rounded-full bg-[#00FFA3]/10 text-[#00FFA3] flex items-center justify-center text-sm font-bold flex-shrink-0">
+                    <div className="w-6 h-6 rounded-full bg-[#6366F1]/10 text-[#6366F1] flex items-center justify-center text-sm font-bold flex-shrink-0">
                       {item.step}
                     </div>
                     <span className="text-gray-400 text-sm">{item.text}</span>
@@ -767,7 +767,7 @@ export default function StakingPage() {
                     href={`https://solscan.io/account/${programId.toString()}?cluster=devnet`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#00FFA3] hover:underline font-mono text-xs break-all"
+                    className="text-[#6366F1] hover:underline font-mono text-xs break-all"
                   >
                     {programId.toString()}
                   </a>
@@ -778,7 +778,7 @@ export default function StakingPage() {
                     href={`https://solscan.io/token/${DEVNET_TOKEN_MINT}?cluster=devnet`}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-[#00FFA3] hover:underline font-mono text-xs break-all"
+                    className="text-[#6366F1] hover:underline font-mono text-xs break-all"
                   >
                     {DEVNET_TOKEN_MINT}
                   </a>
@@ -797,7 +797,7 @@ export default function StakingPage() {
       {isLoading && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
           <div className="bg-[#12121a] border border-white/10 rounded-2xl p-8 text-center">
-            <div className="animate-spin w-10 h-10 border-2 border-[#00FFA3] border-t-transparent rounded-full mx-auto mb-4" />
+            <div className="animate-spin w-10 h-10 border-2 border-[#6366F1] border-t-transparent rounded-full mx-auto mb-4" />
             <p className="text-gray-400">Loading...</p>
           </div>
         </div>

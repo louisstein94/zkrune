@@ -376,14 +376,14 @@ export default function TutorialOverlay() {
             <Link
               href={step.actionHref}
               onClick={handleActionClick}
-              className="flex-1 px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105 text-center"
+              className="flex-1 px-6 py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105 text-center"
             >
               {step.action}
             </Link>
           ) : (
             <button
               onClick={handleNext}
-              className={`${isFirstStep ? 'w-full' : 'flex-1'} px-6 py-3 bg-zk-primary text-zk-darker rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105`}
+              className={`${isFirstStep ? 'w-full' : 'flex-1'} px-6 py-3 bg-zk-primary text-white rounded-lg font-medium hover:bg-zk-primary/90 transition-all hover:scale-105`}
             >
               {isLastStep ? "I'm Ready!" : 'Next'}
             </button>

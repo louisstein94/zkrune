@@ -61,7 +61,7 @@ export default function InstallPrompt() {
                 <div className="flex gap-3">
                   <button
                     onClick={handleInstall}
-                    className="px-4 py-2 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all text-sm"
+                    className="px-4 py-2 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all text-sm"
                   >
                     Install Now
                   </button>
@@ -228,7 +228,7 @@ export default function InstallPrompt() {
 
             <button
               onClick={() => setShowIOSInstructions(false)}
-              className="w-full px-6 py-3 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all"
+              className="w-full px-6 py-3 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all"
             >
               Got It!
             </button>

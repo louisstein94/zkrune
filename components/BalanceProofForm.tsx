@@ -143,10 +143,10 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
   return (
     <div className="space-y-6">
       {/* Zcash Address Input - REAL INTEGRATION */}
-      <div className="bg-gradient-to-r from-[#F4B728]/10 to-zk-dark/30 border border-[#F4B728]/30 rounded-xl p-5">
+      <div className="bg-gradient-to-r from-zk-secondary/10 to-zk-dark/30 border border-zk-secondary/30 rounded-xl p-5">
         <div className="flex items-center gap-2 mb-3">
           <img src="/zcash-logo.png" alt="Zcash" className="w-5 h-5" />
-          <label className="text-sm font-bold text-[#F4B728] uppercase tracking-wider flex items-center gap-1.5">
+          <label className="text-sm font-bold text-zk-secondary uppercase tracking-wider flex items-center gap-1.5">
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
             </svg>
@@ -163,7 +163,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
             setAddressType(detectAddressType(e.target.value));
           }}
           placeholder="t1abc... or zs1xyz... (Zcash address)"
-          className="w-full px-4 py-3 bg-zk-darker border border-[#F4B728]/30 rounded-lg text-white focus:border-[#F4B728] focus:outline-none transition-colors font-mono text-sm mb-3"
+          className="w-full px-4 py-3 bg-zk-darker border border-zk-secondary/30 rounded-lg text-white focus:border-zk-secondary focus:outline-none transition-colors font-mono text-sm mb-3"
         />
 
         {/* Address Type Badge */}
@@ -171,7 +171,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
           <div className="flex items-center gap-2 mb-3">
             <span className={`px-3 py-1 rounded-full text-xs font-medium ${
               addressType === 'shielded' 
-                ? 'bg-purple-500/20 text-purple-400 border border-purple-500/40' 
+                ? 'bg-zk-accent/20 text-zk-accent border border-zk-accent/40' 
                 : 'bg-blue-500/20 text-blue-400 border border-blue-500/40'
             }`}>
               {addressType === 'shielded' ? 'Shielded Address' : 'Transparent Address'}
@@ -181,8 +181,8 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
         
         {/* Viewing Key Input (only for shielded addresses) */}
         {addressType === 'shielded' && (
-          <div className="mb-3 p-4 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-            <label className="block text-sm font-medium text-purple-400 mb-2">
+          <div className="mb-3 p-4 bg-zk-accent/10 border border-zk-accent/30 rounded-lg">
+            <label className="block text-sm font-medium text-zk-accent mb-2">
               Viewing Key (Required for Shielded)
             </label>
             <input
@@ -190,9 +190,9 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
               value={viewingKey}
               onChange={(e) => setViewingKey(e.target.value)}
               placeholder="zxviews1..."
-              className="w-full px-4 py-3 bg-zk-darker border border-purple-500/30 rounded-lg text-white focus:border-purple-400 focus:outline-none transition-colors font-mono text-sm"
+              className="w-full px-4 py-3 bg-zk-darker border border-zk-accent/30 rounded-lg text-white focus:border-zk-accent focus:outline-none transition-colors font-mono text-sm"
             />
-            <p className="text-xs text-purple-300 mt-2 flex items-start gap-1.5">
+            <p className="text-xs text-violet-300 mt-2 flex items-start gap-1.5">
               <svg className="w-3.5 h-3.5 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
               </svg>
@@ -204,11 +204,11 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
         <button
           onClick={fetchZcashBalance}
           disabled={isFetchingBalance || !zcashAddress.trim()}
-          className="w-full py-3 bg-[#F4B728]/20 border border-[#F4B728]/50 text-[#F4B728] font-medium rounded-lg hover:bg-[#F4B728]/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+          className="w-full py-3 bg-zk-secondary/20 border border-zk-secondary/50 text-zk-secondary font-medium rounded-lg hover:bg-zk-secondary/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
         >
           {isFetchingBalance ? (
             <>
-              <div className="w-4 h-4 border-2 border-[#F4B728]/30 border-t-[#F4B728] rounded-full animate-spin" />
+              <div className="w-4 h-4 border-2 border-zk-secondary/30 border-t-zk-secondary rounded-full animate-spin" />
               Fetching from Zcash Blockchain...
             </>
           ) : (
@@ -221,7 +221,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
           )}
         </button>
         
-        <p className="text-xs text-[#F4B728]/70 mt-2 flex items-start gap-1">
+        <p className="text-xs text-zk-secondary/70 mt-2 flex items-start gap-1">
           <svg className="w-3 h-3 mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
             <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
           </svg>
@@ -235,7 +235,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
           Your Balance (ZEC)
         </label>
           {balanceFetched && (
-            <span className="text-xs px-2 py-1 bg-[#F4B728]/20 text-[#F4B728] rounded-full border border-[#F4B728]/30 flex items-center gap-1">
+            <span className="text-xs px-2 py-1 bg-zk-secondary/20 text-zk-secondary rounded-full border border-zk-secondary/30 flex items-center gap-1">
               <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
@@ -258,7 +258,7 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
         <p className="text-xs text-zk-gray mt-2 flex items-start gap-1.5">
           {balanceFetched ? (
             <>
-              <svg className="w-4 h-4 text-[#F4B728] flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+              <svg className="w-4 h-4 text-zk-secondary flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
               </svg>
               <span>Fetched from Zcash blockchain - Your exact amount stays private in the proof</span>
@@ -286,11 +286,11 @@ export default function BalanceProofForm({ onProofGenerated }: BalanceProofFormP
       <button
         onClick={generateProof}
         disabled={isGenerating || !balance || !minBalance}
-        className="w-full py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-4 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isGenerating ? (
           <>
-            <div className="w-5 h-5 border-2 border-zk-darker/30 border-t-zk-darker rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             Generating Proof...
           </>
         ) : (

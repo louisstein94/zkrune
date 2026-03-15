@@ -7,76 +7,77 @@ const phases = [
   {
     id: 1,
     label: "Phase 1",
-    title: "Foundation",
+    title: "Core Infrastructure",
     period: "Q4 2025 – Q1 2026",
     status: "completed",
     color: "zk-primary",
-    colorHex: "#00FF88",
+    colorHex: "#6366F1",
     items: [
       { text: "Groth16 zk-SNARK circuit infrastructure", done: true },
-      { text: "13 production-ready ZK circuits", done: true },
+      { text: "13 production-ready verification circuits", done: true },
       { text: "100% client-side proof generation", done: true },
-      { text: "Visual Circuit Builder (drag-drop)", done: true },
-      { text: "Template gallery with copy-paste code", done: true },
+      { text: "Visual Circuit Builder", done: true },
+      { text: "Verification template gallery", done: true },
       { text: "NPM SDK & CLI published", done: true },
-      { text: "PWA support (Android APK)", done: true },
-      { text: "REST API for proof verification", done: true },
+      { text: "PWA + Android APK", done: true },
+      { text: "Hosted proof verification API", done: true },
     ],
   },
   {
     id: 2,
     label: "Phase 2",
-    title: "Token & Ecosystem",
+    title: "Token & Product Launch",
     period: "Q1 2026 – Q2 2026",
     status: "active",
-    color: "purple-400",
-    colorHex: "#a78bfa",
+    color: "zk-accent",
+    colorHex: "#8B5CF6",
     items: [
-      { text: "zkRUNE token launch on Solana (pump.fun)", done: true },
-      { text: "Staking program (devnet — mainnet launch coming)", done: false },
-      { text: "Template marketplace (creator economy)", done: true },
-      { text: "Premium tiers with token burn mechanism", done: true },
-      { text: "Solana Privacy Hack 2026 submission", done: true },
-      { text: "Mobile ZK Wallet — Android APK (Solana + Zcash)", done: true },
-      { text: "Trusted Setup Ceremony (multi-party)", done: true },
-      { text: "AI-driven security audit & circuit hardening (pre-audit)", done: true },
+      { text: "zkRUNE token launched on Solana", done: true },
+      { text: "Template marketplace live (95% to creators)", done: true },
+      { text: "Premium tiers with burn mechanism", done: true },
+      { text: "Mobile ZK Wallet — Android APK", done: true },
+      { text: "Trusted Setup Ceremony completed (multi-party)", done: true },
+      { text: "Pre-audit security hardening", done: true },
+      { text: "Trust model published (production / self-asserted / experimental)", done: true },
+      { text: "Groth16 Verifier deployed on Solana mainnet", done: true },
+      { text: "Staking program mainnet migration", done: false },
     ],
   },
   {
     id: 3,
     label: "Phase 3",
-    title: "Privacy Infrastructure",
+    title: "Prove with zkRune",
     period: "Q3 – Q4 2026",
     status: "upcoming",
-    color: "yellow-400",
-    colorHex: "#F4B728",
+    color: "zk-secondary",
+    colorHex: "#34D399",
     items: [
-      { text: "iOS Mobile App", done: false },
+      { text: "Embeddable verification widget (script-tag integration)", done: false },
+      { text: "First 3 integrations onboarded", done: false },
+      { text: "On-chain data source for balance proof (Solana RPC)", done: false },
+      { text: "Issuer / registry model for membership proof", done: false },
       { text: "3rd party security audit", done: false },
-      { text: "Zcash shielded balance integration (WASM)", done: false },
-      { text: "Sapling & Orchard protocol support", done: false },
-      { text: "Advanced circuit types (recursive SNARKs)", done: false },
-      { text: "Gasless proofs — expanded to all Pro+ tiers", done: false },
-      { text: "Creator bounty program (marketplace bootstrap)", done: false },
-      { text: "Decentralized proof relay network", done: false },
+      { text: "iOS app", done: false },
+      { text: "Integration docs & developer portal", done: false },
+      { text: "Self-asserted → attested upgrade path for age proof", done: false },
     ],
   },
   {
     id: 4,
     label: "Phase 4",
-    title: "Ecosystem Growth",
+    title: "Scale & Ecosystem",
     period: "2027+",
     status: "future",
-    color: "blue-400",
-    colorHex: "#60a5fa",
+    color: "zk-gray",
+    colorHex: "#9CA3AF",
     items: [
-      { text: "Cross-chain ZK bridge (Solana ↔ Ethereum via Wormhole / LayerZero)", done: false },
-      { text: "ZK identity standard for Solana DeFi", done: false },
+      { text: "Cross-chain proof verification (Ethereum, Base)", done: false },
       { text: "ZK credential standard (W3C compatible)", done: false },
       { text: "On-chain governance with quadratic voting", done: false },
-      { text: "Decentralized marketplace governance", done: false },
-      { text: "Developer grants program", done: false },
       { text: "Enterprise SDK & white-label solutions", done: false },
+      { text: "Developer grants program", done: false },
+      { text: "Advanced circuit types (recursive SNARKs)", done: false },
+      { text: "Decentralized proof relay network", done: false },
       { text: "Institutional privacy tooling", done: false },
     ],
   },
@@ -90,18 +91,18 @@ const statusMeta = {
   },
   active: {
     label: "In Progress",
-    badge: "bg-purple-500/15 text-purple-400 border-purple-500/30",
-    dot: "bg-purple-400 animate-pulse",
+    badge: "bg-zk-accent/15 text-zk-accent border-zk-accent/30",
+    dot: "bg-zk-accent animate-pulse",
   },
   upcoming: {
     label: "Upcoming",
-    badge: "bg-yellow-400/10 text-yellow-400 border-yellow-400/30",
-    dot: "bg-yellow-400",
+    badge: "bg-zk-secondary/10 text-zk-secondary border-zk-secondary/30",
+    dot: "bg-zk-secondary",
   },
   future: {
     label: "Future",
-    badge: "bg-blue-400/10 text-blue-400 border-blue-400/30",
-    dot: "bg-blue-400",
+    badge: "bg-zk-gray/10 text-zk-gray border-zk-gray/30",
+    dot: "bg-zk-gray",
   },
 };
 
@@ -127,13 +128,13 @@ export default function RoadmapPage() {
             </span>
           </div>
           <h1 className="font-hatton text-4xl md:text-6xl text-white mb-5">
-            Building the Future of
+            Product
             <br />
-            <span className="text-zk-primary">ZK Privacy on Solana</span>
+            <span className="text-zk-primary">Roadmap</span>
           </h1>
           <p className="text-lg text-zk-gray max-w-2xl mx-auto leading-relaxed">
-            From circuit infrastructure to a full privacy ecosystem.
-            Here's how we're getting there, one phase at a time.
+            From core verification infrastructure to embeddable privacy tooling.
+            Here is what we shipped, what we are building, and what comes next.
           </p>
         </div>
 
@@ -145,7 +146,7 @@ export default function RoadmapPage() {
           </div>
           <div className="h-2 bg-zk-darker rounded-full overflow-hidden">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-zk-primary via-purple-400 to-yellow-400/50 transition-all duration-1000"
+              className="h-full rounded-full bg-gradient-to-r from-zk-primary via-zk-accent to-zk-secondary/50 transition-all duration-1000"
               style={{ width: "45%" }}
             />
           </div>
@@ -303,21 +304,21 @@ export default function RoadmapPage() {
           </div>
         </div>
 
-        {/* Community CTA */}
+        {/* CTA */}
         <div className="mt-24 p-8 md:p-10 bg-gradient-to-br from-zk-primary/10 to-purple-500/10 border border-zk-primary/25 rounded-3xl text-center">
           <h3 className="font-hatton text-2xl md:text-3xl text-white mb-3">
-            Shape the Roadmap
+            Start Integrating
           </h3>
           <p className="text-zk-gray mb-8 max-w-xl mx-auto">
-            zkRUNE token holders can vote on which features get built next.
-            Governance is live — your vote counts.
+            Add privacy-preserving verification to your app today.
+            SDK, hosted verifier, and integration docs are ready.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link
-              href="/governance"
-              className="px-8 py-3 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105"
+              href="/docs"
+              className="px-8 py-3 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105"
             >
-              Vote on Governance
+              Read Integration Guide
             </Link>
             <a
               href="https://x.com/rune_zk"

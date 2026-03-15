@@ -123,7 +123,7 @@ export default function VotingProofForm({ onProofGenerated }: VotingProofFormPro
               onClick={() => setChoice(c)}
               className={`py-3 rounded-lg font-medium transition-all ${
                 choice === c
-                  ? "bg-zk-primary text-zk-darker"
+                  ? "bg-zk-primary text-white"
                   : "bg-zk-darker border border-zk-gray/30 text-zk-gray hover:border-zk-primary hover:text-zk-primary"
               }`}
             >
@@ -139,11 +139,11 @@ export default function VotingProofForm({ onProofGenerated }: VotingProofFormPro
       <button
         onClick={generateProof}
         disabled={isGenerating || !voterId || !choice}
-        className="w-full py-4 bg-zk-primary text-zk-darker font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+        className="w-full py-4 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isGenerating ? (
           <>
-            <div className="w-5 h-5 border-2 border-zk-darker/30 border-t-zk-darker rounded-full animate-spin" />
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
             Casting Vote...
           </>
         ) : (

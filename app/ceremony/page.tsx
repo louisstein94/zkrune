@@ -558,7 +558,7 @@ export default function CeremonyPage() {
       {/* Footer */}
       <footer className="py-8 border-t border-white/10">
         <div className="max-w-7xl mx-auto px-6 text-center text-zk-gray text-sm">
-          <p>zkRune Trusted Setup Ceremony • Solana Privacy Hack 2026</p>
+          <p>zkRune Trusted Setup Ceremony</p>
           <p className="mt-2">
             <Link href="/docs" className="hover:text-white transition-colors">Documentation</Link>
             {" • "}

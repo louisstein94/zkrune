@@ -70,18 +70,18 @@ export async function GET(request: Request) {
         note: "Shielded balance fetched using viewing key"
       });
     } catch (lightwalletdError) {
-      console.log('[Shielded Balance] Lightwalletd unavailable, using demo mode');
+      console.log('[Shielded Balance] Lightwalletd unavailable, returning experimental fallback');
       
-      // Demo mode for hackathon
-      // In production, this would use actual Zcash SDK for shielded note decryption
-      const demoBalance = 2.5; // Demo shielded balance
+      // EXPERIMENTAL: shielded note decryption not yet implemented
+      const demoBalance = 2.5;
       
       return NextResponse.json({
         success: true,
         balance: demoBalance,
         source: "demo",
         addressType: "shielded",
-        note: "Demo mode - Shielded balance decryption requires Zcash SDK WASM (in development). For hackathon demonstration purposes."
+        trustLevel: "experimental",
+        note: "Fallback data — shielded balance decryption requires Zcash SDK WASM (not yet implemented). Do not use for production access decisions."
       });
     }
 

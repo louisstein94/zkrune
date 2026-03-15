@@ -85,23 +85,25 @@ export async function GET(request: Request) {
       }
     }
 
-    // If both fail, return demo data
+    // EXPERIMENTAL: fallback data when all providers fail
     return NextResponse.json({
       success: true,
       balance: 5.12345678,
       source: 'demo',
-      note: 'Demo mode - zcha.in and Blockchair APIs unavailable',
+      trustLevel: 'experimental',
+      note: 'Fallback data — external balance APIs unavailable. Do not use for production access decisions.',
     });
 
   } catch (error) {
     console.error('Zcash balance fetch error:', error);
     
-    // Fallback to demo mode
+    // EXPERIMENTAL: fallback data on error
     return NextResponse.json({
       success: true,
       balance: 5.12345678,
       source: 'demo',
-      note: 'Demo mode - API error',
+      trustLevel: 'experimental',
+      note: 'Fallback data — API error. Do not use for production access decisions.',
     });
   }
 }

@@ -132,7 +132,7 @@ export default function FirstProofSection() {
 
             <Link
               href="/templates"
-              className="group px-8 py-4 bg-zk-primary text-zk-darker font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20 flex items-center gap-2"
+              className="group px-8 py-4 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20 flex items-center gap-2"
             >
               Generate Your First Proof
               <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">

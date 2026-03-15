@@ -90,7 +90,7 @@ export default function PremiumPage() {
       {/* Header */}
       <header className="border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <Link href="/" className="text-2xl font-bold text-[#00FFA3]">
+          <Link href="/" className="text-2xl font-bold text-[#6366F1]">
             zkRune
           </Link>
           <div className="flex items-center gap-4">
@@ -103,7 +103,7 @@ export default function PremiumPage() {
             <Link href="/staking" className="text-gray-400 hover:text-white transition">
               Staking
             </Link>
-            <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
+            <WalletMultiButton className="!bg-[#6366F1] hover:!bg-[#5b4bd4] !text-white" />
           </div>
         </div>
       </header>
@@ -129,7 +129,7 @@ export default function PremiumPage() {
 
         {/* Live Token Stats Banner */}
         {tokenStats && (
-          <div className="bg-gradient-to-r from-[#00FFA3]/10 to-[#6B4CFF]/10 border border-white/10 rounded-xl p-4 mb-8">
+          <div className="bg-gradient-to-r from-[#6366F1]/10 to-[#8B5CF6]/10 border border-white/10 rounded-xl p-4 mb-8">
             <div className="flex flex-wrap justify-between items-center gap-4">
               <div className="flex items-center gap-6">
                 <div>
@@ -143,11 +143,11 @@ export default function PremiumPage() {
                 </div>
                 <div className="border-l border-white/10 pl-6">
                   <div className="text-xs text-gray-400">Market Cap</div>
-                  <div className="text-lg font-bold text-[#00FFA3]">{formatUsd(tokenStats.marketCap)}</div>
+                  <div className="text-lg font-bold text-[#6366F1]">{formatUsd(tokenStats.marketCap)}</div>
                 </div>
                 <div className="border-l border-white/10 pl-6">
                   <div className="text-xs text-gray-400">Total Burned</div>
-                  <div className="text-lg font-bold text-orange-400">{formatNumber(tokenStats.burned)} zkRUNE</div>
+                  <div className="text-lg font-bold text-emerald-400">{formatNumber(tokenStats.burned)} zkRUNE</div>
                 </div>
                 <div className="border-l border-white/10 pl-6">
                   <div className="text-xs text-gray-400">24h Volume</div>
@@ -158,7 +158,7 @@ export default function PremiumPage() {
                 href="https://pump.fun/coin/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump"
                 target="_blank"
                 rel="noopener noreferrer"
-                className="px-4 py-2 bg-[#00FFA3]/20 text-[#00FFA3] rounded-lg hover:bg-[#00FFA3]/30 transition text-sm font-medium"
+                className="px-4 py-2 bg-[#6366F1]/20 text-[#6366F1] rounded-lg hover:bg-[#6366F1]/30 transition text-sm font-medium"
               >
                 Buy on Pump.fun →
               </a>
@@ -176,7 +176,7 @@ export default function PremiumPage() {
             making zkRUNE deflationary while giving you exclusive access.
           </p>
           {tokenStats && (
-            <p className="text-sm text-[#6B4CFF] mt-2">
+            <p className="text-sm text-[#8B5CF6] mt-2">
               Burn prices adjust dynamically based on market cap. Current rates are optimized for {formatUsd(tokenStats.marketCap)} MC.
             </p>
           )}
@@ -184,7 +184,7 @@ export default function PremiumPage() {
 
         {/* Current Status */}
         {connected && status && (
-          <div className="bg-gradient-to-r from-[#6B4CFF]/20 to-[#00FFA3]/20 border border-white/10 rounded-xl p-6 mb-8">
+          <div className="bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 border border-white/10 rounded-xl p-6 mb-8">
             <div className="flex flex-wrap justify-between items-center gap-4">
               <div>
                 <div className="text-sm text-gray-400 mb-1">Your Current Tier</div>
@@ -194,7 +194,7 @@ export default function PremiumPage() {
                   {status.tier === 'PRO' && 'Pro'}
                   {status.tier === 'ENTERPRISE' && 'Enterprise'}
                   {status.tier !== 'FREE' && (
-                    <span className="text-sm px-2 py-1 bg-[#00FFA3]/20 text-[#00FFA3] rounded">
+                    <span className="text-sm px-2 py-1 bg-[#6366F1]/20 text-[#6366F1] rounded">
                       ACTIVE
                     </span>
                   )}
@@ -202,7 +202,7 @@ export default function PremiumPage() {
               </div>
               <div className="text-right">
                 <div className="text-sm text-gray-400 mb-1">Total Burned</div>
-                <div className="text-2xl font-bold text-[#00FFA3]">
+                <div className="text-2xl font-bold text-[#6366F1]">
                   {formatTokenAmount(status.totalBurned)} zkRUNE
                 </div>
               </div>
@@ -212,8 +212,8 @@ export default function PremiumPage() {
                   {(() => {
                     const next = getTokensForNextTier(status.tier);
                     return next ? (
-                      <div className="text-lg text-white">
-                        {next.tier}: <span className="text-[#6B4CFF]">{next.tokensNeeded} more</span>
+                        <div className="text-lg text-white">
+                        {next.tier}: <span className="text-[#8B5CF6]">{next.tokensNeeded} more</span>
                       </div>
                     ) : null;
                   })()}
@@ -235,14 +235,14 @@ export default function PremiumPage() {
                 key={tierKey}
                 className={`relative bg-white/5 border rounded-xl p-6 transition-all ${
                   isCurrentTier
-                    ? 'border-[#00FFA3] ring-2 ring-[#00FFA3]/20'
+                    ? 'border-[#6366F1] ring-2 ring-[#6366F1]/20'
                     : selectedTier === tierKey
-                    ? 'border-[#6B4CFF]'
+                    ? 'border-[#8B5CF6]'
                     : 'border-white/10 hover:border-white/20'
                 }`}
               >
                 {isCurrentTier && (
-                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#00FFA3] text-black text-xs font-bold rounded-full">
+                  <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 bg-[#6366F1] text-white text-xs font-bold rounded-full">
                     CURRENT
                   </div>
                 )}
@@ -254,7 +254,7 @@ export default function PremiumPage() {
                     <span className="text-gray-400">Free</span>
                   ) : (
                     <div>
-                      <span className="text-2xl font-bold text-[#00FFA3]">
+                      <span className="text-2xl font-bold text-[#6366F1]">
                         {formatTokenAmount(tier.burnRequired)}
                       </span>
                       <span className="text-gray-400 ml-1">zkRUNE</span>
@@ -265,7 +265,7 @@ export default function PremiumPage() {
                 <ul className="space-y-2 mb-6">
                   {tier.features.map((feature, idx) => (
                     <li key={idx} className="flex items-start gap-2 text-sm">
-                      <span className={isUnlocked ? 'text-[#00FFA3]' : 'text-gray-500'}>
+                      <span className={isUnlocked ? 'text-[#6366F1]' : 'text-gray-500'}>
                         {isUnlocked ? 'check' : 'x'}
                       </span>
                       <span className={isUnlocked ? 'text-gray-300' : 'text-gray-500'}>
@@ -280,7 +280,7 @@ export default function PremiumPage() {
                     onClick={() => handleTierSelect(tierKey)}
                     className={`w-full py-2 rounded-lg font-medium transition ${
                       selectedTier === tierKey
-                        ? 'bg-[#6B4CFF] text-white'
+                        ? 'bg-[#8B5CF6] text-white'
                         : 'bg-white/5 text-gray-400 hover:bg-white/10'
                     }`}
                   >
@@ -289,7 +289,7 @@ export default function PremiumPage() {
                 )}
 
                 {isUnlocked && tierKey !== 'FREE' && (
-                  <div className="text-center text-[#00FFA3] font-medium py-2">
+                  <div className="text-center text-[#6366F1] font-medium py-2">
                     Unlocked
                   </div>
                 )}
@@ -314,7 +314,7 @@ export default function PremiumPage() {
                   onChange={(e) => setBurnAmount(e.target.value)}
                   placeholder="0"
                   min="0"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-lg focus:border-[#00FFA3] focus:outline-none"
+                  className="w-full bg-white/5 border border-white/10 rounded-lg px-4 py-3 text-white text-lg focus:border-[#6366F1] focus:outline-none"
                 />
               </div>
               
@@ -342,7 +342,7 @@ export default function PremiumPage() {
         ) : (
           <div className="bg-white/5 border border-white/10 rounded-xl p-8 text-center mb-8">
             <p className="text-gray-400 mb-4">Connect your wallet to burn tokens and unlock premium features</p>
-            <WalletMultiButton className="!bg-[#6B4CFF] hover:!bg-[#5a3de6]" />
+            <WalletMultiButton className="!bg-[#6366F1] hover:!bg-[#5b4bd4] !text-white" />
           </div>
         )}
 
@@ -371,7 +371,7 @@ export default function PremiumPage() {
                       href={`https://solscan.io/tx/${record.signature}`}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="text-sm text-[#6B4CFF] hover:underline"
+                      className="text-sm text-[#8B5CF6] hover:underline"
                     >
                       {record.signature.slice(0, 8)}...
                     </a>
@@ -385,7 +385,7 @@ export default function PremiumPage() {
         {/* Info Section */}
         <div className="mt-8 grid md:grid-cols-3 gap-6">
           <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <div className="text-[#00FFA3] text-2xl mb-3">Deflationary</div>
+            <div className="text-[#6366F1] text-2xl mb-3">Deflationary</div>
             <h4 className="text-white font-semibold mb-2">Token Burn Reduces Supply</h4>
             <p className="text-gray-400 text-sm">
               Every token burned is permanently destroyed, reducing total supply and 
@@ -394,7 +394,7 @@ export default function PremiumPage() {
           </div>
           
           <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <div className="text-[#6B4CFF] text-2xl mb-3">Permanent</div>
+            <div className="text-[#8B5CF6] text-2xl mb-3">Permanent</div>
             <h4 className="text-white font-semibold mb-2">Lifetime Access</h4>
             <p className="text-gray-400 text-sm">
               Once unlocked, your tier remains active for 1 year. No monthly subscriptions, 
@@ -403,7 +403,7 @@ export default function PremiumPage() {
           </div>
           
           <div className="bg-white/5 border border-white/10 rounded-xl p-6">
-            <div className="text-orange-400 text-2xl mb-3">Cumulative</div>
+            <div className="text-emerald-400 text-2xl mb-3">Cumulative</div>
             <h4 className="text-white font-semibold mb-2">Burns Stack Up</h4>
             <p className="text-gray-400 text-sm">
               All your burns accumulate. Burn in small amounts over time or all at once 

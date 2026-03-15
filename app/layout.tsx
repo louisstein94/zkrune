@@ -23,10 +23,10 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   metadataBase: new URL('https://zkrune.com'),
   title: {
-    default: "zkRune - Privacy Tooling for Solana | Solana Privacy Hack 2026",
+    default: "zkRune - Privacy Verification Infrastructure for Solana",
     template: "%s | zkRune"
   },
-  description: "Build private payments, privacy-preserving credentials, and anonymous voting on Solana. 100% client-side ZK proofs with real Groth16 zk-SNARKs. No server, no data leakage.",
+  description: "Embeddable zero-knowledge verification for access, eligibility, and identity. 100% client-side Groth16 proofs — secrets never leave the device.",
   icons: {
     icon: '/mobile-logo.png',
     apple: '/mobile-logo.png',
@@ -34,9 +34,9 @@ export const metadata: Metadata = {
   },
   keywords: [
     "zkRune", "Zero-Knowledge", "ZK Proofs", "Solana", "Privacy", "Blockchain", 
-    "Cryptography", "Groth16", "zk-SNARK", "Circuit Builder", "Web3", "DeFi",
-    "Private Voting", "Credential Verification", "Anonymous Reputation",
-    "Solana Privacy Hack", "Private Payments", "Privacy Tooling"
+    "Cryptography", "Groth16", "zk-SNARK", "Web3", "DeFi",
+    "Privacy Verification", "Credential Verification", "Access Control",
+    "Age Verification", "Membership Proof", "Privacy Infrastructure"
   ],
   authors: [{ name: "zkRune Team", url: "https://zkrune.com" }],
   creator: "zkRune Team",
@@ -44,8 +44,8 @@ export const metadata: Metadata = {
   
   // OpenGraph
   openGraph: {
-    title: "zkRune - Privacy Tooling for Solana | Solana Privacy Hack 2026",
-    description: "Build private payments, credentials, and anonymous voting on Solana. 13 real Groth16 circuits. 100% client-side ZK proofs. No server, no data leakage.",
+    title: "zkRune - Privacy Verification Infrastructure for Solana",
+    description: "Embeddable zero-knowledge verification for access, eligibility, and identity. 13 production Groth16 circuits. 100% client-side — no server, no data leakage.",
     url: "https://zkrune.com",
     siteName: "zkRune",
     locale: "en_US",
@@ -55,7 +55,7 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'zkRune - Privacy Tooling for Solana',
+        alt: 'zkRune - Privacy Verification Infrastructure',
       }
     ],
   },
@@ -63,8 +63,8 @@ export const metadata: Metadata = {
   // Twitter
   twitter: {
     card: "summary_large_image",
-    title: "zkRune - Privacy Tooling for Solana",
-    description: "Solana Privacy Hack 2026: 13 real Groth16 circuits. 100% client-side ZK proofs. Private payments, credentials, voting.",
+    title: "zkRune - Privacy Verification Infrastructure",
+    description: "Embeddable ZK verification for access and eligibility. 13 Groth16 circuits, 100% client-side. Secrets never leave the device.",
     creator: "@rune_zk",
     site: "@rune_zk",
     images: ['/og-image.png'],

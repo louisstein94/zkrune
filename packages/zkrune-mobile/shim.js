@@ -47,9 +47,44 @@ if (typeof global.TextDecoder === 'undefined') {
   global.TextDecoder = TextDecoderPolyfill;
 }
 
-// URL polyfill for React Native
+// URL polyfill for React Native (Hermes 0.73+ has native URL support)
 if (typeof global.URL === 'undefined') {
-  global.URL = require('react-native').Linking;
+  global.URL = class URL {
+    constructor(url, base) {
+      if (base) {
+        url = base.replace(/\/$/, '') + '/' + url.replace(/^\//, '');
+      }
+      this.href = url;
+      const match = url.match(/^(([^:/?#]+):)?(\/\/([^/?#]*))?([^?#]*)(\?([^#]*))?(#(.*))?/);
+      this.protocol = (match[2] || '') + ':';
+      this.host = match[4] || '';
+      this.hostname = (match[4] || '').split(':')[0];
+      this.port = (match[4] || '').split(':')[1] || '';
+      this.pathname = match[5] || '/';
+      this.search = match[6] || '';
+      this.hash = match[8] || '';
+      this.origin = this.protocol + '//' + this.host;
+      this.searchParams = new URLSearchParamsPolyfill(match[7] || '');
+    }
+    toString() { return this.href; }
+  };
+
+  class URLSearchParamsPolyfill {
+    constructor(query) {
+      this._params = {};
+      query.split('&').forEach(pair => {
+        if (!pair) return;
+        const [key, ...rest] = pair.split('=');
+        this._params[decodeURIComponent(key)] = decodeURIComponent(rest.join('='));
+      });
+    }
+    get(key) { return this._params[key] ?? null; }
+    has(key) { return key in this._params; }
+  }
+
+  if (typeof global.URLSearchParams === 'undefined') {
+    global.URLSearchParams = URLSearchParamsPolyfill;
+  }
 }
 
 console.log('[Shim] Polyfills loaded successfully');

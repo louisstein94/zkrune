@@ -166,18 +166,21 @@ export function SettingsScreen() {
       Alert.alert('Error', 'PINs do not match');
       return;
     }
-    // Hash the PIN before storing — never store plaintext PINs
-    const encoder = new TextEncoder();
-    const data = encoder.encode(newPin + 'zkrune_pin_salt');
-    const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const pinHash = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    await secureStorage.set(STORAGE_KEYS.PIN_HASH, pinHash);
-    Alert.alert('Success', 'PIN has been updated');
-    setShowPinModal(false);
-    setCurrentPin('');
-    setNewPin('');
-    setConfirmPin('');
+    try {
+      const { createHash } = require('crypto');
+      const pinHash = createHash('sha256')
+        .update(newPin + 'zkrune_pin_salt')
+        .digest('hex');
+      await secureStorage.set(STORAGE_KEYS.PIN_HASH, pinHash);
+      Alert.alert('Success', 'PIN has been updated');
+      setShowPinModal(false);
+      setCurrentPin('');
+      setNewPin('');
+      setConfirmPin('');
+    } catch (error) {
+      console.error('[Settings] PIN hash failed:', error);
+      Alert.alert('Error', 'Failed to save PIN. Please try again.');
+    }
   };
 
   // Open external links
