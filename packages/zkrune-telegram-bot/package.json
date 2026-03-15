@@ -1,0 +1,25 @@
+{
+  "name": "zkrune-telegram-bot",
+  "version": "1.0.0",
+  "description": "Telegram verification bot for zkRune Whale Chat — token-gated group access via ZK proofs",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@solana/spl-token": "^0.4.14",
+    "@solana/web3.js": "^1.98.4",
+    "dotenv": "^17.3.1",
+    "grammy": "^1.35.0",
+    "poseidon-lite": "^0.3.0",
+    "snarkjs": "^0.7.5"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "@types/snarkjs": "^0.7.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.7.0"
+  }
+}

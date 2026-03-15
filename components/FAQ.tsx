@@ -7,80 +7,55 @@ export default function FAQ() {
 
   const faqs = [
     {
-      question: "What is a Zero-Knowledge Proof?",
-      answer: "Think of it like proving you know a secret password without revealing the password itself. In simple terms: you can prove a fact is true (like being over 18) without revealing the underlying data (your exact birth date). It's like showing your ID to a bouncer who only needs to know you're 18+, not your actual birthday.",
-      category: "basics"
-    },
-    {
       question: "What is zkRune?",
-      answer: "zkRune is a visual Zero-Knowledge Proof builder that makes privacy technology accessible to everyone. No coding required, no cryptography expertise needed. Just pick a template, fill a simple form, and generate a cryptographically-sound proof in seconds. Think of it as a Canva for privacy proofs.",
+      answer: "zkRune is privacy verification infrastructure for Solana. It lets any app verify user claims — age, token balance, group membership — without collecting sensitive data. Proofs are generated client-side using Groth16 zk-SNARKs, and can be verified on-chain via our Solana mainnet verifier program or off-chain via our hosted API.",
       category: "basics"
     },
     {
-      question: "Do I need to know cryptography or coding?",
-      answer: "Not at all! zkRune is designed for everyone. If you can fill out a web form, you can generate a ZK proof. We handle all the complex cryptography (Groth16 zk-SNARKs, Circom circuits) behind the scenes. You just focus on what you want to prove.",
+      question: "What is a Zero-Knowledge Proof?",
+      answer: "A zero-knowledge proof lets you prove a statement is true without revealing the underlying data. For example, you can prove you are over 18 without sharing your birthdate, or prove your wallet holds at least 1000 tokens without exposing the exact balance. The verifier learns only the yes/no answer — nothing else.",
       category: "basics"
     },
     {
-      question: "Are the proofs really zero-knowledge?",
-      answer: "Yes! We use real Groth16 zk-SNARKs - the same cryptography securing billions in blockchain transactions. All 10 templates use compiled Circom circuits. These aren't simulations or demos. They're mathematically verifiable zero-knowledge proofs that anyone can verify.",
+      question: "Does my data get sent to any server?",
+      answer: "No. All proofs are generated 100% in the user's browser. Private inputs (birthdate, balance, group secret) never leave the device. There are no server calls, no databases, no tracking. This is privacy by architecture — the server literally never sees your data.",
+      category: "privacy"
+    },
+    {
+      question: "How does on-chain verification work?",
+      answer: "zkRune's Groth16 Verifier is deployed on Solana mainnet (program ID: 9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad). After a proof is generated client-side, it can be submitted to the on-chain verifier for trustless verification. Smart contracts and dApps can check the result directly — no intermediary needed.",
       category: "technical"
     },
     {
-      question: "How long does it take to generate a proof?",
-      answer: "Fast! Most proofs generate in under 5 seconds. Age Verification takes about 0.44 seconds. The first time you use a template, it downloads the circuit files (~5MB). After that, everything is cached and generation is instant, even offline.",
-      category: "usage"
+      question: "How can I integrate zkRune into my app?",
+      answer: "Install the SDK via npm (npm install zkrune-sdk), import the proof generation or remote verification function, and call it with your circuit name and inputs. For simpler integration, use the hosted verifier API at /api/verify-proof. Full integration guide and widget docs are available in the documentation.",
+      category: "integration"
     },
     {
-      question: "Does my data get sent to any servers?",
-      answer: "Absolutely not! Everything runs 100% in your browser. Your private data (birth date, balance, vote, etc.) never leaves your device. No servers, no databases, no network calls. You can even generate proofs on airplane mode. This is privacy by architecture, not by promise.",
+      question: "Which verification templates are available?",
+      answer: "13 production-ready Groth16 circuits: Age Verification, Balance Proof, Membership Proof, Range Proof, Private Voting, NFT Ownership, Credential Proof, Token Swap Proof, Quadratic Voting, Signature Verification, Anonymous Reputation, and more. Each circuit has its own WASM and proving key generated through a multi-party trusted setup ceremony.",
+      category: "technical"
+    },
+    {
+      question: "What is the zkRUNE token?",
+      answer: "zkRUNE is a Solana SPL token (51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump) that powers the zkRune ecosystem. It enables governance voting on protocol decisions, staking with up to 36% APY, access to the template marketplace where circuit creators earn 95% of sales, and premium tiers for advanced features.",
+      category: "token"
+    },
+    {
+      question: "Is the cryptography real or simulated?",
+      answer: "Real. Every template uses compiled Circom circuits with the Groth16 proving system — the same cryptography securing major blockchain protocols. The trusted setup ceremony was completed with multi-party participation. Proofs are mathematically verifiable and cannot be forged. All circuit source code is open on GitHub.",
+      category: "technical"
+    },
+    {
+      question: "Can someone reverse-engineer my data from a proof?",
+      answer: "No. This is mathematically impossible, regardless of computing power. A Groth16 proof reveals only the public output (e.g., 'age >= 18: true') — never the private inputs. The proof is a compact cryptographic object that proves the computation was done correctly without leaking any information about the original data.",
       category: "privacy"
     },
     {
-      question: "How does it work offline?",
-      answer: "zkRune is a Progressive Web App (PWA). After your first visit, all necessary files are cached locally on your device. This includes the UI and circuit files (WASM, proving keys). Once cached, you can install it on your phone and generate proofs with zero internet connection.",
+      question: "Does it work offline?",
+      answer: "Yes. zkRune is a Progressive Web App. After first visit, circuit files (WASM, proving keys) are cached locally. You can install it on your phone and generate proofs without any internet connection. An Android APK is also available for direct installation.",
       category: "usage"
     },
-    {
-      question: "Which template should I use?",
-      answer: "Choose based on what you need to prove: Age Verification (prove you're 18+ for KYC), Balance Proof (prove you have enough funds), Membership Proof (prove you're in a group), Range Proof (prove a value is within range), Private Voting (cast votes anonymously). Can't find what you need? Request a custom template!",
-      category: "usage"
-    },
-    {
-      question: "Can I trust this? Is it secure?",
-      answer: "zkRune is open source - you can audit every line of code on GitHub. We use industry-standard Circom circuits and the Groth16 proving system. Your data never touches a server. The cryptography is the same that secures major blockchain networks. Plus, mathematical proofs don't rely on trust - they're verifiable.",
-      category: "privacy"
-    },
-    {
-      question: "What happens after I generate a proof?",
-      answer: "You get a cryptographic proof (JSON format) that you can share, verify, or use in your application. The proof contains NO private data - only the statement you proved (e.g., 'Age > 18'). Anyone can verify it's mathematically valid, but they can't extract your original data. That's the magic of zero-knowledge.",
-      category: "usage"
-    },
-    {
-      question: "Is zkRune free?",
-      answer: "Yes! zkRune is completely free and open source. No accounts, no credit cards, no premium tiers. We're building privacy infrastructure for everyone. The code is on GitHub, the proofs work offline, and there's no catch. Just privacy technology made accessible.",
-      category: "basics"
-    },
-    {
-      question: "How do I install the mobile app?",
-      answer: "Visit zkrune.com on your phone. On iOS (Safari): tap Share → Add to Home Screen. On Android (Chrome): tap the menu → Install app. No app store needed! After installation, visit Templates, generate one proof from each template you want to use offline, and you're set. Full guide at zkrune.com/install",
-      category: "usage"
-    },
-    {
-      question: "What's stored on my device?",
-      answer: "Only the circuit files needed for proof generation (~5MB per template) and the app UI. No personal data, no tracking cookies, no analytics. When you generate a proof, it's yours to keep or delete. We never see it. Storage is managed by your browser's cache API.",
-      category: "privacy"
-    },
-    {
-      question: "Can someone reverse-engineer my data from the proof?",
-      answer: "No. That's the whole point of zero-knowledge! Even with unlimited computing power, it's mathematically impossible to extract your private data from the proof. The proof only reveals the statement you chose to prove. Your original data remains permanently private.",
-      category: "privacy"
-    },
-    {
-      question: "What if I make a mistake in the form?",
-      answer: "Just regenerate! There's no limit on proofs. If you entered wrong data, simply fill the form again with correct values and click generate. Each proof is independent. Delete the wrong one and keep the correct proof.",
-      category: "usage"
-    }
   ];
 
   return (
