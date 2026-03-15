@@ -23,8 +23,10 @@ interface MarketplaceTemplate {
   updated_at: string;
 }
 
-function isSupabaseConfigured(): boolean {
-  return Boolean(supabaseUrl && supabaseKey);
+function requireSupabase() {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+  }
 }
 
 async function supabaseFetch(endpoint: string, options?: RequestInit) {
@@ -39,79 +41,52 @@ async function supabaseFetch(endpoint: string, options?: RequestInit) {
   });
 }
 
-// GET all marketplace templates
 export async function GET(request: NextRequest) {
+  try {
+    requireSupabase();
+  } catch {
+    return NextResponse.json({ success: false, error: 'Database not configured' }, { status: 503 });
+  }
+
   const { searchParams } = new URL(request.url);
   const category = searchParams.get('category');
   const featured = searchParams.get('featured');
   const search = searchParams.get('search');
 
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({
-      success: true,
-      data: getMockTemplates(),
-      source: 'mock',
-    });
-  }
-
   try {
     let url = 'marketplace_templates?select=*&order=downloads.desc';
-    
-    if (category) {
-      url += `&category=eq.${category}`;
-    }
-    if (featured === 'true') {
-      url += '&featured=eq.true';
-    }
-    if (search) {
-      url += `&or=(name.ilike.*${search}*,description.ilike.*${search}*)`;
-    }
 
-    const response = await supabaseFetch(url);
+    if (category) url += `&category=eq.${category}`;
+    if (featured === 'true') url += '&featured=eq.true';
+    if (search) url += `&or=(name.ilike.*${search}*,description.ilike.*${search}*)`;
+
+    const response = await supabaseFetch(url, { next: { revalidate: 30 } } as RequestInit);
     if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
 
     const data: MarketplaceTemplate[] = await response.json();
 
-    return NextResponse.json({
-      success: true,
-      data: data || [],
-      source: 'supabase',
-    });
+    return NextResponse.json({ success: true, data: data || [] });
   } catch (error: unknown) {
     console.error('Error fetching templates:', error);
-    return NextResponse.json({
-      success: true,
-      data: getMockTemplates(),
-      source: 'fallback',
-    });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
-// POST - List a new template
 export async function POST(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({
-      success: false,
-      error: 'Database not configured',
-    }, { status: 503 });
+  try {
+    requireSupabase();
+  } catch {
+    return NextResponse.json({ success: false, error: 'Database not configured' }, { status: 503 });
   }
 
   try {
     const body = await request.json();
     const {
-      name,
-      description,
-      creator,
-      creatorAddress,
-      price,
-      category,
-      circuitCode,
-      tags,
-      nodes,
-      edges,
+      name, description, creator, creatorAddress,
+      price, category, circuitCode, tags, nodes, edges,
     } = body;
 
-    // Validate required fields
     if (!name || !description || !creator || !creatorAddress || !price || !category || !circuitCode) {
       return NextResponse.json({
         success: false,
@@ -142,57 +117,10 @@ export async function POST(request: NextRequest) {
 
     const [data]: MarketplaceTemplate[] = await response.json();
 
-    return NextResponse.json({
-      success: true,
-      data,
-    });
+    return NextResponse.json({ success: true, data });
   } catch (error: unknown) {
     console.error('Error creating template:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({
-      success: false,
-      error: message,
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
-}
-
-// Mock data fallback
-function getMockTemplates(): MarketplaceTemplate[] {
-  const now = new Date();
-  return [
-    {
-      id: 'tmpl_private_transfer',
-      name: 'Private SPL Token Transfer',
-      description: 'Send SPL tokens privately on Solana.',
-      creator: 'zkRune Labs',
-      creator_address: 'zkRuneLabsAddress123',
-      price: 300,
-      category: 'finance',
-      downloads: 456,
-      rating: 4.9,
-      rating_count: 67,
-      featured: true,
-      verified: true,
-      tags: ['private', 'transfer', 'solana'],
-      created_at: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: now.toISOString(),
-    },
-    {
-      id: 'tmpl_anon_launch',
-      name: 'Anonymous Launchpad Allocation',
-      description: 'Prove eligibility for token launches without revealing your wallet.',
-      creator: 'Privacy DeFi',
-      creator_address: 'PrivacyDeFiAddr',
-      price: 250,
-      category: 'finance',
-      downloads: 312,
-      rating: 4.8,
-      rating_count: 42,
-      featured: true,
-      verified: true,
-      tags: ['launchpad', 'allocation', 'privacy'],
-      created_at: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-      updated_at: now.toISOString(),
-    },
-  ];
 }

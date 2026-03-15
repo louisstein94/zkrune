@@ -1,5 +1,10 @@
-// zkRune Template Marketplace
-// Creator revenue sharing system
+/**
+ * @deprecated This module uses localStorage for storage.
+ * Use `@/lib/hooks/useMarketplace` and `@/lib/hooks/useMarketplacePurchase`
+ * instead, which connect to the Supabase-backed API at /api/marketplace/*
+ * with on-chain SPL transfer verification.
+ */
+// zkRune Template Marketplace (DEPRECATED — localStorage)
 
 import { MARKETPLACE_CONFIG, type MarketplaceCategory } from './config';
 

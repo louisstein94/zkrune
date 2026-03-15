@@ -3,77 +3,65 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>zkRune SDK - Browser Example</title>
+  <title>zkRune SDK — Browser Example</title>
   <style>
-    body {
-      font-family: system-ui;
-      max-width: 800px;
-      margin: 50px auto;
-      padding: 20px;
-      background: #0A0E27;
-      color: white;
-    }
-    button {
-      background: #00FFA3;
-      color: #0A0E27;
-      border: none;
-      padding: 12px 24px;
-      border-radius: 8px;
-      cursor: pointer;
-      font-weight: 600;
-    }
-    button:hover {
-      background: #6B4CFF;
-    }
-    pre {
-      background: #1a1f3a;
-      padding: 16px;
-      border-radius: 8px;
-      overflow-x: auto;
-    }
+    body { font-family: system-ui; max-width: 800px; margin: 50px auto; padding: 20px; background: #0A0E27; color: white; }
+    button { background: #6366F1; color: white; border: none; padding: 12px 24px; border-radius: 8px; cursor: pointer; font-weight: 600; font-size: 14px; }
+    button:hover { background: #4F46E5; }
+    button:disabled { opacity: 0.5; cursor: not-allowed; }
+    pre { background: #1a1f3a; padding: 16px; border-radius: 8px; overflow-x: auto; font-size: 13px; }
+    .status { color: #6366F1; font-size: 14px; margin: 12px 0; }
   </style>
 </head>
 <body>
-  <h1>zkRune SDK - Browser Example</h1>
-  <p>Generate a zero-knowledge proof right in your browser!</p>
+  <h1>zkRune SDK v2</h1>
+  <p>Generate a Groth16 zero-knowledge proof in your browser.</p>
 
-  <button onclick="generateAgeProof()">Generate Age Proof</button>
-  
-  <h3>Result:</h3>
+  <button id="btn" onclick="run()">Generate Age Proof</button>
+  <p class="status" id="status"></p>
   <pre id="result">Click the button to generate a proof...</pre>
 
-  <!-- Include zkRune SDK -->
   <script type="module">
-    import { generateProof, templates } from 'https://unpkg.com/zkrune-sdk';
-    
-    window.generateAgeProof = async function() {
-      document.getElementById('result').textContent = 'Generating proof... (this may take 15-30 seconds)';
-      
+    import { ZkRune } from 'https://esm.sh/zkrune-sdk';
+
+    window.run = async function () {
+      const btn = document.getElementById('btn');
+      const status = document.getElementById('status');
+      const result = document.getElementById('result');
+
+      btn.disabled = true;
+
+      const zk = new ZkRune({
+        circuitBaseUrl: 'https://zkrune.com/circuits',
+        debug: true,
+      });
+
       try {
-        const result = await generateProof({
-          templateId: templates.AGE_VERIFICATION,
-          inputs: {
-            birthYear: '1995',
-            currentYear: '2024',
-            minimumAge: '18'
-          }
+        const res = await zk.prove('age-verification', {
+          birthYear: '1995',
+          currentYear: '2026',
+          minimumAge: '18',
+        }, {
+          onProgress: (stage) => { status.textContent = stage; },
         });
-        
-        if (result.success) {
-          document.getElementById('result').textContent = 
-            `Success!\n\n` +
-            `Generated in: ${result.timing}ms\n` +
-            `Valid: ${result.proof.isValid}\n` +
-            `Proof Hash: ${result.proof.proofHash}\n\n` +
-            `Full proof object:\n${JSON.stringify(result.proof, null, 2)}`;
+
+        if (res.success) {
+          result.textContent = JSON.stringify({
+            valid: res.proof.isValid,
+            timing: res.timing + 'ms',
+            hash: res.proof.proofHash,
+            publicSignals: res.proof.publicSignals,
+          }, null, 2);
+          status.textContent = 'Done!';
         } else {
-          document.getElementById('result').textContent = `Error: ${result.error}`;
+          result.textContent = 'Error: ' + res.error;
         }
-      } catch (error) {
-        document.getElementById('result').textContent = `Error: ${error.message}`;
+      } catch (e) {
+        result.textContent = 'Error: ' + e.message;
       }
-    }
+
+      btn.disabled = false;
+    };
   </script>
 </body>
 </html>
-

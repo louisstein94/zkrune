@@ -1,78 +1,97 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useWallet } from '@solana/wallet-adapter-react';
+import { useMarketplace, type MarketplaceTemplate } from '@/lib/hooks/useMarketplace';
+import { useMarketplacePurchase, type PurchaseStage } from '@/lib/hooks/useMarketplacePurchase';
+import { MARKETPLACE_CONFIG, type MarketplaceCategory, formatTokenAmount } from '@/lib/token/config';
 
 const WalletMultiButton = dynamic(
   () => import('@solana/wallet-adapter-react-ui').then((mod) => mod.WalletMultiButton),
   { ssr: false }
 );
-import {
-  getMarketplaceTemplates,
-  getFeaturedTemplates,
-  getTemplatesByCategory,
-  searchTemplates,
-  purchaseTemplate,
-  isTemplateOwned,
-  getMarketplaceStats,
-  type MarketplaceTemplate,
-} from '@/lib/token/marketplace';
-import { MARKETPLACE_CONFIG, type MarketplaceCategory, formatTokenAmount } from '@/lib/token/config';
+
+const STAGE_LABELS: Record<PurchaseStage, string> = {
+  idle: '',
+  'building-tx': 'Building transaction...',
+  'awaiting-signature': 'Approve in wallet...',
+  confirming: 'Confirming on-chain...',
+  recording: 'Recording purchase...',
+  complete: 'Purchase complete!',
+  error: 'Purchase failed',
+};
 
 export default function MarketplacePage() {
   const { publicKey, connected } = useWallet();
-  const [templates, setTemplates] = useState<MarketplaceTemplate[]>([]);
+  const {
+    templates,
+    isLoading,
+    error,
+    fetchTemplates,
+    isTemplateOwned,
+    getStats,
+    featuredTemplates,
+  } = useMarketplace();
+  const purchaseFlow = useMarketplacePurchase();
+
   const [selectedCategory, setSelectedCategory] = useState<MarketplaceCategory | 'all'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [stats, setStats] = useState<ReturnType<typeof getMarketplaceStats> | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [ownedMap, setOwnedMap] = useState<Record<string, boolean>>({});
+  const [purchasingId, setPurchasingId] = useState<string | null>(null);
+
+  const stats = getStats();
 
   useEffect(() => {
-    loadTemplates();
-    setStats(getMarketplaceStats());
-  }, [selectedCategory, searchQuery]);
+    fetchTemplates({
+      category: selectedCategory === 'all' ? undefined : selectedCategory,
+      search: searchQuery || undefined,
+    });
+  }, [selectedCategory, searchQuery, fetchTemplates]);
 
-  function loadTemplates() {
-    let result: MarketplaceTemplate[];
-    
-    if (searchQuery) {
-      result = searchTemplates(searchQuery);
-    } else if (selectedCategory === 'all') {
-      result = getMarketplaceTemplates();
-    } else {
-      result = getTemplatesByCategory(selectedCategory);
-    }
-    
-    setTemplates(result);
-  }
+  useEffect(() => {
+    if (!publicKey || templates.length === 0) return;
+    const addr = publicKey.toBase58();
+    Promise.all(
+      templates.map(async (t) => {
+        const owned = await isTemplateOwned(t.id, addr);
+        return [t.id, owned] as const;
+      })
+    ).then((entries) => {
+      setOwnedMap(Object.fromEntries(entries));
+    });
+  }, [publicKey, templates, isTemplateOwned]);
 
-  async function handlePurchase(templateId: string) {
+  const handlePurchase = useCallback(async (template: MarketplaceTemplate) => {
     if (!publicKey) return;
+    setPurchasingId(template.id);
+    purchaseFlow.reset();
 
-    setIsLoading(true);
-    
-    // Simulate purchase delay
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    
-    const result = purchaseTemplate(templateId, publicKey.toBase58());
-    
+    const result = await purchaseFlow.purchase(
+      template.id,
+      template.creator_address,
+      template.price,
+    );
+
     if (result.success) {
-      loadTemplates();
-      alert('Template purchased successfully!');
-    } else {
-      alert(result.error || 'Purchase failed');
+      setOwnedMap((prev) => ({ ...prev, [template.id]: true }));
+      await fetchTemplates({
+        category: selectedCategory === 'all' ? undefined : selectedCategory,
+        search: searchQuery || undefined,
+      });
     }
-    
-    setIsLoading(false);
-  }
 
-  const featuredTemplates = getFeaturedTemplates();
+    setTimeout(() => {
+      setPurchasingId(null);
+      purchaseFlow.reset();
+    }, 3000);
+  }, [publicKey, purchaseFlow, fetchTemplates, selectedCategory, searchQuery]);
+
+  const showFeatured = selectedCategory === 'all' && !searchQuery && featuredTemplates.length > 0;
 
   return (
     <div className="min-h-screen bg-[#0a0a0f]">
-      {/* Header */}
       <header className="border-b border-white/10 bg-[#0a0a0f]/80 backdrop-blur-xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <Link href="/" className="text-2xl font-bold text-[#6366F1]">
@@ -94,18 +113,14 @@ export default function MarketplacePage() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Page Title */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">
-            Template Marketplace
-          </h1>
+          <h1 className="text-4xl font-bold text-white mb-4">Template Marketplace</h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
-            Discover and purchase premium ZK circuit templates from community creators. 
+            Discover and purchase premium ZK circuit templates from community creators.
             Creators earn {MARKETPLACE_CONFIG.CREATOR_SHARE}% of every sale.
           </p>
         </div>
 
-        {/* Stats */}
         {stats && (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
             <div className="bg-white/5 border border-white/10 rounded-xl p-4 text-center">
@@ -129,8 +144,26 @@ export default function MarketplacePage() {
           </div>
         )}
 
-        {/* Featured Templates */}
-        {featuredTemplates.length > 0 && selectedCategory === 'all' && !searchQuery && (
+        {error && (
+          <div className="mb-6 p-4 bg-red-500/10 border border-red-500/30 rounded-xl text-red-400 text-sm">
+            {error}
+          </div>
+        )}
+
+        {purchasingId && purchaseFlow.stage !== 'idle' && (
+          <div className={`mb-6 p-4 rounded-xl text-sm ${
+            purchaseFlow.stage === 'error'
+              ? 'bg-red-500/10 border border-red-500/30 text-red-400'
+              : purchaseFlow.stage === 'complete'
+              ? 'bg-green-500/10 border border-green-500/30 text-green-400'
+              : 'bg-[#6366F1]/10 border border-[#6366F1]/30 text-[#6366F1]'
+          }`}>
+            {STAGE_LABELS[purchaseFlow.stage]}
+            {purchaseFlow.error && ` — ${purchaseFlow.error}`}
+          </div>
+        )}
+
+        {showFeatured && (
           <div className="mb-12">
             <h2 className="text-2xl font-bold text-white mb-6">Featured Templates</h2>
             <div className="grid md:grid-cols-2 gap-6">
@@ -138,9 +171,9 @@ export default function MarketplacePage() {
                 <FeaturedTemplateCard
                   key={template.id}
                   template={template}
-                  isOwned={publicKey ? isTemplateOwned(template.id, publicKey.toBase58()) : false}
+                  isOwned={ownedMap[template.id] ?? false}
                   onPurchase={handlePurchase}
-                  isLoading={isLoading}
+                  isPurchasing={purchasingId === template.id && purchaseFlow.stage !== 'idle' && purchaseFlow.stage !== 'complete' && purchaseFlow.stage !== 'error'}
                   connected={connected}
                 />
               ))}
@@ -148,7 +181,6 @@ export default function MarketplacePage() {
           </div>
         )}
 
-        {/* Search and Filter */}
         <div className="flex flex-wrap gap-4 mb-8">
           <div className="flex-1 min-w-[250px]">
             <input
@@ -186,31 +218,36 @@ export default function MarketplacePage() {
           </div>
         </div>
 
-        {/* Templates Grid */}
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {templates.length === 0 ? (
-            <div className="col-span-full text-center py-12 bg-white/5 rounded-xl border border-white/10">
-              <p className="text-gray-400">No templates found</p>
-            </div>
-          ) : (
-            templates.map((template) => (
-              <TemplateCard
-                key={template.id}
-                template={template}
-                isOwned={publicKey ? isTemplateOwned(template.id, publicKey.toBase58()) : false}
-                onPurchase={handlePurchase}
-                isLoading={isLoading}
-                connected={connected}
-              />
-            ))
-          )}
-        </div>
+        {isLoading ? (
+          <div className="text-center py-12 bg-white/5 rounded-xl border border-white/10">
+            <div className="animate-spin w-8 h-8 border-2 border-[#6366F1] border-t-transparent rounded-full mx-auto mb-4" />
+            <p className="text-gray-400">Loading templates...</p>
+          </div>
+        ) : (
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {templates.length === 0 ? (
+              <div className="col-span-full text-center py-12 bg-white/5 rounded-xl border border-white/10">
+                <p className="text-gray-400">No templates found</p>
+              </div>
+            ) : (
+              templates.map((template) => (
+                <TemplateCard
+                  key={template.id}
+                  template={template}
+                  isOwned={ownedMap[template.id] ?? false}
+                  onPurchase={handlePurchase}
+                  isPurchasing={purchasingId === template.id && purchaseFlow.stage !== 'idle' && purchaseFlow.stage !== 'complete' && purchaseFlow.stage !== 'error'}
+                  connected={connected}
+                />
+              ))
+            )}
+          </div>
+        )}
 
-        {/* Become a Creator */}
         <div className="mt-12 bg-gradient-to-r from-[#6366F1]/20 to-[#8B5CF6]/20 border border-white/10 rounded-xl p-8 text-center">
           <h3 className="text-2xl font-bold text-white mb-4">Become a Creator</h3>
           <p className="text-gray-400 mb-6 max-w-2xl mx-auto">
-            Share your ZK circuit templates and earn {MARKETPLACE_CONFIG.CREATOR_SHARE}% 
+            Share your ZK circuit templates and earn {MARKETPLACE_CONFIG.CREATOR_SHARE}%
             of every sale. Build once, earn forever.
           </p>
           <Link
@@ -229,13 +266,13 @@ function FeaturedTemplateCard({
   template,
   isOwned,
   onPurchase,
-  isLoading,
+  isPurchasing,
   connected,
 }: {
   template: MarketplaceTemplate;
   isOwned: boolean;
-  onPurchase: (id: string) => void;
-  isLoading: boolean;
+  onPurchase: (t: MarketplaceTemplate) => void;
+  isPurchasing: boolean;
   connected: boolean;
 }) {
   return (
@@ -243,7 +280,7 @@ function FeaturedTemplateCard({
       <div className="absolute top-4 right-4 px-3 py-1 bg-[#6366F1] text-white text-xs font-bold rounded-full">
         FEATURED
       </div>
-      
+
       <div className="flex items-start gap-3 mb-4">
         <span className="px-2 py-1 text-xs font-medium bg-white/10 text-gray-300 rounded capitalize">
           {template.category}
@@ -262,7 +299,7 @@ function FeaturedTemplateCard({
         <div className="flex items-center gap-1">
           <span className="text-emerald-400">star</span>
           <span className="text-white">{template.rating.toFixed(1)}</span>
-          <span className="text-gray-500">({template.ratingCount})</span>
+          <span className="text-gray-500">({template.rating_count})</span>
         </div>
         <div className="text-gray-400">{template.downloads} downloads</div>
       </div>
@@ -274,18 +311,18 @@ function FeaturedTemplateCard({
           </span>
           <span className="text-gray-400 ml-1">zkRUNE</span>
         </div>
-        
+
         {isOwned ? (
           <span className="px-4 py-2 bg-green-500/20 text-green-400 rounded-lg font-medium">
             Owned
           </span>
         ) : connected ? (
           <button
-            onClick={() => onPurchase(template.id)}
-            disabled={isLoading}
+            onClick={() => onPurchase(template)}
+            disabled={isPurchasing}
             className="px-6 py-2 bg-[#6366F1] text-white font-medium rounded-lg hover:bg-[#5b4bd4] transition disabled:opacity-50"
           >
-            Purchase
+            {isPurchasing ? 'Processing...' : 'Purchase'}
           </button>
         ) : (
           <span className="text-gray-500 text-sm">Connect wallet</span>
@@ -299,13 +336,13 @@ function TemplateCard({
   template,
   isOwned,
   onPurchase,
-  isLoading,
+  isPurchasing,
   connected,
 }: {
   template: MarketplaceTemplate;
   isOwned: boolean;
-  onPurchase: (id: string) => void;
-  isLoading: boolean;
+  onPurchase: (t: MarketplaceTemplate) => void;
+  isPurchasing: boolean;
   connected: boolean;
 }) {
   return (
@@ -334,10 +371,7 @@ function TemplateCard({
 
       <div className="flex flex-wrap gap-2 mb-4">
         {template.tags.slice(0, 3).map((tag) => (
-          <span
-            key={tag}
-            className="px-2 py-1 text-xs bg-white/5 text-gray-400 rounded"
-          >
+          <span key={tag} className="px-2 py-1 text-xs bg-white/5 text-gray-400 rounded">
             #{tag}
           </span>
         ))}
@@ -350,18 +384,18 @@ function TemplateCard({
           </span>
           <span className="text-gray-400 ml-1 text-sm">zkRUNE</span>
         </div>
-        
+
         {isOwned ? (
           <span className="px-3 py-1 bg-green-500/20 text-green-400 rounded text-sm font-medium">
             Owned
           </span>
         ) : connected ? (
           <button
-            onClick={() => onPurchase(template.id)}
-            disabled={isLoading}
+            onClick={() => onPurchase(template)}
+            disabled={isPurchasing}
             className="px-4 py-2 bg-[#6366F1] text-white text-sm font-medium rounded-lg hover:bg-[#5b4bd4] transition disabled:opacity-50"
           >
-            Buy
+            {isPurchasing ? 'Processing...' : 'Buy'}
           </button>
         ) : (
           <span className="text-gray-500 text-xs">Connect wallet</span>
@@ -370,4 +404,3 @@ function TemplateCard({
     </div>
   );
 }
-

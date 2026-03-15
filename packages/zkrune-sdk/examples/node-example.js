@@ -1,31 +1,25 @@
-// Node.js example for zkRune SDK
-const { generateProof, templates } = require('zkrune-sdk');
+const { ZkRune, templates } = require('zkrune-sdk');
 
 async function main() {
-  console.log('zkRune SDK - Node.js Example\n');
+  const zk = new ZkRune({ debug: true });
 
-  // Generate an age verification proof
+  console.log('zkRune SDK v2 — Node.js Example\n');
+
   console.log('Generating age verification proof...');
-  
-  const result = await generateProof({
-    templateId: templates.AGE_VERIFICATION,
-    inputs: {
-      birthYear: '1975',
-      currentYear: '2024',
-      minimumAge: '18'
-    }
+  const result = await zk.prove('age-verification', {
+    birthYear: '1975',
+    currentYear: '2026',
+    minimumAge: '18',
   });
 
   if (result.success) {
-    console.log('\n Proof Generated Successfully!');
-    console.log(`Time taken: ${result.timing}ms`);
+    console.log('\nProof generated!');
+    console.log(`Time: ${result.timing}ms`);
     console.log(`Valid: ${result.proof.isValid}`);
-    console.log(`Proof Hash: ${result.proof.proofHash}`);
-    console.log(`\nNote: ${result.proof.note}`);
+    console.log(`Hash: ${result.proof.proofHash}`);
   } else {
-    console.error('\n Error:', result.error);
+    console.error('\nError:', result.error);
   }
 }
 
 main().catch(console.error);
-

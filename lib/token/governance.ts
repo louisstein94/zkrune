@@ -1,5 +1,9 @@
-// zkRune Governance System
-// Vote on community templates and features
+/**
+ * @deprecated This module uses localStorage for storage.
+ * Use `@/lib/hooks/useGovernance` instead, which connects to the
+ * Supabase-backed API at /api/governance/*.
+ */
+// zkRune Governance System (DEPRECATED — localStorage)
 
 import { GOVERNANCE_CONFIG, type ProposalType } from './config';
 

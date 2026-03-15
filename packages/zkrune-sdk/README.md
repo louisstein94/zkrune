@@ -1,152 +1,142 @@
 # zkrune-sdk
 
-JavaScript SDK for zkRune - Generate zero-knowledge proofs in your app.
+Zero-knowledge proof SDK for Solana. Generate and verify Groth16 zk-SNARK proofs entirely client-side.
 
-## Installation
+## Install
 
 ```bash
 npm install zkrune-sdk
-# or
-yarn add zkrune-sdk
 ```
 
 ## Quick Start
 
 ```typescript
-import { generateProof, templates } from 'zkrune-sdk';
+import { ZkRune, templates } from 'zkrune-sdk';
 
-// Generate an age verification proof
-const result = await generateProof({
-  templateId: templates.AGE_VERIFICATION,
-  inputs: {
-    birthYear: '1995',
-    currentYear: '2024',
-    minimumAge: '18'
-  }
+const zk = new ZkRune();
+
+const result = await zk.prove('age-verification', {
+  birthYear: '1990',
+  currentYear: '2026',
+  minimumAge: '18',
 });
 
 if (result.success) {
-  console.log('Proof generated!', result.proof);
-  console.log('Time taken:', result.timing, 'ms');
+  console.log('Proof valid:', result.proof.isValid);
+  console.log('Generated in:', result.timing, 'ms');
 }
 ```
 
-## Features
+## Verify Against Hosted Verifier
 
-- **Browser & Node.js compatible**
-- **Real Groth16 zk-SNARKs**
-- **13 ready-to-use templates**
-- **Client-side proof generation**
-- **TypeScript support**
-- **Zero dependencies** (except snarkjs)
-- **Zcash-powered privacy**
+```typescript
+const { isValid } = await zk.verifyRemote({
+  circuitName: 'age-verification',
+  proof: result.proof.groth16Proof,
+  publicSignals: result.proof.publicSignals,
+});
+```
+
+## Standalone Functions
+
+For backward compatibility, standalone functions are also available:
+
+```typescript
+import { generateProof, verifyProof, verifyProofRemote } from 'zkrune-sdk';
+```
+
+## Configuration
+
+```typescript
+const zk = new ZkRune({
+  circuitBaseUrl: 'https://zkrune.com/circuits', // default
+  verifierUrl: 'https://zkrune.com/api/verify-proof', // default
+  debug: false, // set true for console output
+  timeout: 30_000, // remote verify timeout (ms)
+  cache: true, // cache circuit files in memory
+});
+```
+
+## Progress Tracking
+
+```typescript
+const result = await zk.prove('balance-proof', inputs, {
+  onProgress: (stage) => {
+    // stage: 'loading-circuit' | 'generating-proof' | 'verifying' | 'complete'
+    updateUI(stage);
+  },
+});
+```
+
+## Preload Circuits
+
+```typescript
+// Preload circuit files for faster first proof
+await zk.preload('age-verification');
+```
 
 ## Available Templates
 
 ### Identity & Access
-- `age-verification` - Prove age without revealing exact date
-- `credential-proof` - Prove valid credentials without revealing data
-- `membership-proof` - Prove membership without identity
+| Template | ID | Inputs |
+|----------|----|--------|
+| Age Verification | `age-verification` | birthYear, currentYear, minimumAge |
+| Membership Proof | `membership-proof` | memberId, groupHash |
+| Credential Proof | `credential-proof` | credentialHash, credentialSecret, validUntil, currentTime, expectedHash |
 
 ### Financial
-- `balance-proof` - Prove minimum balance without amount
-- `token-swap` - Prove sufficient balance for swap anonymously
-- `range-proof` - Prove value in range without exact number
+| Template | ID | Inputs |
+|----------|----|--------|
+| Balance Proof | `balance-proof` | balance, minimumBalance |
+| Token Swap | `token-swap` | tokenABalance, swapSecret, requiredTokenA, swapRate, minReceive |
+| Range Proof | `range-proof` | value, minRange, maxRange |
 
 ### Governance
-- `private-voting` - Vote anonymously with proof
-- `quadratic-voting` - Fair governance voting with quadratic weighting
+| Template | ID | Inputs |
+|----------|----|--------|
+| Private Voting | `private-voting` | voterId, voteChoice, pollId |
+| Quadratic Voting | `quadratic-voting` | voterId, tokenBalance, voteChoice, pollId, minTokens |
 
-### Cryptography & Advanced
-- `hash-preimage` - Prove you know secret X where hash(X) = Y
-- `signature-verification` - Verify signatures without revealing private key
-- `patience-proof` - Prove you waited a time period
-- `nft-ownership` - Prove NFT ownership without revealing which NFT
-- `anonymous-reputation` - Prove reputation score exceeds threshold
+### Cryptographic
+| Template | ID | Inputs |
+|----------|----|--------|
+| Hash Preimage | `hash-preimage` | preimage, salt, expectedHash |
+| Signature Verification | `signature-verification` | R8x, R8y, S, Ax, Ay, M |
+| Patience Proof | `patience-proof` | startTime, endTime, secret, minimumWaitTime, commitmentHash |
+| NFT Ownership | `nft-ownership` | nftTokenId, ownerSecret, collectionRoot, minTokenId, maxTokenId |
+| Anonymous Reputation | `anonymous-reputation` | userId, reputationScore, userNonce, thresholdScore, platformId |
 
-## API Reference
+## Input Validation
 
-### `generateProof(options)`
-
-Generates a zero-knowledge proof.
-
-**Parameters:**
-- `templateId` (string) - Template identifier
-- `inputs` (object) - Input values for the circuit
-- `circuitPath` (string, optional) - Custom circuit path
-
-**Returns:** `Promise<ZKProofResult>`
-
-### `verifyProof(params)`
-
-Verifies a zero-knowledge proof.
-
-**Parameters:**
-- `proof` - The Groth16 proof object
-- `publicSignals` - Public signals array
-- `verificationKey` - Verification key object
-
-**Returns:** `Promise<boolean>`
-
-## Examples
-
-### Balance Proof
+All inputs are validated at runtime against circuit schemas before proof generation. Invalid inputs return a descriptive error:
 
 ```typescript
-import { generateProof, templates } from 'zkrune-sdk';
-
-const proof = await generateProof({
-  templateId: templates.BALANCE_PROOF,
-  inputs: {
-    balance: '10000',
-    minimumBalance: '5000'
-  }
+const result = await zk.prove('age-verification', {
+  birthYear: '1990',
+  // missing currentYear and minimumAge
 });
+// result.success === false
+// result.error === 'Invalid inputs: missing required field "currentYear", missing required field "minimumAge"'
 ```
 
-### Membership Proof
+## Self-Hosting
+
+Point the SDK to your own circuit files and verifier:
 
 ```typescript
-const proof = await generateProof({
-  templateId: templates.MEMBERSHIP_PROOF,
-  inputs: {
-    memberId: '123456',
-    groupHash: '999'
-  }
-});
-```
-
-### NFT Ownership Proof
-
-```typescript
-const proof = await generateProof({
-  templateId: templates.NFT_OWNERSHIP,
-  inputs: {
-    nftId: '42',
-    collectionId: '100'
-  }
-});
-```
-
-### Quadratic Voting
-
-```typescript
-const proof = await generateProof({
-  templateId: templates.QUADRATIC_VOTING,
-  inputs: {
-    voteCount: '5',
-    credits: '25'
-  }
+const zk = new ZkRune({
+  circuitBaseUrl: 'https://your-domain.com/circuits',
+  verifierUrl: 'https://your-domain.com/api/verify-proof',
 });
 ```
 
 ## Links
 
-- **Website:** [zkrune.com](https://zkrune.com)
-- **GitHub:** [louisstein94/zkrune](https://github.com/louisstein94/zkrune)
-- **Twitter:** [@rune_zk](https://x.com/rune_zk)
+- [zkrune.com](https://zkrune.com)
+- [Integration Guide](https://zkrune.com/docs)
+- [GitHub](https://github.com/louisstein94/zkrune)
+- [@rune_zk](https://x.com/rune_zk)
 
 ## License
 
 MIT
-

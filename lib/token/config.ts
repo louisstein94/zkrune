@@ -17,8 +17,12 @@ export const ZKRUNE_TOKEN = {
   // Burn address (Solana system program null address)
   BURN_ADDRESS: '11111111111111111111111111111111',
   
-  // Treasury address for marketplace fees
+  // Treasury address for marketplace fees (operational reserve)
   TREASURY_ADDRESS: process.env.NEXT_PUBLIC_TREASURY_ADDRESS || '',
+
+  // Staking reward vault — token account that funds staker rewards.
+  // Platform fees are routed here so stakers earn from marketplace activity.
+  REWARD_VAULT_ADDRESS: process.env.NEXT_PUBLIC_REWARD_VAULT_ADDRESS || '',
   
   // Staking program address
   STAKING_PROGRAM: process.env.NEXT_PUBLIC_STAKING_PROGRAM || '',
@@ -140,11 +144,16 @@ export const STAKING_CONFIG = {
 
 // Marketplace configuration
 export const MARKETPLACE_CONFIG = {
-  // Platform fee percentage (goes to treasury)
+  // Platform fee percentage
   PLATFORM_FEE: 5,
   
   // Creator share percentage
   CREATOR_SHARE: 95,
+
+  // Percentage of platform fee routed to staking reward vault.
+  // Remainder stays in treasury for operations.
+  // 100 = all fees go to stakers, 0 = all fees stay in treasury.
+  REWARD_POOL_SHARE: 100,
   
   // Minimum template price in zkRUNE
   MIN_TEMPLATE_PRICE: 10,

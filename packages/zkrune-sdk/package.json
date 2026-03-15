@@ -1,16 +1,26 @@
 {
   "name": "zkrune-sdk",
-  "version": "1.2.1",
-  "description": "JavaScript SDK for zkRune - Generate zero-knowledge proofs with Zcash's Groth16 technology",
+  "version": "2.0.0",
+  "description": "Zero-knowledge proof SDK for Solana — generate and verify Groth16 proofs client-side",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
   "files": [
     "dist"
   ],
   "scripts": {
-    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
     "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
     "prepublishOnly": "npm run build"
   },
   "keywords": [
@@ -31,12 +41,15 @@
     "directory": "packages/zkrune-sdk"
   },
   "homepage": "https://zkrune.com",
+  "engines": {
+    "node": ">=18"
+  },
   "dependencies": {
     "snarkjs": "^0.7.4"
   },
   "devDependencies": {
     "tsup": "^8.0.1",
-    "typescript": "^5.3.3"
+    "typescript": "^5.3.3",
+    "vitest": "^3.0.0"
   }
 }
-

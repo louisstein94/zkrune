@@ -1,8 +1,7 @@
 -- zkRune Database Schema
 -- Run this in Supabase SQL Editor to create tables
 
--- Enable UUID extension
-CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+-- gen_random_uuid() is built-in since PostgreSQL 13 — no extension needed
 
 -- =====================================================
 -- GOVERNANCE TABLES
@@ -10,7 +9,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 
 -- Proposals table
 CREATE TABLE IF NOT EXISTS proposals (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   type TEXT NOT NULL CHECK (type IN ('template', 'feature', 'parameter')),
   title TEXT NOT NULL,
   description TEXT NOT NULL,
@@ -28,7 +27,7 @@ CREATE TABLE IF NOT EXISTS proposals (
 
 -- Votes table
 CREATE TABLE IF NOT EXISTS votes (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   proposal_id UUID NOT NULL REFERENCES proposals(id) ON DELETE CASCADE,
   voter TEXT NOT NULL,
   support BOOLEAN NOT NULL,
@@ -43,7 +42,7 @@ CREATE TABLE IF NOT EXISTS votes (
 
 -- Marketplace Templates
 CREATE TABLE IF NOT EXISTS marketplace_templates (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   name TEXT NOT NULL,
   description TEXT NOT NULL,
   creator TEXT NOT NULL,
@@ -65,14 +64,28 @@ CREATE TABLE IF NOT EXISTS marketplace_templates (
 
 -- Purchases
 CREATE TABLE IF NOT EXISTS purchases (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   template_id UUID NOT NULL REFERENCES marketplace_templates(id) ON DELETE CASCADE,
   buyer TEXT NOT NULL,
   seller TEXT NOT NULL,
   price NUMERIC NOT NULL,
   platform_fee NUMERIC NOT NULL,
   creator_revenue NUMERIC NOT NULL,
+  reward_vault_amount NUMERIC DEFAULT 0,
+  treasury_amount NUMERIC DEFAULT 0,
+  fee_destination TEXT DEFAULT 'treasury',
   transaction_signature TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Treasury Distributions (tracks fee routing to reward vault)
+CREATE TABLE IF NOT EXISTS treasury_distributions (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  source TEXT NOT NULL DEFAULT 'marketplace_fees',
+  amount NUMERIC NOT NULL,
+  destination TEXT NOT NULL,
+  transaction_signature TEXT,
+  distributed_by TEXT,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -82,7 +95,7 @@ CREATE TABLE IF NOT EXISTS purchases (
 
 -- Staking Positions
 CREATE TABLE IF NOT EXISTS staking_positions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   staker TEXT NOT NULL,
   amount NUMERIC NOT NULL,
   lock_period_days INTEGER NOT NULL,
@@ -100,7 +113,7 @@ CREATE TABLE IF NOT EXISTS staking_positions (
 
 -- Premium Status
 CREATE TABLE IF NOT EXISTS premium_status (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet TEXT UNIQUE NOT NULL,
   tier TEXT DEFAULT 'FREE' CHECK (tier IN ('FREE', 'BUILDER', 'PRO', 'ENTERPRISE')),
   total_burned NUMERIC DEFAULT 0,
@@ -112,7 +125,7 @@ CREATE TABLE IF NOT EXISTS premium_status (
 
 -- Burn History
 CREATE TABLE IF NOT EXISTS burn_history (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet TEXT NOT NULL,
   amount NUMERIC NOT NULL,
   tier TEXT NOT NULL,
@@ -126,7 +139,7 @@ CREATE TABLE IF NOT EXISTS burn_history (
 
 -- Ceremony Contributions
 CREATE TABLE IF NOT EXISTS ceremony_contributions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   contribution_index INTEGER NOT NULL UNIQUE,
   contributor_name TEXT NOT NULL,
   contribution_hash TEXT NOT NULL,
@@ -167,6 +180,31 @@ ALTER TABLE staking_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE premium_status ENABLE ROW LEVEL SECURITY;
 ALTER TABLE burn_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ceremony_contributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE treasury_distributions ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies (idempotent re-run)
+DROP POLICY IF EXISTS "Public read proposals" ON proposals;
+DROP POLICY IF EXISTS "Public read templates" ON marketplace_templates;
+DROP POLICY IF EXISTS "Allow insert proposals" ON proposals;
+DROP POLICY IF EXISTS "Allow insert votes" ON votes;
+DROP POLICY IF EXISTS "Allow insert templates" ON marketplace_templates;
+DROP POLICY IF EXISTS "Allow insert purchases" ON purchases;
+DROP POLICY IF EXISTS "Allow insert staking" ON staking_positions;
+DROP POLICY IF EXISTS "Allow insert premium" ON premium_status;
+DROP POLICY IF EXISTS "Allow insert burn" ON burn_history;
+DROP POLICY IF EXISTS "Allow insert ceremony" ON ceremony_contributions;
+DROP POLICY IF EXISTS "Allow update proposals" ON proposals;
+DROP POLICY IF EXISTS "Allow update templates" ON marketplace_templates;
+DROP POLICY IF EXISTS "Allow update staking" ON staking_positions;
+DROP POLICY IF EXISTS "Allow update premium" ON premium_status;
+DROP POLICY IF EXISTS "Public read votes" ON votes;
+DROP POLICY IF EXISTS "Public read purchases" ON purchases;
+DROP POLICY IF EXISTS "Public read staking" ON staking_positions;
+DROP POLICY IF EXISTS "Public read premium" ON premium_status;
+DROP POLICY IF EXISTS "Public read burn" ON burn_history;
+DROP POLICY IF EXISTS "Public read ceremony" ON ceremony_contributions;
+DROP POLICY IF EXISTS "Public read distributions" ON treasury_distributions;
+DROP POLICY IF EXISTS "Allow insert distributions" ON treasury_distributions;
 
 -- Public read access for proposals and templates
 CREATE POLICY "Public read proposals" ON proposals FOR SELECT USING (true);
@@ -195,6 +233,8 @@ CREATE POLICY "Public read staking" ON staking_positions FOR SELECT USING (true)
 CREATE POLICY "Public read premium" ON premium_status FOR SELECT USING (true);
 CREATE POLICY "Public read burn" ON burn_history FOR SELECT USING (true);
 CREATE POLICY "Public read ceremony" ON ceremony_contributions FOR SELECT USING (true);
+CREATE POLICY "Public read distributions" ON treasury_distributions FOR SELECT USING (true);
+CREATE POLICY "Allow insert distributions" ON treasury_distributions FOR INSERT WITH CHECK (true);
 
 -- =====================================================
 -- SEED DATA

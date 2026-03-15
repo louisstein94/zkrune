@@ -25,8 +25,10 @@ interface Proposal {
   voter_count: number;
 }
 
-function isSupabaseConfigured(): boolean {
-  return Boolean(supabaseUrl && supabaseKey);
+function requireSupabase() {
+  if (!supabaseUrl || !supabaseKey) {
+    throw new Error('Supabase not configured');
+  }
 }
 
 async function supabaseFetch(endpoint: string, options?: RequestInit) {
@@ -41,65 +43,46 @@ async function supabaseFetch(endpoint: string, options?: RequestInit) {
   });
 }
 
-// GET votes for a proposal or by voter
 export async function GET(request: NextRequest) {
+  try {
+    requireSupabase();
+  } catch {
+    return NextResponse.json({ success: false, error: 'Database not configured' }, { status: 503 });
+  }
+
   const { searchParams } = new URL(request.url);
   const proposalId = searchParams.get('proposalId');
   const voter = searchParams.get('voter');
 
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({
-      success: true,
-      data: [],
-      source: 'mock',
-    });
-  }
-
   try {
     let url = 'votes?select=*&order=created_at.desc';
-    
-    if (proposalId) {
-      url += `&proposal_id=eq.${proposalId}`;
-    }
-    if (voter) {
-      url += `&voter=eq.${voter}`;
-    }
+    if (proposalId) url += `&proposal_id=eq.${proposalId}`;
+    if (voter) url += `&voter=eq.${voter}`;
 
     const response = await supabaseFetch(url);
     if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
-    
+
     const data: Vote[] = await response.json();
 
-    return NextResponse.json({
-      success: true,
-      data: data || [],
-      source: 'supabase',
-    });
+    return NextResponse.json({ success: true, data: data || [] });
   } catch (error: unknown) {
     console.error('Error fetching votes:', error);
-    return NextResponse.json({
-      success: true,
-      data: [],
-      source: 'fallback',
-    });
+    const message = error instanceof Error ? error.message : 'Unknown error';
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
 
-// POST - Cast a vote
 export async function POST(request: NextRequest) {
-  if (!isSupabaseConfigured()) {
-    return NextResponse.json({
-      success: false,
-      error: 'Database not configured',
-    }, { status: 503 });
+  try {
+    requireSupabase();
+  } catch {
+    return NextResponse.json({ success: false, error: 'Database not configured' }, { status: 503 });
   }
 
   try {
     const body = await request.json();
-    // tokenBalance is no longer accepted from the client — fetched on-chain below
     const { proposalId, voter, support, signedMessage, signature } = body;
 
-    // Validate required fields
     if (!proposalId || !voter || support === undefined || !signedMessage || !signature) {
       return NextResponse.json({
         success: false,
@@ -107,8 +90,6 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Verify caller owns the voter wallet AND that the signed message binds
-    // proposalId and support — prevents reuse across different proposals/choices
     if (!verifyAuth(
       { wallet: voter, signedMessage, signature },
       'vote',
@@ -120,7 +101,6 @@ export async function POST(request: NextRequest) {
       }, { status: 401 });
     }
 
-    // Fetch actual token balance on-chain — never trust client-supplied values
     const rpcUrl = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.mainnet-beta.solana.com';
     const connection = new Connection(rpcUrl, 'confirmed');
     const mintPubkey = new PublicKey(ZKRUNE_TOKEN.MINT_ADDRESS);
@@ -131,10 +111,9 @@ export async function POST(request: NextRequest) {
       const accountInfo = await connection.getTokenAccountBalance(ata);
       tokenBalance = accountInfo.value.uiAmount ?? 0;
     } catch {
-      // Token account doesn't exist → balance is 0
+      // Token account doesn't exist
     }
 
-    // Check minimum tokens
     if (tokenBalance < GOVERNANCE_CONFIG.MIN_TOKENS_TO_VOTE) {
       return NextResponse.json({
         success: false,
@@ -142,12 +121,11 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Check if already voted
     const existingRes = await supabaseFetch(
       `votes?proposal_id=eq.${proposalId}&voter=eq.${voter}&select=id`
     );
     const existingVotes: Vote[] = await existingRes.json();
-    
+
     if (existingVotes && existingVotes.length > 0) {
       return NextResponse.json({
         success: false,
@@ -155,19 +133,14 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Get proposal
     const proposalRes = await supabaseFetch(`proposals?id=eq.${proposalId}&select=*`);
     const proposals: Proposal[] = await proposalRes.json();
     const proposal = proposals[0];
 
     if (!proposal) {
-      return NextResponse.json({
-        success: false,
-        error: 'Proposal not found',
-      }, { status: 404 });
+      return NextResponse.json({ success: false, error: 'Proposal not found' }, { status: 404 });
     }
 
-    // Check if voting is still open
     if (proposal.status !== 'active' || new Date() > new Date(proposal.ends_at)) {
       return NextResponse.json({
         success: false,
@@ -175,24 +148,16 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    // Calculate vote weight (quadratic voting) using the on-chain balance
     const weight = Math.sqrt(tokenBalance);
 
-    // Insert vote
     const voteRes = await supabaseFetch('votes', {
       method: 'POST',
       headers: { 'Prefer': 'return=representation' },
-      body: JSON.stringify({
-        proposal_id: proposalId,
-        voter,
-        support,
-        weight,
-      }),
+      body: JSON.stringify({ proposal_id: proposalId, voter, support, weight }),
     });
 
     if (!voteRes.ok) throw new Error('Failed to cast vote');
 
-    // Update proposal votes
     const newVotesFor = support ? proposal.votes_for + weight : proposal.votes_for;
     const newVotesAgainst = !support ? proposal.votes_against + weight : proposal.votes_against;
     const newVoterCount = proposal.voter_count + 1;
@@ -209,16 +174,10 @@ export async function POST(request: NextRequest) {
       }),
     });
 
-    return NextResponse.json({
-      success: true,
-      weight,
-    });
+    return NextResponse.json({ success: true, weight });
   } catch (error: unknown) {
     console.error('Error casting vote:', error);
     const message = error instanceof Error ? error.message : 'Unknown error';
-    return NextResponse.json({
-      success: false,
-      error: message,
-    }, { status: 500 });
+    return NextResponse.json({ success: false, error: message }, { status: 500 });
   }
 }
