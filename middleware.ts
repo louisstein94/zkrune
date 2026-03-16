@@ -78,10 +78,10 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - current.count };
 }
 
-// Embed page: allow being framed so it can be used in iframes on other sites
+// Embed page: allow being framed + allow widget to load snarkjs from CDN
 const embedCsp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+  "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net",
   "worker-src 'self' blob:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: https:",
