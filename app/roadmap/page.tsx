@@ -52,7 +52,7 @@ const phases = [
     color: "zk-secondary",
     colorHex: "#34D399",
     items: [
-      { text: "Embeddable verification widget (script-tag integration)", done: false },
+      { text: "Embeddable verification widget (script-tag integration)", done: true },
       { text: "First 3 integrations onboarded", done: false },
       { text: "On-chain data source for balance proof (Solana RPC)", done: false },
       { text: "Issuer / registry model for membership proof", done: false },
