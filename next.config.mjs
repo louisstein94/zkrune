@@ -27,6 +27,7 @@ const nextConfig = {
   // Experimental features for better performance
   experimental: {
     optimizePackageImports: ['@solana/web3.js', 'reactflow'],
+    serverComponentsExternalPackages: ['snarkjs', 'ffjavascript'],
   },
   // Webpack configuration for snarkjs
   webpack: (config, { isServer }) => {

@@ -4,6 +4,8 @@ import fs from "fs/promises";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
+export const runtime = 'nodejs';
+export const maxDuration = 30;
 
 // Circuit names the server trusts — must match filenames in public/circuits/
 const TRUSTED_CIRCUITS = new Set([
