@@ -78,15 +78,16 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - current.count };
 }
 
-// Embed page: allow being framed + allow widget to load snarkjs from CDN
+// Embed page: allow framing, CDN scripts, blob workers, and circuit fetches
 const embedCsp = [
   "default-src 'self'",
-  "script-src 'self' 'unsafe-eval' 'unsafe-inline' https://cdn.jsdelivr.net",
+  "script-src 'self' 'unsafe-eval' 'unsafe-inline' blob: https://cdn.jsdelivr.net",
   "worker-src 'self' blob:",
+  "child-src 'self' blob:",
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "img-src 'self' data: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
-  "connect-src 'self' https://mainnet.lightwalletd.com:9067 https://*.vercel.app",
+  "connect-src 'self' https://zkrune.com https://www.zkrune.com https://mainnet.lightwalletd.com:9067 https://*.vercel.app",
   "frame-ancestors *",
   "base-uri 'self'",
   "form-action 'self'",

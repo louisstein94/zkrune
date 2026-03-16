@@ -10,7 +10,7 @@
   },
   "headers": [
     {
-      "source": "/(.*)",
+      "source": "/((?!widget/embed).*)",
       "headers": [
         {
           "key": "X-Content-Type-Options",
@@ -19,6 +19,19 @@
         {
           "key": "X-Frame-Options",
           "value": "DENY"
+        },
+        {
+          "key": "X-XSS-Protection",
+          "value": "1; mode=block"
+        }
+      ]
+    },
+    {
+      "source": "/widget/embed",
+      "headers": [
+        {
+          "key": "X-Content-Type-Options",
+          "value": "nosniff"
         },
         {
           "key": "X-XSS-Protection",
