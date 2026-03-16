@@ -4,7 +4,7 @@ import type { NextRequest } from 'next/server';
 // Rate limiting store (in-memory, consider Redis for production)
 const rateLimit = new Map<string, { count: number; resetTime: number }>();
 
-// Security headers configuration
+// Security headers configuration (default: no framing)
 const securityHeaders = {
   // Content Security Policy
   'Content-Security-Policy': [
@@ -19,7 +19,7 @@ const securityHeaders = {
     "base-uri 'self'",
     "form-action 'self'",
   ].join('; '),
-  
+
   // Prevent clickjacking
   'X-Frame-Options': 'DENY',
   
@@ -78,13 +78,37 @@ function checkRateLimit(key: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - current.count };
 }
 
+// Embed page: allow being framed so it can be used in iframes on other sites
+const embedCsp = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
+  "worker-src 'self' blob:",
+  "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+  "img-src 'self' data: https:",
+  "font-src 'self' data: https://fonts.gstatic.com",
+  "connect-src 'self' https://mainnet.lightwalletd.com:9067 https://*.vercel.app",
+  "frame-ancestors *",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ');
+
 export function middleware(request: NextRequest) {
   const response = NextResponse.next();
+  const isEmbed = request.nextUrl.pathname.startsWith('/widget/embed');
 
-  // Apply security headers
-  Object.entries(securityHeaders).forEach(([key, value]) => {
-    response.headers.set(key, value);
-  });
+  if (isEmbed) {
+    response.headers.set('Content-Security-Policy', embedCsp);
+    response.headers.delete('X-Frame-Options');
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      if (key !== 'Content-Security-Policy' && key !== 'X-Frame-Options') {
+        response.headers.set(key, value);
+      }
+    });
+  } else {
+    Object.entries(securityHeaders).forEach(([key, value]) => {
+      response.headers.set(key, value);
+    });
+  }
 
   // Apply rate limiting only to API routes
   if (request.nextUrl.pathname.startsWith('/api/')) {
