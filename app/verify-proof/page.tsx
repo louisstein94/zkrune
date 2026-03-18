@@ -93,23 +93,29 @@ export default function VerifyProofPage() {
       // Verify Groth16 proof via server — server loads the trusted vKey,
       // the client never supplies it (prevents vKey substitution attacks).
       let cryptoVerified = false;
+      let attestationLevel: string | null = null;
       if (isRealProof && groth16Valid) {
         try {
           console.log('[Verify] Sending proof to server for trusted vKey verification...');
 
           const circuitName = proof.circuitName || proof.metadata?.template || 'age-verification';
 
+          const circuitPayload: Record<string, unknown> = {
+            proof: proof.groth16Proof,
+            publicSignals: proof.publicSignals,
+            circuitName,
+          };
+          if (proof.walletAddress) circuitPayload.walletAddress = proof.walletAddress;
+          if (proof.mintAddress) circuitPayload.mintAddress = proof.mintAddress;
+
           const res = await fetch('/api/verify-proof', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              proof: proof.groth16Proof,
-              publicSignals: proof.publicSignals,
-              circuitName,
-            }),
+            body: JSON.stringify(circuitPayload),
           });
           const verifyData = await res.json();
           cryptoVerified = verifyData.success && verifyData.isValid;
+          attestationLevel = verifyData.attestation || null;
 
           console.log('[Verify] Server result:', verifyData);
         } catch (verifyError) {
@@ -130,6 +136,7 @@ export default function VerifyProofPage() {
                   ? "Proof format is valid!"
                   : "Proof marked as invalid"))
           : "Missing required fields",
+        attestation: attestationLevel,
         details: {
           statement: proof.statement,
           timestamp: proof.timestamp,
@@ -339,11 +346,29 @@ export default function VerifyProofPage() {
                   </svg>
                 )}
                 <div>
-                  <h2 className="font-hatton text-3xl text-white mb-2">
-                    {result.success && result.isValid
-                      ? "Proof is Valid!"
-                      : "Proof is Invalid"}
-                  </h2>
+                  <div className="flex items-center gap-3 mb-2">
+                    <h2 className="font-hatton text-3xl text-white">
+                      {result.success && result.isValid
+                        ? "Proof is Valid!"
+                        : "Proof is Invalid"}
+                    </h2>
+                    {result.attestation === 'attested' && (
+                      <span className="px-3 py-1 text-xs font-medium bg-green-500/20 text-green-400 rounded-full border border-green-500/30 flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.352.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                        </svg>
+                        On-Chain Attested
+                      </span>
+                    )}
+                    {result.attestation === 'self-asserted' && (
+                      <span className="px-3 py-1 text-xs font-medium bg-yellow-500/20 text-yellow-400 rounded-full border border-yellow-500/30 flex items-center gap-1.5">
+                        <svg className="w-3.5 h-3.5" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                        </svg>
+                        Self-Asserted
+                      </span>
+                    )}
+                  </div>
                   <p className="text-zk-gray">
                     {result.success && result.isValid
                       ? result.message || "This proof passed all validation checks"

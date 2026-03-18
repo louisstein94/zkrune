@@ -1,11 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import path from "path";
 import fs from "fs/promises";
+import { Connection, PublicKey } from "@solana/web3.js";
+import { getAssociatedTokenAddressSync } from "@solana/spl-token";
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 export const runtime = 'nodejs';
 export const maxDuration = 30;
+
+const ZKRUNE_MINT = process.env.NEXT_PUBLIC_ZKRUNE_MINT || '51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump';
+
+function getRpcUrl(): string {
+  return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
+}
+
+async function checkOnChainBalance(
+  walletAddress: string,
+  minimumBalance: bigint,
+  mintAddress?: string,
+): Promise<{ sufficient: boolean; onChainBalance: string }> {
+  const connection = new Connection(getRpcUrl(), 'confirmed');
+  const walletPubkey = new PublicKey(walletAddress);
+  const mint = mintAddress || ZKRUNE_MINT;
+
+  let rawBalance: bigint;
+
+  if (mint === 'SOL') {
+    const lamports = await connection.getBalance(walletPubkey);
+    rawBalance = BigInt(lamports);
+  } else {
+    const mintPubkey = new PublicKey(mint);
+    const ata = getAssociatedTokenAddressSync(mintPubkey, walletPubkey);
+    try {
+      const tokenBalance = await connection.getTokenAccountBalance(ata);
+      rawBalance = BigInt(tokenBalance.value.amount);
+    } catch {
+      rawBalance = 0n;
+    }
+  }
+
+  return {
+    sufficient: rawBalance >= minimumBalance,
+    onChainBalance: rawBalance.toString(),
+  };
+}
 
 // Circuit names the server trusts — must match filenames in public/circuits/
 const TRUSTED_CIRCUITS = new Set([
@@ -42,8 +81,7 @@ async function loadTrustedVKey(circuitName: string): Promise<object | null> {
 
 export async function POST(request: NextRequest) {
   try {
-    // Client sends proof + publicSignals + circuitName — NOT the vKey
-    const { proof, publicSignals, circuitName } = await request.json();
+    const { proof, publicSignals, circuitName, walletAddress, mintAddress } = await request.json();
 
     if (!proof || !publicSignals || !circuitName) {
       return NextResponse.json(
@@ -80,6 +118,19 @@ export async function POST(request: NextRequest) {
       const isValid = await snarkjs.groth16.verify(vKey, publicSignals, proof);
       const timing = Date.now() - startTime;
 
+      let attestation: 'attested' | 'self-asserted' = 'self-asserted';
+      let onChainCheck: { sufficient: boolean; onChainBalance: string } | undefined;
+
+      if (circuitName === 'balance-proof' && walletAddress && isValid) {
+        try {
+          const minimumBalance = BigInt(publicSignals[1] || '0');
+          onChainCheck = await checkOnChainBalance(walletAddress, minimumBalance, mintAddress);
+          if (onChainCheck.sufficient) attestation = 'attested';
+        } catch {
+          // RPC failure — keep self-asserted
+        }
+      }
+
       return NextResponse.json(
         {
           success: true,
@@ -89,6 +140,13 @@ export async function POST(request: NextRequest) {
             ? "Proof cryptographically verified!"
             : "Proof verification failed",
           timing,
+          attestation,
+          ...(onChainCheck && {
+            onChainVerification: {
+              walletAddress,
+              balanceSufficient: onChainCheck.sufficient,
+            },
+          }),
         },
         {
           headers: {

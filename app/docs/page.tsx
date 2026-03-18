@@ -16,7 +16,7 @@ const TABS: { id: TabId; label: string }[] = [
 
 const CIRCUITS_DATA = [
   { id: "age-verification", name: "Age Verification", category: "identity", trust: "self-asserted", description: "Prove minimum age without revealing birth year", fields: [{ name: "birthYear", type: "integer", label: "Birth Year" }, { name: "currentYear", type: "integer", label: "Current Year" }, { name: "minimumAge", type: "integer", label: "Minimum Age" }] },
-  { id: "balance-proof", name: "Balance Proof", category: "financial", trust: "self-asserted", description: "Prove balance exceeds threshold", fields: [{ name: "balance", type: "integer", label: "Balance" }, { name: "minimumBalance", type: "integer", label: "Minimum Balance" }] },
+  { id: "balance-proof", name: "Balance Proof", category: "financial", trust: "production", description: "Prove balance exceeds threshold (attested when wallet connected)", fields: [{ name: "balance", type: "integer", label: "Balance" }, { name: "minimumBalance", type: "integer", label: "Minimum Balance" }] },
   { id: "membership-proof", name: "Membership Proof", category: "identity", trust: "self-asserted", description: "Prove group membership without revealing identity", fields: [{ name: "memberId", type: "hash", label: "Member ID" }, { name: "groupHash", type: "hash", label: "Group Hash" }] },
   { id: "range-proof", name: "Range Proof", category: "financial", trust: "self-asserted", description: "Prove a value is within a range", fields: [{ name: "value", type: "integer", label: "Value" }, { name: "minRange", type: "integer", label: "Minimum" }, { name: "maxRange", type: "integer", label: "Maximum" }] },
   { id: "private-voting", name: "Private Voting", category: "governance", trust: "production", description: "Cast verifiable vote without revealing identity", fields: [{ name: "voterId", type: "hash", label: "Voter ID" }, { name: "voteChoice", type: "integer", label: "Vote Choice" }, { name: "pollId", type: "hash", label: "Poll ID" }] },
@@ -582,6 +582,7 @@ function TabTrust() {
             { name: "Signature Verification", guarantee: "User holds a valid EdDSA signature for a message." },
             { name: "Patience Proof", guarantee: "User waited at least N seconds. Verifiable against block time." },
             { name: "Private Voting", guarantee: "Vote is valid and nullifier prevents double-voting." },
+            { name: "Balance Proof", guarantee: "With wallet connected, balance is independently verified on-chain via Solana RPC. Attested by server. Self-asserted fallback without wallet." },
           ].map((c) => (
             <div key={c.name} className="flex items-start gap-3 bg-zk-dark/30 rounded-lg p-3">
               <span className="w-2 h-2 rounded-full bg-zk-primary mt-1.5 flex-shrink-0"></span>
@@ -598,7 +599,6 @@ function TabTrust() {
         <div className="space-y-2">
           {[
             { name: "Age Verification", boundary: "No external attestation. Equivalent to an &quot;I am 18+&quot; checkbox with cryptographic binding." },
-            { name: "Balance Proof", boundary: "Balance is self-reported. Combine with on-chain lookup in production." },
             { name: "Membership Proof", boundary: "Group registry is local. Use a trusted on-chain Merkle root in production." },
             { name: "Range Proof", boundary: "Value is self-reported. Combine with attested data source." },
             { name: "Credential Proof", boundary: "Requires external issuer attestation for production trust." },
@@ -642,11 +642,11 @@ function TabTrust() {
       <SectionTitle>Upgrading Trust Level</SectionTitle>
       <p className="text-zk-gray text-sm mb-3">Self-Asserted circuits can be upgraded to Production by:</p>
       <ul className="text-zk-gray text-sm space-y-1 list-disc list-inside">
-        <li>Connecting input to an on-chain data source (e.g. Solana token balance)</li>
-        <li>Integrating an issuer/attestation layer (e.g. signed credential)</li>
-        <li>Using a trusted Merkle root from on-chain state (e.g. group registry)</li>
+        <li><strong className="text-white">Balance Proof</strong> — upgraded to on-chain attested via Solana RPC when wallet is connected</li>
+        <li>Integrating an issuer/attestation layer (e.g. signed credential for Age Verification)</li>
+        <li>Using a trusted Merkle root from on-chain state (e.g. group registry for Membership Proof)</li>
       </ul>
-      <p className="text-zk-gray text-xs mt-3">These upgrades are planned for future releases. See the <a href="/roadmap" className="text-zk-primary hover:underline">roadmap</a>.</p>
+      <p className="text-zk-gray text-xs mt-3">Further upgrades are planned for future releases. See the <a href="/roadmap" className="text-zk-primary hover:underline">roadmap</a>.</p>
     </div>
   );
 }

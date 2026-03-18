@@ -58,11 +58,11 @@ const templates: { [key: string]: any } = {
     category: "Financial",
     difficulty: "Easy",
     howItWorks: [
-      "Enter Zcash address (or manual balance)",
-      "Fetch real balance from blockchain via Crypto APIs",
-      "Set minimum balance threshold (e.g., 1.5 ZEC)",
+      "Connect your Solana wallet (or enter balance manually)",
+      "On-chain balance is fetched and attested via Solana RPC",
+      "Set minimum balance threshold (e.g., 100 zkRUNE)",
       "Generate ZK proof in your browser (Groth16)",
-      "Proof shows you meet threshold - exact balance stays private",
+      "Proof shows you meet threshold — exact balance stays private",
     ],
     useCases: [
       "Loan applications",
@@ -676,7 +676,7 @@ export default function TemplatePage() {
                         <>Your exact age ({proof.actualAge}) and birth date ({proof.birthDate}) are NOT included in the proof. </>
                       )}
                       {templateId === "balance-proof" && proof.actualBalance && (
-                        <>Your actual balance ({proof.actualBalance} ZEC) is NOT included in the proof. </>
+                        <>Your actual balance ({proof.actualBalance} {proof.symbol || 'tokens'}) is NOT included in the proof. </>
                       )}
                       {templateId === "membership-proof" && proof.memberId && (
                         <>Your member ID ({proof.memberId}) is NOT included in the proof. </>
@@ -724,7 +724,7 @@ export default function TemplatePage() {
                       ← Generate New Proof
                     </button>
                     <p className="text-xs text-center text-zk-gray">
-                      Scroll down for Export and Zcash Deployment options
+                      Scroll down for Export options
                     </p>
                   </div>
                 </div>
@@ -789,7 +789,7 @@ export default function TemplatePage() {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-zk-gray">Blockchain:</span>
-                  <span className="text-zk-primary">Zcash Testnet</span>
+                  <span className="text-zk-primary">Solana</span>
                 </div>
               </div>
             </div>
