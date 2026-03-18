@@ -19,7 +19,7 @@ function signAttestation(walletAddress: string, balance: string, mintAddress: st
   return crypto.createHmac('sha256', ATTESTATION_SECRET).update(payload).digest('hex');
 }
 
-export function verifyAttestation(
+function verifyAttestation(
   walletAddress: string, balance: string, mintAddress: string, timestamp: number, signature: string,
 ): boolean {
   if (Date.now() - timestamp > ATTESTATION_TTL_MS) return false;
