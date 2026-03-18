@@ -79,10 +79,10 @@ const templates: { [key: string]: any } = {
     category: "Access",
     difficulty: "Medium",
     howItWorks: [
-      "Select your membership group",
-      "Provide membership credentials",
-      "System verifies membership",
-      "Generate anonymous proof",
+      "Group issuer builds a Merkle tree from member list",
+      "Select your member ID from the demo group (or provide custom proof)",
+      "Merkle inclusion path is computed automatically",
+      "Generate anonymous ZK proof of membership (Groth16)",
       "Your identity remains private",
     ],
     useCases: [
@@ -678,8 +678,8 @@ export default function TemplatePage() {
                       {templateId === "balance-proof" && proof.actualBalance && (
                         <>Your actual balance ({proof.actualBalance} {proof.symbol || 'tokens'}) is NOT included in the proof. </>
                       )}
-                      {templateId === "membership-proof" && proof.memberId && (
-                        <>Your member ID ({proof.memberId}) is NOT included in the proof. </>
+                      {templateId === "membership-proof" && (
+                        <>Your member identity is NOT included in the proof — only that you belong to the group. </>
                       )}
                       {templateId === "range-proof" && proof.actualValue && (
                         <>Your exact value ({proof.actualValue}) is NOT included in the proof. </>

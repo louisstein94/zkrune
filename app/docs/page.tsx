@@ -17,7 +17,7 @@ const TABS: { id: TabId; label: string }[] = [
 const CIRCUITS_DATA = [
   { id: "age-verification", name: "Age Verification", category: "identity", trust: "self-asserted", description: "Prove minimum age without revealing birth year", fields: [{ name: "birthYear", type: "integer", label: "Birth Year" }, { name: "currentYear", type: "integer", label: "Current Year" }, { name: "minimumAge", type: "integer", label: "Minimum Age" }] },
   { id: "balance-proof", name: "Balance Proof", category: "financial", trust: "production", description: "Prove balance exceeds threshold (attested when wallet connected)", fields: [{ name: "balance", type: "integer", label: "Balance" }, { name: "minimumBalance", type: "integer", label: "Minimum Balance" }] },
-  { id: "membership-proof", name: "Membership Proof", category: "identity", trust: "self-asserted", description: "Prove group membership without revealing identity", fields: [{ name: "memberId", type: "hash", label: "Member ID" }, { name: "groupHash", type: "hash", label: "Group Hash" }] },
+  { id: "membership-proof", name: "Membership Proof", category: "identity", trust: "production", description: "Prove group membership via Merkle inclusion (depth=16, Poseidon)", fields: [{ name: "memberId", type: "hash", label: "Member ID" }, { name: "pathElements", type: "hash", label: "Path Elements [16]" }, { name: "pathIndices", type: "hash", label: "Path Indices [16]" }, { name: "root", type: "hash", label: "Merkle Root" }] },
   { id: "range-proof", name: "Range Proof", category: "financial", trust: "self-asserted", description: "Prove a value is within a range", fields: [{ name: "value", type: "integer", label: "Value" }, { name: "minRange", type: "integer", label: "Minimum" }, { name: "maxRange", type: "integer", label: "Maximum" }] },
   { id: "private-voting", name: "Private Voting", category: "governance", trust: "production", description: "Cast verifiable vote without revealing identity", fields: [{ name: "voterId", type: "hash", label: "Voter ID" }, { name: "voteChoice", type: "integer", label: "Vote Choice" }, { name: "pollId", type: "hash", label: "Poll ID" }] },
   { id: "hash-preimage", name: "Hash Preimage", category: "cryptographic", trust: "production", description: "Prove knowledge of a hash preimage", fields: [{ name: "preimage", type: "hash", label: "Preimage" }, { name: "salt", type: "hash", label: "Salt" }, { name: "expectedHash", type: "hash", label: "Expected Hash" }] },
@@ -261,6 +261,27 @@ const proof = await zk.prove('balance-proof', {
 
 const local = await zk.verifyLocal(proof);
 const remote = await zk.verifyRemote(proof);`}</Code>
+
+      <SectionTitle>MembershipRegistry</SectionTitle>
+      <p className="text-zk-gray text-sm mb-3">Build a group, publish the Merkle root, and let members prove inclusion with a ZK proof.</p>
+      <Code block>{`import { MembershipRegistry, generateProof } from 'zkrune-sdk';
+
+// 1. Integrator: build the group
+const registry = MembershipRegistry.fromMembers(['alice', 'bob', 'charlie']);
+const root = registry.getRoot(); // publish this root
+
+// 2. Member: generate a Merkle inclusion proof
+const inputs = registry.getCircuitInputs('alice');
+// inputs = { memberId, pathElements, pathIndices, root }
+
+// 3. Generate the ZK proof (client-side)
+const result = await generateProof({
+  templateId: 'membership-proof',
+  inputs,
+});
+
+// The verifier checks: publicSignals[1] === published root
+// The member's identity is never revealed.`}</Code>
 
       <SectionTitle>Utilities</SectionTitle>
       <Code block>{`import {
@@ -583,6 +604,7 @@ function TabTrust() {
             { name: "Patience Proof", guarantee: "User waited at least N seconds. Verifiable against block time." },
             { name: "Private Voting", guarantee: "Vote is valid and nullifier prevents double-voting." },
             { name: "Balance Proof", guarantee: "With wallet connected, balance is independently verified on-chain via Solana RPC. Attested by server. Self-asserted fallback without wallet." },
+            { name: "Membership Proof", guarantee: "Merkle tree inclusion via Poseidon (depth=16). Production-safe when the Merkle root is published by a trusted issuer. Use MembershipRegistry from the SDK." },
           ].map((c) => (
             <div key={c.name} className="flex items-start gap-3 bg-zk-dark/30 rounded-lg p-3">
               <span className="w-2 h-2 rounded-full bg-zk-primary mt-1.5 flex-shrink-0"></span>
@@ -599,7 +621,6 @@ function TabTrust() {
         <div className="space-y-2">
           {[
             { name: "Age Verification", boundary: "No external attestation. Equivalent to an &quot;I am 18+&quot; checkbox with cryptographic binding." },
-            { name: "Membership Proof", boundary: "Group registry is local. Use a trusted on-chain Merkle root in production." },
             { name: "Range Proof", boundary: "Value is self-reported. Combine with attested data source." },
             { name: "Credential Proof", boundary: "Requires external issuer attestation for production trust." },
             { name: "Anonymous Reputation", boundary: "Requires on-chain or oracle-backed reputation feed." },
@@ -643,8 +664,8 @@ function TabTrust() {
       <p className="text-zk-gray text-sm mb-3">Self-Asserted circuits can be upgraded to Production by:</p>
       <ul className="text-zk-gray text-sm space-y-1 list-disc list-inside">
         <li><strong className="text-white">Balance Proof</strong> — upgraded to on-chain attested via Solana RPC when wallet is connected</li>
+        <li><strong className="text-white">Membership Proof</strong> — upgraded to Merkle tree verification (Poseidon, depth=16). Integrators build groups with <code>MembershipRegistry</code> from the SDK</li>
         <li>Integrating an issuer/attestation layer (e.g. signed credential for Age Verification)</li>
-        <li>Using a trusted Merkle root from on-chain state (e.g. group registry for Membership Proof)</li>
       </ul>
       <p className="text-zk-gray text-xs mt-3">Further upgrades are planned for future releases. See the <a href="/roadmap" className="text-zk-primary hover:underline">roadmap</a>.</p>
     </div>

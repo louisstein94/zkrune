@@ -36,6 +36,8 @@ export { ZkRuneError, ZkRuneErrorCode, toZkRuneError } from './utils/errors';
 export { Logger } from './utils/logger';
 export type { LogLevel } from './utils/logger';
 
+export { MembershipRegistry, memberLeafHash, stringToBigInt, DEFAULT_DEPTH } from './membership/registry';
+
 /**
  * Backward-compatible standalone functions.
  * These use a default ZkRune instance internally.

@@ -43,11 +43,13 @@ export const CIRCUIT_SCHEMAS: Record<TemplateId, CircuitSchema> = {
   'membership-proof': {
     id: 'membership-proof',
     name: 'Membership Proof',
-    description: 'Prove membership in a group without revealing your identity',
+    description: 'Prove membership in a group via Merkle inclusion without revealing your identity',
     category: 'identity',
     fields: [
-      { name: 'memberId', label: 'Member ID', description: 'Private member identifier', required: true, type: 'hash' },
-      { name: 'groupHash', label: 'Group Hash', description: 'Poseidon hash of the group membership set', required: true, type: 'hash' },
+      { name: 'memberId', label: 'Member ID', description: 'Private member identifier (field element)', required: true, type: 'hash' },
+      { name: 'pathElements', label: 'Path Elements', description: 'Merkle path sibling hashes (array of 16)', required: true, type: 'hash' },
+      { name: 'pathIndices', label: 'Path Indices', description: 'Merkle path direction bits (array of 16)', required: true, type: 'hash' },
+      { name: 'root', label: 'Merkle Root', description: 'Published Merkle root of the membership group', required: true, type: 'hash' },
     ],
   },
 

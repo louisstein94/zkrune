@@ -55,7 +55,7 @@ const phases = [
       { text: "Embeddable verification widget (script-tag integration)", done: true },
       { text: "First 3 integrations onboarded", done: false },
       { text: "On-chain data source for balance proof (Solana RPC)", done: true },
-      { text: "Issuer / registry model for membership proof", done: false },
+      { text: "Issuer / registry model for membership proof", done: true },
       { text: "3rd party security audit", done: false },
       { text: "iOS app", done: false },
       { text: "Integration docs & developer portal", done: true },
