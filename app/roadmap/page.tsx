@@ -58,7 +58,7 @@ const phases = [
       { text: "Issuer / registry model for membership proof", done: false },
       { text: "3rd party security audit", done: false },
       { text: "iOS app", done: false },
-      { text: "Integration docs & developer portal", done: false },
+      { text: "Integration docs & developer portal", done: true },
       { text: "Self-asserted → attested upgrade path for age proof", done: false },
     ],
   },
