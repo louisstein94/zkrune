@@ -528,7 +528,7 @@ function TabCircuits() {
                       </tbody>
                     </table>
                     <div className="mt-3">
-                      <p className="text-xs text-zk-gray">Artifacts: <Code>{c.id}.wasm</Code> <Code>{c.id}.zkey</Code> <Code>{c.id}_vkey.json</Code></p>
+                      <p className="text-xs text-zk-gray">Artifacts: <Code>{`${c.id}.wasm`}</Code> <Code>{`${c.id}.zkey`}</Code> <Code>{`${c.id}_vkey.json`}</Code></p>
                     </div>
                   </div>
                 </details>
