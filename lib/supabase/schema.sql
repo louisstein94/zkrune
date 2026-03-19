@@ -1,5 +1,9 @@
 -- zkRune Database Schema
 -- Run this in Supabase SQL Editor to create tables
+--
+-- MIGRATION NOTE (if tables already exist):
+--   ALTER TABLE staking_positions ADD COLUMN IF NOT EXISTS transaction_signature TEXT UNIQUE NOT NULL DEFAULT '';
+--   CREATE INDEX IF NOT EXISTS idx_staking_txsig ON staking_positions(transaction_signature);
 
 -- gen_random_uuid() is built-in since PostgreSQL 13 — no extension needed
 
@@ -104,7 +108,8 @@ CREATE TABLE IF NOT EXISTS staking_positions (
   unlocks_at TIMESTAMPTZ NOT NULL,
   last_claim_at TIMESTAMPTZ DEFAULT NOW(),
   total_claimed NUMERIC DEFAULT 0,
-  is_active BOOLEAN DEFAULT TRUE
+  is_active BOOLEAN DEFAULT TRUE,
+  transaction_signature TEXT UNIQUE NOT NULL
 );
 
 -- =====================================================
@@ -163,6 +168,7 @@ CREATE INDEX IF NOT EXISTS idx_purchases_buyer ON purchases(buyer);
 CREATE INDEX IF NOT EXISTS idx_purchases_seller ON purchases(seller);
 CREATE INDEX IF NOT EXISTS idx_staking_staker ON staking_positions(staker);
 CREATE INDEX IF NOT EXISTS idx_staking_active ON staking_positions(is_active);
+CREATE INDEX IF NOT EXISTS idx_staking_txsig ON staking_positions(transaction_signature);
 CREATE INDEX IF NOT EXISTS idx_premium_wallet ON premium_status(wallet);
 CREATE INDEX IF NOT EXISTS idx_burn_wallet ON burn_history(wallet);
 CREATE INDEX IF NOT EXISTS idx_ceremony_index ON ceremony_contributions(contribution_index);

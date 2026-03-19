@@ -24,6 +24,7 @@ interface StakingPosition {
   last_claim_at: string;
   total_claimed: number;
   is_active: boolean;
+  transaction_signature: string;
 }
 
 function isSupabaseConfigured(): boolean {

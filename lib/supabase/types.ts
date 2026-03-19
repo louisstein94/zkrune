@@ -206,6 +206,7 @@ export interface Database {
           last_claim_at: string;
           total_claimed: number;
           is_active: boolean;
+          transaction_signature: string;
         };
         Insert: {
           id?: string;
@@ -218,6 +219,7 @@ export interface Database {
           last_claim_at?: string;
           total_claimed?: number;
           is_active?: boolean;
+          transaction_signature: string;
         };
         Update: {
           id?: string;
@@ -230,6 +232,7 @@ export interface Database {
           last_claim_at?: string;
           total_claimed?: number;
           is_active?: boolean;
+          transaction_signature?: string;
         };
       };
 
