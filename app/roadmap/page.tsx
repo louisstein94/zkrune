@@ -71,7 +71,7 @@ const phases = [
     color: "zk-gray",
     colorHex: "#9CA3AF",
     items: [
-      { text: "Cross-chain proof verification (Ethereum, Base)", done: false },
+      { text: "Cross-chain proof verification (Ethereum, Base)", done: true },
       { text: "ZK credential standard (W3C compatible)", done: false },
       { text: "On-chain governance with quadratic voting", done: false },
       { text: "Enterprise SDK & white-label solutions", done: false },
