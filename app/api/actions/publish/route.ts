@@ -29,7 +29,8 @@ async function loadTrustedVKey(circuitName: string): Promise<object | null> {
   try {
     const raw = await fs.readFile(vkeyPath, 'utf-8');
     return JSON.parse(raw);
-  } catch {
+  } catch (err: any) {
+    console.error(`[actions/publish] Failed to load vKey at ${vkeyPath}:`, err?.message || err);
     return null;
   }
 }
@@ -85,8 +86,12 @@ export async function POST(req: NextRequest) {
       // @ts-ignore
       const snarkjs = await import('snarkjs');
       verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-    } catch (err) {
-      console.error('[actions/publish] snarkjs verify error:', err);
+    } catch (err: any) {
+      console.error('[actions/publish] snarkjs verify error:', err?.message || err);
+      return NextResponse.json(
+        { error: 'Server-side verification engine failed. Please try again.' },
+        { status: 500 },
+      );
     }
 
     if (!verified) {

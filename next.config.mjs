@@ -12,7 +12,9 @@ const nextConfig = {
   },
   // Performance optimizations
   compiler: {
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === 'production'
+      ? { exclude: ['error', 'warn'] }
+      : false,
   },
   // Enable React strict mode for better performance
   reactStrictMode: true,
@@ -28,6 +30,10 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['@solana/web3.js', 'reactflow'],
     serverComponentsExternalPackages: ['snarkjs', 'ffjavascript'],
+    outputFileTracingIncludes: {
+      '/api/actions/publish': ['./public/circuits/*_vkey.json'],
+      '/api/actions/verify': ['./public/circuits/*_vkey.json'],
+    },
   },
   // Webpack configuration for snarkjs
   webpack: (config, { isServer }) => {
