@@ -132,7 +132,7 @@ export default function VerifyPage() {
 
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
-        throw new Error(data.message || 'Failed to build transaction');
+        throw new Error(data.error || data.message || 'Failed to build transaction');
       }
 
       const { transaction: txBase64 } = await res.json();
