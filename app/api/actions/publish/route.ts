@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import path from 'path';
 import fs from 'fs/promises';
+import * as snarkjs from 'snarkjs';
 import { storeProof, type StoredProof } from '@/lib/blinks/proofStore';
 
 export const dynamic = 'force-dynamic';
@@ -23,14 +24,26 @@ const TRUSTED_CIRCUITS = new Set([
   'patience-proof',
 ]);
 
-async function loadTrustedVKey(circuitName: string): Promise<object | null> {
+async function loadTrustedVKey(circuitName: string, baseUrl: string): Promise<object | null> {
   if (!TRUSTED_CIRCUITS.has(circuitName)) return null;
+
+  // Try filesystem first (faster)
   const vkeyPath = path.join(process.cwd(), 'public', 'circuits', `${circuitName}_vkey.json`);
   try {
     const raw = await fs.readFile(vkeyPath, 'utf-8');
     return JSON.parse(raw);
+  } catch {
+    // Filesystem unavailable (e.g. Vercel), fall back to HTTP
+  }
+
+  // Fetch from own public CDN as fallback
+  try {
+    const url = `${baseUrl}/circuits/${circuitName}_vkey.json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return await res.json();
   } catch (err: any) {
-    console.error(`[actions/publish] Failed to load vKey at ${vkeyPath}:`, err?.message || err);
+    console.error(`[actions/publish] Failed to load vKey for ${circuitName}:`, err?.message || err);
     return null;
   }
 }
@@ -73,7 +86,8 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const vKey = await loadTrustedVKey(circuitName);
+    const baseUrl = getBaseUrl(req);
+    const vKey = await loadTrustedVKey(circuitName, baseUrl);
     if (!vKey) {
       return NextResponse.json(
         { error: `Verification key not found for circuit: ${circuitName}` },
@@ -84,7 +98,6 @@ export async function POST(req: NextRequest) {
     let verified = false;
     try {
       // @ts-ignore
-      const snarkjs = await import('snarkjs');
       verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     } catch (err: any) {
       const msg = err?.message || String(err);
@@ -122,7 +135,6 @@ export async function POST(req: NextRequest) {
       verifiedOffChain: true,
     });
 
-    const baseUrl = getBaseUrl(req);
     const blinkUrl = `solana-action:${baseUrl}/api/actions/verify?id=${stored.id}`;
     const directUrl = `${baseUrl}/api/actions/verify?id=${stored.id}`;
 
