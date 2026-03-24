@@ -3,7 +3,10 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
+import { useConnection, useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { Transaction } from "@solana/web3.js";
 
 interface ProofData {
   id: string;
@@ -11,6 +14,13 @@ interface ProofData {
   label: string;
   description: string;
   publicSignals: string[];
+  proof: {
+    pi_a: string[];
+    pi_b: string[][];
+    pi_c: string[];
+    protocol: string;
+    curve: string;
+  };
   createdAt: string;
   expiresAt: string;
   verifiedOffChain: boolean;
@@ -69,6 +79,26 @@ export default function VerifyPage() {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
 
+  const { connection } = useConnection();
+  const wallet = useWallet();
+
+  const [chainStatus, setChainStatus] = useState<'idle' | 'building' | 'signing' | 'confirming' | 'success' | 'error'>('idle');
+  const [txHash, setTxHash] = useState<string>('');
+  const [chainError, setChainError] = useState<string>('');
+
+  const network = useMemo(() => {
+    const ep = connection.rpcEndpoint.toLowerCase();
+    if (ep.includes('mainnet')) return 'mainnet';
+    if (ep.includes('devnet')) return 'devnet';
+    if (ep.includes('testnet')) return 'testnet';
+    return 'mainnet';
+  }, [connection.rpcEndpoint]);
+
+  const solscanBase = network === 'mainnet'
+    ? 'https://solscan.io'
+    : `https://solscan.io`;
+  const solscanCluster = network === 'mainnet' ? '' : `?cluster=${network}`;
+
   useEffect(() => {
     async function fetchProof() {
       try {
@@ -87,10 +117,55 @@ export default function VerifyPage() {
     fetchProof();
   }, [proofId]);
 
+  const handleVerifyOnChain = useCallback(async () => {
+    if (!wallet.publicKey || !wallet.signTransaction) return;
+
+    try {
+      setChainStatus('building');
+      setChainError('');
+
+      const res = await fetch(`/api/actions/verify?id=${proofId}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ account: wallet.publicKey.toBase58() }),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.message || 'Failed to build transaction');
+      }
+
+      const { transaction: txBase64 } = await res.json();
+      const txBuffer = Buffer.from(txBase64, 'base64');
+      const tx = Transaction.from(txBuffer);
+
+      setChainStatus('signing');
+      const signed = await wallet.signTransaction(tx);
+
+      setChainStatus('confirming');
+      const signature = await connection.sendRawTransaction(signed.serialize());
+      await connection.confirmTransaction(signature, 'confirmed');
+
+      setTxHash(signature);
+      setChainStatus('success');
+    } catch (err: any) {
+      let message = err.message || 'Transaction failed';
+      if (message.includes('ProofVerificationFailed')) {
+        message = 'Proof verification failed on-chain. The proof may be invalid.';
+      } else if (message.includes('insufficient funds') || message.includes('Insufficient')) {
+        message = `Insufficient SOL for transaction fees.${network !== 'mainnet' ? ' Get SOL from a faucet.' : ''}`;
+      } else if (message.includes('User rejected')) {
+        message = 'Transaction cancelled by user.';
+      }
+      setChainError(message);
+      setChainStatus('error');
+    }
+  }, [wallet, proofId, connection, network]);
+
   const meta = proof ? (CIRCUIT_META[proof.circuitName] || { title: proof.circuitName, emoji: '🔮', statement: proof.description }) : null;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
-  const blinkUrl = `https://dial.to/?action=solana-action:${origin}/api/actions/verify?id=${proofId}`;
   const verifyPageUrl = `${origin}/verify/${proofId}`;
+  const blinkUrl = `https://dial.to/?action=solana-action:${origin}/api/actions/verify?id=${proofId}`;
 
   const timeAgo = useMemo(() => {
     if (!proof) return '';
@@ -228,29 +303,122 @@ export default function VerifyPage() {
                 </div>
               </div>
 
-              {/* On-Chain Verify CTA */}
-              <a
-                href={blinkUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="block w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-500 hover:to-indigo-500 transition-all text-center text-sm font-medium mb-3"
-              >
-                ⛓️ Verify On-Chain via Solana
-              </a>
+              {/* On-Chain Verification */}
+              <div className="bg-zinc-900/40 border border-zinc-800/60 rounded-xl p-5 mb-3">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4.5 h-4.5 text-violet-400" viewBox="0 0 128 128" fill="currentColor">
+                      <path d="M93.94 42.63c13.48 0 24.42 10.94 24.42 24.42s-10.94 24.42-24.42 24.42H49.88L93.94 42.63zM34.06 85.37c-13.48 0-24.42-10.94-24.42-24.42s10.94-24.42 24.42-24.42h44.06L34.06 85.37z"/>
+                    </svg>
+                    <span className="text-sm font-medium text-white">On-Chain Verification</span>
+                  </div>
+                  <span className={`px-2 py-0.5 rounded text-[10px] font-bold border ${
+                    network === 'mainnet'
+                      ? 'bg-violet-600/20 text-violet-400 border-violet-500/30'
+                      : 'bg-emerald-600/20 text-emerald-400 border-emerald-500/30'
+                  }`}>
+                    {network.toUpperCase()}
+                  </span>
+                </div>
+
+                {chainStatus === 'success' ? (
+                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg flex-shrink-0">
+                        ✓
+                      </div>
+                      <div>
+                        <p className="text-emerald-300 text-sm font-semibold">Verified On-Chain</p>
+                        <p className="text-zinc-500 text-xs">Groth16 pairing check passed via Solana altbn254 syscalls</p>
+                      </div>
+                    </div>
+                    <a
+                      href={`${solscanBase}/tx/${txHash}${solscanCluster}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="mt-2 inline-flex items-center gap-1.5 text-xs text-violet-400 hover:text-violet-300 transition-colors"
+                    >
+                      <span className="font-mono">{txHash.substring(0, 12)}...{txHash.substring(txHash.length - 8)}</span>
+                      <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                      </svg>
+                    </a>
+                  </div>
+                ) : (
+                  <>
+                    <p className="text-zinc-500 text-xs mb-4 leading-relaxed">
+                      Submit this proof to Solana for trustless on-chain verification using Groth16 pairing checks. Program:&nbsp;
+                      <a href={`${solscanBase}/account/9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad${solscanCluster}`} target="_blank" rel="noopener noreferrer" className="text-violet-400 hover:text-violet-300 font-mono">9apA5...X7ad</a>
+                    </p>
+
+                    {chainError && (
+                      <div className="mb-3 px-3 py-2.5 bg-red-500/10 border border-red-500/20 rounded-lg text-xs text-red-300">
+                        {chainError}
+                      </div>
+                    )}
+
+                    <div className="flex gap-2.5">
+                      {!wallet.connected ? (
+                        <WalletMultiButton className="!w-full !rounded-lg !bg-violet-600 hover:!bg-violet-500 !text-white !font-medium !text-sm !h-11 !transition-colors" />
+                      ) : (
+                        <>
+                          <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700/50 text-xs text-zinc-400 flex-shrink-0">
+                            <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                            {wallet.publicKey?.toBase58().slice(0, 4)}...{wallet.publicKey?.toBase58().slice(-4)}
+                          </div>
+                          <button
+                            onClick={handleVerifyOnChain}
+                            disabled={chainStatus !== 'idle' && chainStatus !== 'error'}
+                            className={`flex-1 py-2.5 rounded-lg font-medium text-sm transition-all flex items-center justify-center gap-2 text-white ${
+                              chainStatus === 'idle' || chainStatus === 'error'
+                                ? 'bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-500 hover:to-indigo-500'
+                                : 'bg-violet-600/50 cursor-wait'
+                            }`}
+                          >
+                            {chainStatus === 'building' && (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Building TX...
+                              </>
+                            )}
+                            {chainStatus === 'signing' && (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Sign in Wallet...
+                              </>
+                            )}
+                            {chainStatus === 'confirming' && (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Confirming...
+                              </>
+                            )}
+                            {(chainStatus === 'idle' || chainStatus === 'error') && (
+                              <>
+                                ⛓️ Verify On-Chain
+                              </>
+                            )}
+                          </button>
+                        </>
+                      )}
+                    </div>
+                  </>
+                )}
+              </div>
 
               {/* Share Actions */}
-              <div className="flex gap-2.5 mb-8">
+              <div className="flex gap-2.5 mb-4">
                 <button
                   onClick={() => {
                     const text = encodeURIComponent(
-                      `I verified a ${meta.title} proof using @rune_zk — zero-knowledge cryptography on Solana.\n\n${verifyPageUrl}`
+                      `I verified a ${meta.title} proof using @rune_zk — zero-knowledge cryptography on Solana.\n\n${blinkUrl}`
                     );
                     window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
                   }}
                   className="flex-1 py-2.5 bg-zinc-800/80 text-white rounded-xl hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2 text-sm"
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  Share
+                  Share on X
                 </button>
                 <button
                   onClick={handleCopy}
@@ -264,6 +432,27 @@ export default function VerifyPage() {
                 >
                   Create Proof
                 </Link>
+              </div>
+
+              {/* Blink URL */}
+              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-xl p-4 mb-8">
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium">Solana Blink URL</p>
+                  <button
+                    onClick={async () => {
+                      try {
+                        await navigator.clipboard.writeText(blinkUrl);
+                        setCopied(true);
+                        setTimeout(() => setCopied(false), 2000);
+                      } catch {}
+                    }}
+                    className="text-[11px] text-violet-400 hover:text-violet-300 transition-colors font-medium"
+                  >
+                    {copied ? '✓ Copied' : 'Copy'}
+                  </button>
+                </div>
+                <p className="font-mono text-xs text-violet-300/80 break-all select-all leading-relaxed">{blinkUrl}</p>
+                <p className="text-zinc-600 text-[10px] mt-2">Unfurls as interactive Blink on X.com (requires Dialect verification)</p>
               </div>
 
               {/* ZK Privacy Note */}

@@ -20,6 +20,13 @@ export async function GET(
     label: stored.label,
     description: stored.description,
     publicSignals: stored.publicSignals,
+    proof: {
+      pi_a: stored.proof.pi_a,
+      pi_b: stored.proof.pi_b,
+      pi_c: stored.proof.pi_c,
+      protocol: stored.proof.protocol,
+      curve: stored.proof.curve,
+    },
     createdAt: new Date(stored.createdAt).toISOString(),
     expiresAt: new Date(stored.expiresAt).toISOString(),
     verifiedOffChain: stored.verifiedOffChain,
