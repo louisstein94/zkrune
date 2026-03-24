@@ -16,20 +16,20 @@ const GROTH16_PROGRAM = new PublicKey(
 );
 
 const CIRCUIT_LABELS: Record<string, { title: string; emoji: string }> = {
-  'balance-proof':          { title: 'Anonim Bakiye Kanıtı',        emoji: '💰' },
-  'whale-holder':           { title: 'Balina Doğrulaması',          emoji: '🐋' },
-  'age-verification':       { title: 'Yaş Doğrulaması',             emoji: '🎂' },
-  'membership-proof':       { title: 'Üyelik Kanıtı',               emoji: '🏛️' },
-  'private-voting':         { title: 'Gizli Oy',                    emoji: '🗳️' },
-  'quadratic-voting':       { title: 'Kuadratik Oy',                emoji: '📊' },
-  'credential-proof':       { title: 'Kimlik Bilgisi Kanıtı',       emoji: '🪪' },
-  'anonymous-reputation':   { title: 'Anonim İtibar Kanıtı',        emoji: '⭐' },
-  'nft-ownership':          { title: 'NFT Sahiplik Kanıtı',         emoji: '🖼️' },
-  'range-proof':            { title: 'Aralık Kanıtı',               emoji: '📏' },
-  'hash-preimage':          { title: 'Hash Ön-Görüntü Kanıtı',      emoji: '🔐' },
-  'signature-verification': { title: 'İmza Doğrulaması',            emoji: '✍️' },
-  'token-swap':             { title: 'Token Swap Kanıtı',           emoji: '🔄' },
-  'patience-proof':         { title: 'Sabır Kanıtı',                emoji: '⏳' },
+  'balance-proof':          { title: 'Anonymous Balance Proof',      emoji: '💰' },
+  'whale-holder':           { title: 'Whale Verification',           emoji: '🐋' },
+  'age-verification':       { title: 'Age Verification',             emoji: '🎂' },
+  'membership-proof':       { title: 'Membership Proof',             emoji: '🏛️' },
+  'private-voting':         { title: 'Private Vote',                 emoji: '🗳️' },
+  'quadratic-voting':       { title: 'Quadratic Vote',               emoji: '📊' },
+  'credential-proof':       { title: 'Credential Proof',             emoji: '🪪' },
+  'anonymous-reputation':   { title: 'Anonymous Reputation Proof',   emoji: '⭐' },
+  'nft-ownership':          { title: 'NFT Ownership Proof',          emoji: '🖼️' },
+  'range-proof':            { title: 'Range Proof',                  emoji: '📏' },
+  'hash-preimage':          { title: 'Hash Preimage Proof',          emoji: '🔐' },
+  'signature-verification': { title: 'Signature Verification',       emoji: '✍️' },
+  'token-swap':             { title: 'Token Swap Proof',             emoji: '🔄' },
+  'patience-proof':         { title: 'Patience Proof',               emoji: '⏳' },
 };
 
 const TEMPLATE_IDS: Record<string, number> = {

@@ -3,181 +3,230 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
+import { useState, useEffect } from "react";
+
+interface ProofData {
+  id: string;
+  circuitName: string;
+  label: string;
+  description: string;
+  publicSignals: string[];
+  createdAt: string;
+  expiresAt: string;
+  verifiedOffChain: boolean;
+}
+
+const CIRCUIT_META: Record<string, { title: string; emoji: string; statement: string }> = {
+  'age-verification':       { title: 'Age Verification',           emoji: '🎂', statement: 'User meets the minimum age requirement' },
+  'balance-proof':          { title: 'Anonymous Balance Proof',    emoji: '💰', statement: 'User holds a balance above the required threshold' },
+  'whale-holder':           { title: 'Whale Verification',         emoji: '🐋', statement: 'User qualifies as a whale holder' },
+  'membership-proof':       { title: 'Membership Proof',           emoji: '🏛️', statement: 'User is a verified member of the group' },
+  'private-voting':         { title: 'Private Vote',               emoji: '🗳️', statement: 'A valid vote was cast privately' },
+  'quadratic-voting':       { title: 'Quadratic Vote',             emoji: '📊', statement: 'A weighted vote was cast using quadratic voting' },
+  'credential-proof':       { title: 'Credential Proof',           emoji: '🪪', statement: 'User holds a valid, non-expired credential' },
+  'anonymous-reputation':   { title: 'Anonymous Reputation',       emoji: '⭐', statement: 'User meets the reputation score threshold' },
+  'nft-ownership':          { title: 'NFT Ownership Proof',        emoji: '🖼️', statement: 'User owns an NFT from the specified collection' },
+  'range-proof':            { title: 'Range Proof',                emoji: '📏', statement: 'A private value falls within the specified range' },
+  'hash-preimage':          { title: 'Hash Preimage Proof',        emoji: '🔐', statement: 'User knows the preimage of a hash' },
+  'signature-verification': { title: 'Signature Verification',     emoji: '✍️', statement: 'A valid digital signature was verified' },
+  'token-swap':             { title: 'Token Swap Proof',           emoji: '🔄', statement: 'User has sufficient balance for the swap' },
+  'patience-proof':         { title: 'Patience Proof',             emoji: '⏳', statement: 'User waited the required duration' },
+};
 
 export default function VerifyPage() {
   const params = useParams();
   const proofId = params.id as string;
+  const [proof, setProof] = useState<ProofData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Example proof data - in production would be fetched from IPFS or database
-  const proofData = {
-    statement: "User is 18 or older",
-    isValid: true,
-    timestamp: new Date().toISOString(),
-    proofHash: `0x${proofId}...`,
-    template: "Age Verification",
-    verificationKey: `vk_${proofId.substring(0, 10)}`,
-  };
+  useEffect(() => {
+    async function fetchProof() {
+      try {
+        const res = await fetch(`/api/actions/verify?id=${proofId}`);
+        if (!res.ok) {
+          const data = await res.json().catch(() => ({}));
+          throw new Error(data.error || 'Proof not found');
+        }
+        const actionData = await res.json();
+
+        const res2 = await fetch(`/api/proof/${proofId}`);
+        if (res2.ok) {
+          const data = await res2.json();
+          setProof(data);
+        } else {
+          const circuitName = extractCircuitFromTitle(actionData.title);
+          setProof({
+            id: proofId,
+            circuitName,
+            label: actionData.title,
+            description: actionData.description,
+            publicSignals: [],
+            createdAt: new Date().toISOString(),
+            expiresAt: '',
+            verifiedOffChain: true,
+          });
+        }
+      } catch (err: any) {
+        setError(err.message || 'Failed to load proof');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchProof();
+  }, [proofId]);
+
+  const meta = proof ? (CIRCUIT_META[proof.circuitName] || { title: proof.circuitName, emoji: '🔮', statement: proof.description }) : null;
+  const blinkUrl = `solana-action:${typeof window !== 'undefined' ? window.location.origin : ''}/api/actions/verify?id=${proofId}`;
+  const verifyUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/actions/verify?id=${proofId}`;
 
   return (
     <main className="min-h-screen bg-zk-darker">
       <Navigation />
 
-      <div className="pt-32 px-8 pb-12">
-        <div className="max-w-4xl mx-auto">
-          {/* Verification Banner */}
-          <div className="mb-8 p-4 bg-zk-primary/10 border border-zk-primary/30 rounded-xl">
-            <div className="flex items-start gap-3">
-              <div className="w-2.5 h-2.5 rounded-full bg-zk-primary mt-1.5" />
-              <div>
-                <h3 className="text-zk-primary font-medium mb-1">Proof Verification</h3>
-                <p className="text-sm text-zk-gray">
-                  This is a proof verification page. To verify your own ZK proofs,{" "}
-                  <Link href="/verify-proof" className="text-zk-primary underline">click here</Link>.
+      <div className="pt-32 px-4 sm:px-8 pb-12">
+        <div className="max-w-3xl mx-auto">
+
+          {loading && (
+            <div className="text-center py-20">
+              <div className="w-10 h-10 border-2 border-zinc-700 border-t-emerald-400 rounded-full animate-spin mx-auto mb-4" />
+              <p className="text-zinc-400">Loading proof...</p>
+            </div>
+          )}
+
+          {error && (
+            <div className="text-center py-20">
+              <div className="text-5xl mb-4">🔍</div>
+              <h1 className="font-hatton text-3xl text-white mb-3">Proof Not Found</h1>
+              <p className="text-zinc-400 mb-8">This proof may have expired or does not exist.</p>
+              <Link href="/zkblink" className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors">
+                Create Your Own Proof
+              </Link>
+            </div>
+          )}
+
+          {proof && meta && (
+            <>
+              {/* Header */}
+              <div className="text-center mb-10">
+                <div className="text-6xl mb-4">{meta.emoji}</div>
+                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-4">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span className="text-xs font-medium text-emerald-400 uppercase tracking-wider">
+                    Verified ZK Proof
+                  </span>
+                </div>
+                <h1 className="font-hatton text-4xl sm:text-5xl text-white mb-3">
+                  {meta.title}
+                </h1>
+                <p className="text-lg text-zinc-400">
+                  {proof.description}
                 </p>
               </div>
-            </div>
-          </div>
 
-          {/* Header */}
-          <div className="text-center mb-12">
-            <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-gray/50 rounded-full mb-6">
-              <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
-              <span className="text-xs font-medium text-zk-gray uppercase tracking-wider">
-                Proof Verification
-              </span>
-            </div>
+              {/* Proof Card */}
+              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden mb-6">
+                {/* Status Bar */}
+                <div className="flex items-center gap-3 px-6 py-4 bg-emerald-500/5 border-b border-emerald-500/10">
+                  <svg className="w-6 h-6 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                  <div>
+                    <p className="text-emerald-300 text-sm font-medium">Cryptographically Valid</p>
+                    <p className="text-zinc-500 text-xs">This proof has been verified off-chain using snarkjs</p>
+                  </div>
+                </div>
 
-            <h1 className="font-hatton text-5xl text-white mb-4">
-              Verify <span className="text-zk-primary">ZK Proof</span>
-            </h1>
-            <p className="text-xl text-zk-gray">
-              Independently verify this zero-knowledge proof
-            </p>
-          </div>
+                {/* Statement */}
+                <div className="px-6 py-5 border-b border-zinc-800">
+                  <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Proven Statement</p>
+                  <p className="text-xl text-white font-medium">&ldquo;{meta.statement}&rdquo;</p>
+                </div>
 
-          {/* Proof Card */}
-          <div className="bg-zk-dark/30 border border-zk-primary/30 rounded-2xl p-8 mb-8">
-            {/* Status */}
-            <div className="flex items-center gap-4 mb-6 pb-6 border-b border-zk-gray/20">
-              <svg className="w-16 h-16 text-zk-secondary" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              <div>
-                <h2 className="font-hatton text-3xl text-white mb-1">
-                  Proof Verified
-                </h2>
-                <p className="text-zk-gray">
-                  This proof is cryptographically valid
+                {/* Details Grid */}
+                <div className="grid grid-cols-2 divide-x divide-zinc-800">
+                  <div className="px-6 py-4">
+                    <p className="text-xs text-zinc-500 mb-1">Circuit</p>
+                    <p className="text-white text-sm font-medium">{meta.title}</p>
+                  </div>
+                  <div className="px-6 py-4">
+                    <p className="text-xs text-zinc-500 mb-1">Proof ID</p>
+                    <p className="text-white text-sm font-mono">{proofId.substring(0, 12)}...</p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 divide-x divide-zinc-800 border-t border-zinc-800">
+                  <div className="px-6 py-4">
+                    <p className="text-xs text-zinc-500 mb-1">Created</p>
+                    <p className="text-white text-sm">{new Date(proof.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</p>
+                  </div>
+                  <div className="px-6 py-4">
+                    <p className="text-xs text-zinc-500 mb-1">Public Signals</p>
+                    <p className="text-white text-sm font-mono">
+                      {proof.publicSignals.length > 0 ? proof.publicSignals.join(', ') : 'Hidden'}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Privacy Notice */}
+              <div className="bg-violet-500/5 border border-violet-500/15 rounded-xl p-5 mb-6">
+                <div className="flex items-start gap-3">
+                  <div className="text-xl">🔒</div>
+                  <div>
+                    <p className="text-violet-300 text-sm font-medium mb-1">Zero-Knowledge Privacy</p>
+                    <p className="text-zinc-400 text-sm leading-relaxed">
+                      This proof verifies the statement above without revealing any private data.
+                      The original inputs remain completely confidential and cannot be derived from the proof.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Actions */}
+              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+                <button
+                  onClick={() => {
+                    const text = encodeURIComponent(
+                      `Check out this verified ${meta.title} — generated with @rune_zk using zero-knowledge cryptography.\n\n${verifyUrl}`
+                    );
+                    window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
+                  }}
+                  className="flex-1 py-3 bg-zinc-800 text-white rounded-xl hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  Share on X
+                </button>
+                <button
+                  onClick={async () => { try { await navigator.clipboard.writeText(verifyUrl); } catch {} }}
+                  className="flex-1 py-3 border border-zinc-700 text-white rounded-xl hover:border-zinc-500 transition-colors text-sm font-medium"
+                >
+                  Copy Link
+                </button>
+                <Link
+                  href="/zkblink"
+                  className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-500 hover:to-teal-500 transition-all text-center text-sm font-medium"
+                >
+                  Create Your Own
+                </Link>
+              </div>
+
+              {/* Powered by */}
+              <div className="text-center">
+                <p className="text-zinc-600 text-xs">
+                  Powered by <Link href="/" className="text-zinc-400 hover:text-white transition-colors">zkRune</Link> — Privacy verification infrastructure for Solana
                 </p>
               </div>
-            </div>
-
-            {/* Statement */}
-            <div className="mb-6">
-              <h3 className="text-sm font-medium text-zk-gray uppercase tracking-wider mb-2">
-                Proven Statement
-              </h3>
-              <p className="text-2xl font-hatton text-white">
-                "{proofData.statement}"
-              </p>
-            </div>
-
-            {/* Details */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-zk-darker/50 rounded-lg">
-                <p className="text-xs text-zk-gray mb-1">Template</p>
-                <p className="text-white font-medium">{proofData.template}</p>
-              </div>
-              <div className="p-4 bg-zk-darker/50 rounded-lg">
-                <p className="text-xs text-zk-gray mb-1">Generated</p>
-                <p className="text-white font-medium">
-                  {new Date(proofData.timestamp).toLocaleString('en-US')}
-                </p>
-              </div>
-              <div className="p-4 bg-zk-darker/50 rounded-lg">
-                <p className="text-xs text-zk-gray mb-1">Proof Hash</p>
-                <p className="text-white font-mono text-xs">
-                  {proofData.proofHash}
-                </p>
-              </div>
-              <div className="p-4 bg-zk-darker/50 rounded-lg">
-                <p className="text-xs text-zk-gray mb-1">Verification Key</p>
-                <p className="text-white font-mono text-xs">
-                  {proofData.verificationKey}
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Privacy Notice */}
-          <div className="bg-zk-secondary/10 border border-zk-secondary/30 rounded-xl p-6 mb-8">
-            <div className="flex items-start gap-4">
-              <div className="text-3xl font-bold text-violet-400">ZK</div>
-              <div>
-                <h3 className="font-medium text-zk-secondary mb-2">
-                  Privacy Protected
-                </h3>
-                <p className="text-sm text-zk-gray leading-relaxed">
-                  This proof verifies the statement above without revealing any
-                  sensitive information. The original data used to generate this
-                  proof remains completely private and cannot be derived from the
-                  proof itself.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          {/* Actions */}
-          <div className="flex gap-4">
-            <Link
-              href="/"
-              className="flex-1 py-3 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary hover:text-zk-primary transition-all text-center"
-            >
-              ← Back to Home
-            </Link>
-            <Link
-              href="/#templates"
-              className="flex-1 py-3 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all text-center"
-            >
-              Create Your Own
-            </Link>
-          </div>
-
-          {/* How to Verify */}
-          <div className="mt-12 bg-zk-dark/30 border border-zk-gray/20 rounded-xl p-6">
-            <h3 className="font-hatton text-xl text-white mb-4">
-              How to Verify This Proof
-            </h3>
-            <ol className="space-y-3 text-sm text-zk-gray">
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-zk-primary/20 text-zk-primary rounded-full flex items-center justify-center text-xs">
-                  1
-                </span>
-                <span>
-                  Check the proof hash matches the one provided
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-zk-primary/20 text-zk-primary rounded-full flex items-center justify-center text-xs">
-                  2
-                </span>
-                <span>
-                  Verify the cryptographic signature using the verification key
-                </span>
-              </li>
-              <li className="flex gap-3">
-                <span className="flex-shrink-0 w-6 h-6 bg-zk-primary/20 text-zk-primary rounded-full flex items-center justify-center text-xs">
-                  3
-                </span>
-                <span>
-                  Confirm the statement without accessing private data
-                </span>
-              </li>
-            </ol>
-          </div>
+            </>
+          )}
         </div>
       </div>
     </main>
   );
 }
 
+function extractCircuitFromTitle(title: string): string {
+  for (const [id, meta] of Object.entries(CIRCUIT_META)) {
+    if (title.includes(meta.title)) return id;
+  }
+  return 'unknown';
+}

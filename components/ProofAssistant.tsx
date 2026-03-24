@@ -256,8 +256,12 @@ export default function ProofAssistant() {
                       </button>
                       <button
                         onClick={() => {
-                          const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.directUrl}`);
-                          window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+                          const spec = proofState.templateId ? findTemplateById(proofState.templateId) : null;
+                          const proofLabel = spec?.name || 'ZK proof';
+                          const text = encodeURIComponent(
+                            `I just generated a ${proofLabel} using @rune_zk — verified entirely in my browser with zero-knowledge cryptography.\n\nVerify it on-chain:\n${blinkResult.directUrl}`
+                          );
+                          window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
                         }}
                         className="px-3 py-1.5 bg-zinc-700 text-white text-xs rounded-lg hover:bg-zinc-600 transition-colors"
                       >
