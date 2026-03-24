@@ -3,7 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 
 interface ProofData {
   id: string;
@@ -16,22 +16,50 @@ interface ProofData {
   verifiedOffChain: boolean;
 }
 
-const CIRCUIT_META: Record<string, { title: string; emoji: string; statement: string }> = {
-  'age-verification':       { title: 'Age Verification',           emoji: '🎂', statement: 'User meets the minimum age requirement' },
-  'balance-proof':          { title: 'Anonymous Balance Proof',    emoji: '💰', statement: 'User holds a balance above the required threshold' },
-  'whale-holder':           { title: 'Whale Verification',         emoji: '🐋', statement: 'User qualifies as a whale holder' },
-  'membership-proof':       { title: 'Membership Proof',           emoji: '🏛️', statement: 'User is a verified member of the group' },
-  'private-voting':         { title: 'Private Vote',               emoji: '🗳️', statement: 'A valid vote was cast privately' },
-  'quadratic-voting':       { title: 'Quadratic Vote',             emoji: '📊', statement: 'A weighted vote was cast using quadratic voting' },
-  'credential-proof':       { title: 'Credential Proof',           emoji: '🪪', statement: 'User holds a valid, non-expired credential' },
-  'anonymous-reputation':   { title: 'Anonymous Reputation',       emoji: '⭐', statement: 'User meets the reputation score threshold' },
-  'nft-ownership':          { title: 'NFT Ownership Proof',        emoji: '🖼️', statement: 'User owns an NFT from the specified collection' },
-  'range-proof':            { title: 'Range Proof',                emoji: '📏', statement: 'A private value falls within the specified range' },
-  'hash-preimage':          { title: 'Hash Preimage Proof',        emoji: '🔐', statement: 'User knows the preimage of a hash' },
-  'signature-verification': { title: 'Signature Verification',     emoji: '✍️', statement: 'A valid digital signature was verified' },
-  'token-swap':             { title: 'Token Swap Proof',           emoji: '🔄', statement: 'User has sufficient balance for the swap' },
-  'patience-proof':         { title: 'Patience Proof',             emoji: '⏳', statement: 'User waited the required duration' },
+const CIRCUIT_META: Record<string, {
+  title: string;
+  emoji: string;
+  statement: string;
+  signalLabels?: string[];
+}> = {
+  'age-verification':       { title: 'Age Verification',         emoji: '🎂', statement: 'User meets the minimum age requirement', signalLabels: ['isValid', 'currentYear', 'minimumAge'] },
+  'balance-proof':          { title: 'Anonymous Balance Proof',   emoji: '💰', statement: 'User holds a balance above the required threshold', signalLabels: ['hasMinimum', 'minimumBalance'] },
+  'whale-holder':           { title: 'Whale Verification',        emoji: '🐋', statement: 'User qualifies as a whale holder', signalLabels: ['hasMinimum', 'nullifier', 'root', 'minimumBalance'] },
+  'membership-proof':       { title: 'Membership Proof',          emoji: '🏛️', statement: 'User is a verified member of the group', signalLabels: ['root'] },
+  'private-voting':         { title: 'Private Vote',              emoji: '🗳️', statement: 'A valid vote was cast privately', signalLabels: ['voteCommitment', 'pollId'] },
+  'quadratic-voting':       { title: 'Quadratic Vote',            emoji: '📊', statement: 'A weighted vote was cast using quadratic voting', signalLabels: ['voteWeight', 'voteCommitment', 'pollId', 'minTokens'] },
+  'credential-proof':       { title: 'Credential Proof',          emoji: '🪪', statement: 'User holds a valid, non-expired credential', signalLabels: ['isValid', 'currentTime', 'expectedHash'] },
+  'anonymous-reputation':   { title: 'Anonymous Reputation',      emoji: '⭐', statement: 'User meets the reputation score threshold', signalLabels: ['meetsThreshold', 'nullifier', 'thresholdScore', 'platformId'] },
+  'nft-ownership':          { title: 'NFT Ownership Proof',       emoji: '🖼️', statement: 'User owns an NFT from the specified collection', signalLabels: ['isValid', 'collectionRoot', 'minTokenId', 'maxTokenId'] },
+  'range-proof':            { title: 'Range Proof',               emoji: '📏', statement: 'A private value falls within the specified range', signalLabels: ['inRange', 'minRange', 'maxRange'] },
+  'hash-preimage':          { title: 'Hash Preimage Proof',       emoji: '🔐', statement: 'User knows the preimage of a hash', signalLabels: ['expectedHash'] },
+  'signature-verification': { title: 'Signature Verification',    emoji: '✍️', statement: 'A valid digital signature was verified', signalLabels: ['Ax', 'Ay', 'M'] },
+  'token-swap':             { title: 'Token Swap Proof',          emoji: '🔄', statement: 'User has sufficient balance for the swap', signalLabels: ['swapCommitment', 'requiredTokenA', 'swapRate', 'minReceive'] },
+  'patience-proof':         { title: 'Patience Proof',            emoji: '⏳', statement: 'User waited the required duration', signalLabels: ['isValid', 'commitmentHash', 'minimumWaitTime'] },
 };
+
+function formatSignalValue(label: string, value: string): string {
+  if (label === 'isValid' || label === 'hasMinimum' || label === 'inRange' || label === 'meetsThreshold') {
+    return value === '1' ? 'True' : 'False';
+  }
+  if (label === 'currentYear' || label === 'minimumAge' || label === 'minimumBalance' ||
+      label === 'minTokens' || label === 'thresholdScore' || label === 'minRange' ||
+      label === 'maxRange' || label === 'pollId' || label === 'platformId' ||
+      label === 'requiredTokenA' || label === 'swapRate' || label === 'minReceive' ||
+      label === 'minimumWaitTime' || label === 'minTokenId' || label === 'maxTokenId') {
+    return value;
+  }
+  if (value.length > 20) return `${value.substring(0, 8)}...${value.substring(value.length - 6)}`;
+  return value;
+}
+
+function formatLabel(label: string): string {
+  return label.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase()).trim();
+}
+
+function proofFingerprint(id: string): string {
+  return `0x${id.substring(0, 8)}...${id.substring(id.length - 8)}`;
+}
 
 export default function VerifyPage() {
   const params = useParams();
@@ -39,6 +67,7 @@ export default function VerifyPage() {
   const [proof, setProof] = useState<ProofData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     async function fetchProof() {
@@ -63,26 +92,48 @@ export default function VerifyPage() {
   const blinkUrl = `https://dial.to/?action=solana-action:${origin}/api/actions/verify?id=${proofId}`;
   const verifyPageUrl = `${origin}/verify/${proofId}`;
 
+  const timeAgo = useMemo(() => {
+    if (!proof) return '';
+    const diff = Date.now() - new Date(proof.createdAt).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'just now';
+    if (mins < 60) return `${mins}m ago`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h ago`;
+    const days = Math.floor(hrs / 24);
+    return `${days}d ago`;
+  }, [proof]);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(verifyPageUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {}
+  };
+
   return (
     <main className="min-h-screen bg-zk-darker">
       <Navigation />
 
-      <div className="pt-32 px-4 sm:px-8 pb-12">
-        <div className="max-w-3xl mx-auto">
+      <div className="pt-28 px-4 sm:px-8 pb-16">
+        <div className="max-w-2xl mx-auto">
 
           {loading && (
-            <div className="text-center py-20">
-              <div className="w-10 h-10 border-2 border-zinc-700 border-t-emerald-400 rounded-full animate-spin mx-auto mb-4" />
-              <p className="text-zinc-400">Loading proof...</p>
+            <div className="text-center py-24">
+              <div className="w-12 h-12 border-2 border-zinc-700 border-t-emerald-400 rounded-full animate-spin mx-auto mb-5" />
+              <p className="text-zinc-400 text-sm">Verifying proof...</p>
             </div>
           )}
 
           {error && (
-            <div className="text-center py-20">
-              <div className="text-5xl mb-4">🔍</div>
+            <div className="text-center py-24">
+              <div className="w-16 h-16 mx-auto mb-5 bg-red-500/10 rounded-2xl flex items-center justify-center">
+                <span className="text-3xl">🔍</span>
+              </div>
               <h1 className="font-hatton text-3xl text-white mb-3">Proof Not Found</h1>
-              <p className="text-zinc-400 mb-8">This proof may have expired or does not exist.</p>
-              <Link href="/zkblink" className="px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors">
+              <p className="text-zinc-400 mb-8 max-w-md mx-auto">This proof may have expired or does not exist. Proofs are valid for 24 hours after creation.</p>
+              <Link href="/zkblink" className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors text-sm font-medium">
                 Create Your Own Proof
               </Link>
             </div>
@@ -90,114 +141,149 @@ export default function VerifyPage() {
 
           {proof && meta && (
             <>
-              {/* Header */}
-              <div className="text-center mb-10">
-                <div className="text-6xl mb-4">{meta.emoji}</div>
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-4">
-                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                  <span className="text-xs font-medium text-emerald-400 uppercase tracking-wider">
-                    Verified ZK Proof
-                  </span>
-                </div>
-                <h1 className="font-hatton text-4xl sm:text-5xl text-white mb-3">
-                  {meta.title}
-                </h1>
-                <p className="text-lg text-zinc-400">
-                  {proof.description}
-                </p>
-              </div>
-
-              {/* Proof Card */}
-              <div className="bg-zinc-900/50 border border-zinc-800 rounded-2xl overflow-hidden mb-6">
-                {/* Status Bar */}
-                <div className="flex items-center gap-3 px-6 py-4 bg-emerald-500/5 border-b border-emerald-500/10">
-                  <svg className="w-6 h-6 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+              {/* Verification Badge */}
+              <div className="text-center mb-8">
+                <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-6">
+                  <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <div>
-                    <p className="text-emerald-300 text-sm font-medium">Cryptographically Valid</p>
-                    <p className="text-zinc-500 text-xs">This proof has been verified off-chain using snarkjs</p>
-                  </div>
+                  <span className="text-sm font-medium text-emerald-400">Verified ZK Proof</span>
+                </div>
+                <h1 className="font-hatton text-3xl sm:text-4xl text-white mb-2">
+                  {meta.emoji} {meta.title}
+                </h1>
+                <p className="text-zinc-500 text-sm font-mono">{proofFingerprint(proofId)}</p>
+              </div>
+
+              {/* Main Proof Card */}
+              <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl overflow-hidden mb-5">
+
+                {/* Proven Statement */}
+                <div className="px-6 py-6 border-b border-zinc-800/80">
+                  <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium mb-3">Proven Statement</p>
+                  <p className="text-lg sm:text-xl text-white font-medium leading-relaxed">&ldquo;{meta.statement}&rdquo;</p>
                 </div>
 
-                {/* Statement */}
-                <div className="px-6 py-5 border-b border-zinc-800">
-                  <p className="text-xs text-zinc-500 uppercase tracking-wider mb-2">Proven Statement</p>
-                  <p className="text-xl text-white font-medium">&ldquo;{meta.statement}&rdquo;</p>
-                </div>
+                {/* Public Signals */}
+                {proof.publicSignals.length > 0 && (
+                  <div className="px-6 py-5 border-b border-zinc-800/80">
+                    <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium mb-3">Public Signals</p>
+                    <div className="space-y-2">
+                      {proof.publicSignals.map((signal, i) => {
+                        const signalLabels = meta.signalLabels || [];
+                        const label = signalLabels[i] || `signal_${i}`;
+                        const isBoolean = ['isValid', 'hasMinimum', 'inRange', 'meetsThreshold'].includes(label);
+                        const isTrue = signal === '1';
+                        return (
+                          <div key={i} className="flex items-center justify-between py-1.5">
+                            <span className="text-zinc-400 text-sm">{formatLabel(label)}</span>
+                            <span className={`font-mono text-sm ${
+                              isBoolean
+                                ? isTrue ? 'text-emerald-400' : 'text-red-400'
+                                : 'text-white'
+                            }`}>
+                              {isBoolean && (
+                                <span className="mr-1.5">{isTrue ? '✓' : '✗'}</span>
+                              )}
+                              {formatSignalValue(label, signal)}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                )}
 
-                {/* Details Grid */}
-                <div className="grid grid-cols-2 divide-x divide-zinc-800">
-                  <div className="px-6 py-4">
-                    <p className="text-xs text-zinc-500 mb-1">Circuit</p>
-                    <p className="text-white text-sm font-medium">{meta.title}</p>
+                {/* Metadata Grid */}
+                <div className="grid grid-cols-3 divide-x divide-zinc-800/80">
+                  <div className="px-5 py-4">
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Protocol</p>
+                    <p className="text-white text-xs font-medium">Groth16</p>
                   </div>
-                  <div className="px-6 py-4">
-                    <p className="text-xs text-zinc-500 mb-1">Proof ID</p>
-                    <p className="text-white text-sm font-mono">{proofId.substring(0, 12)}...</p>
+                  <div className="px-5 py-4">
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Curve</p>
+                    <p className="text-white text-xs font-medium">BN254</p>
                   </div>
-                </div>
-                <div className="grid grid-cols-2 divide-x divide-zinc-800 border-t border-zinc-800">
-                  <div className="px-6 py-4">
-                    <p className="text-xs text-zinc-500 mb-1">Created</p>
-                    <p className="text-white text-sm">{new Date(proof.createdAt).toLocaleString('en-US', { dateStyle: 'medium', timeStyle: 'short' })}</p>
-                  </div>
-                  <div className="px-6 py-4">
-                    <p className="text-xs text-zinc-500 mb-1">Public Signals</p>
-                    <p className="text-white text-sm font-mono">
-                      {proof.publicSignals.length > 0 ? proof.publicSignals.join(', ') : 'Hidden'}
-                    </p>
+                  <div className="px-5 py-4">
+                    <p className="text-[10px] text-zinc-600 uppercase tracking-wider mb-1">Created</p>
+                    <p className="text-white text-xs font-medium">{timeAgo}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Privacy Notice */}
-              <div className="bg-violet-500/5 border border-violet-500/15 rounded-xl p-5 mb-6">
+              {/* Verification Status Card */}
+              <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-xl p-5 mb-5">
                 <div className="flex items-start gap-3">
-                  <div className="text-xl">🔒</div>
-                  <div>
-                    <p className="text-violet-300 text-sm font-medium mb-1">Zero-Knowledge Privacy</p>
-                    <p className="text-zinc-400 text-sm leading-relaxed">
-                      This proof verifies the statement above without revealing any private data.
-                      The original inputs remain completely confidential and cannot be derived from the proof.
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/15 flex items-center justify-center flex-shrink-0 mt-0.5">
+                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-emerald-300 text-sm font-medium mb-1">Off-Chain Verification Passed</p>
+                    <p className="text-zinc-500 text-xs leading-relaxed">
+                      This zk-SNARK proof was verified using snarkjs Groth16 verifier. The proof is cryptographically valid — it cannot be forged or tampered with.
                     </p>
                   </div>
                 </div>
               </div>
 
-              {/* Actions */}
-              <div className="flex flex-col sm:flex-row gap-3 mb-8">
+              {/* On-Chain Verify CTA */}
+              <a
+                href={blinkUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full py-3.5 bg-gradient-to-r from-violet-600 to-indigo-600 text-white rounded-xl hover:from-violet-500 hover:to-indigo-500 transition-all text-center text-sm font-medium mb-3"
+              >
+                ⛓️ Verify On-Chain via Solana
+              </a>
+
+              {/* Share Actions */}
+              <div className="flex gap-2.5 mb-8">
                 <button
                   onClick={() => {
                     const text = encodeURIComponent(
-                      `Check out this verified ${meta.title} — generated with @rune_zk using zero-knowledge cryptography.\n\n${verifyPageUrl}`
+                      `I verified a ${meta.title} proof using @rune_zk — zero-knowledge cryptography on Solana.\n\n${verifyPageUrl}`
                     );
                     window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
                   }}
-                  className="flex-1 py-3 bg-zinc-800 text-white rounded-xl hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2 text-sm font-medium"
+                  className="flex-1 py-2.5 bg-zinc-800/80 text-white rounded-xl hover:bg-zinc-700 transition-colors flex items-center justify-center gap-2 text-sm"
                 >
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
-                  Share on X
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+                  Share
                 </button>
                 <button
-                  onClick={async () => { try { await navigator.clipboard.writeText(verifyPageUrl); } catch {} }}
-                  className="flex-1 py-3 border border-zinc-700 text-white rounded-xl hover:border-zinc-500 transition-colors text-sm font-medium"
+                  onClick={handleCopy}
+                  className="flex-1 py-2.5 border border-zinc-700/60 text-white rounded-xl hover:border-zinc-500 transition-colors text-sm"
                 >
-                  Copy Link
+                  {copied ? '✓ Copied' : 'Copy Link'}
                 </button>
                 <Link
                   href="/zkblink"
-                  className="flex-1 py-3 bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-xl hover:from-emerald-500 hover:to-teal-500 transition-all text-center text-sm font-medium"
+                  className="flex-1 py-2.5 bg-emerald-600/90 text-white rounded-xl hover:bg-emerald-500 transition-colors text-center text-sm"
                 >
-                  Create Your Own
+                  Create Proof
                 </Link>
               </div>
 
-              {/* Powered by */}
+              {/* ZK Privacy Note */}
+              <div className="border border-zinc-800/50 rounded-xl p-4 mb-6">
+                <div className="flex items-start gap-3">
+                  <span className="text-base">🔒</span>
+                  <div>
+                    <p className="text-zinc-300 text-xs font-medium mb-1">Zero-Knowledge Privacy</p>
+                    <p className="text-zinc-500 text-xs leading-relaxed">
+                      Only the statement and public signals above are revealed. All private inputs remain confidential — they never left the prover&apos;s browser and cannot be derived from the proof.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Footer */}
               <div className="text-center">
-                <p className="text-zinc-600 text-xs">
-                  Powered by <Link href="/" className="text-zinc-400 hover:text-white transition-colors">zkRune</Link> — Privacy verification infrastructure for Solana
-                </p>
+                <Link href="/" className="text-zinc-600 text-xs hover:text-zinc-400 transition-colors">
+                  Powered by zkRune — Privacy verification infrastructure for Solana
+                </Link>
               </div>
             </>
           )}
