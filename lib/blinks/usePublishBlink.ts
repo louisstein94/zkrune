@@ -51,7 +51,8 @@ export function usePublishBlink(): UsePublishBlinkReturn {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || 'Failed to publish Blink');
+        const debugInfo = data.debug ? `\n${JSON.stringify(data.debug, null, 2)}` : '';
+        throw new Error((data.error || 'Failed to publish Blink') + debugInfo);
       }
 
       const publishResult: PublishResult = {

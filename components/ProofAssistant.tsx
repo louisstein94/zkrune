@@ -22,7 +22,7 @@ export default function ProofAssistant() {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const [inputValue, setInputValue] = useState('');
   const [proofState, setProofState] = useState<ProofState>({ status: 'idle' });
-  const { publish, isPublishing, result: blinkResult, reset: resetBlink } = usePublishBlink();
+  const { publish, isPublishing, result: blinkResult, error: blinkError, reset: resetBlink } = usePublishBlink();
 
   const welcomeText = 'Hey! I\'m zkBlink — your zero-knowledge proof builder. Tell me what you want to prove privately, and I\'ll craft the proof for you.\n\nFor example:\n\n- "Prove I\'m over 18"\n- "Show I have more than 10,000 tokens"\n- "I want to vote privately in a DAO"\n- "Prove I\'m a member of a group anonymously"';
   const { messages, sendMessage, status } = useChat({
@@ -79,7 +79,7 @@ export default function ProofAssistant() {
   }, []);
 
   const handlePublishBlink = useCallback(async () => {
-    if (!proofState.result?.groth16Proof || !proofState.templateId) return;
+    if (!proofState.result?.groth16Proof || !proofState.templateId || proofState.result.isValid !== true) return;
     const spec = findTemplateById(proofState.templateId);
     await publish({
       circuitName: proofState.templateId,
@@ -212,7 +212,7 @@ export default function ProofAssistant() {
                 {proofState.result?.groth16Proof && !blinkResult && (
                   <button
                     onClick={handlePublishBlink}
-                    disabled={isPublishing}
+                    disabled={isPublishing || proofState.result?.isValid !== true}
                     className="w-full py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm font-medium rounded-xl hover:from-violet-500 hover:to-fuchsia-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
                   >
                     {isPublishing ? (
@@ -229,6 +229,16 @@ export default function ProofAssistant() {
                       </>
                     )}
                   </button>
+                )}
+
+                {blinkError && (
+                  <p className="text-xs text-red-400">{blinkError}</p>
+                )}
+
+                {blinkError && (
+                  <div className="py-2 px-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs whitespace-pre-wrap break-all">
+                    {blinkError}
+                  </div>
                 )}
 
                 {blinkResult && (

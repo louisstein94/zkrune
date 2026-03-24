@@ -135,8 +135,15 @@ export async function generateClientProof(
     const vkeyResponse = await fetch(`/circuits/${templateId}_vkey.json`);
     const vKey = await vkeyResponse.json();
 
-    // Verify proof
+    // Never surface a proof as publishable if browser-side verification fails.
     const isValid = await snarkjs.groth16.verify(vKey, publicSignals, groth16Proof);
+    if (!isValid) {
+      return {
+        success: false,
+        error: 'Proof generated but local verification failed',
+        timing: proofTime,
+      };
+    }
 
     return {
       success: true,

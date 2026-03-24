@@ -87,16 +87,30 @@ export async function POST(req: NextRequest) {
       const snarkjs = await import('snarkjs');
       verified = await snarkjs.groth16.verify(vKey, publicSignals, proof);
     } catch (err: any) {
-      console.error('[actions/publish] snarkjs verify error:', err?.message || err);
+      const msg = err?.message || String(err);
+      console.error('[actions/publish] snarkjs verify error:', msg);
       return NextResponse.json(
-        { error: 'Server-side verification engine failed. Please try again.' },
+        { error: `Server-side verification engine failed: ${msg}` },
         { status: 500 },
       );
     }
 
     if (!verified) {
       return NextResponse.json(
-        { error: 'Proof verification failed — cannot publish an invalid proof as a Blink' },
+        {
+          error: 'Proof verification failed — cannot publish an invalid proof as a Blink',
+          debug: {
+            circuitName,
+            proofKeys: Object.keys(proof),
+            pi_a_len: proof.pi_a?.length,
+            pi_b_len: proof.pi_b?.length,
+            pi_c_len: proof.pi_c?.length,
+            publicSignals_len: publicSignals?.length,
+            publicSignals,
+            vKeyProtocol: (vKey as any)?.protocol,
+            proofProtocol: proof.protocol,
+          },
+        },
         { status: 422 },
       );
     }
