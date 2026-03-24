@@ -5,7 +5,7 @@ import { useState, useCallback } from 'react';
 interface PublishResult {
   proofId: string;
   blinkUrl: string;
-  directUrl: string;
+  verifyPageUrl: string;
   expiresAt: string;
 }
 
@@ -58,7 +58,7 @@ export function usePublishBlink(): UsePublishBlinkReturn {
       const publishResult: PublishResult = {
         proofId: data.proofId,
         blinkUrl: data.blinkUrl,
-        directUrl: data.directUrl,
+        verifyPageUrl: data.verifyPageUrl,
         expiresAt: data.expiresAt,
       };
 

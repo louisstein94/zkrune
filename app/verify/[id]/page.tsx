@@ -43,30 +43,12 @@ export default function VerifyPage() {
   useEffect(() => {
     async function fetchProof() {
       try {
-        const res = await fetch(`/api/actions/verify?id=${proofId}`);
+        const res = await fetch(`/api/proof/${proofId}`);
         if (!res.ok) {
           const data = await res.json().catch(() => ({}));
           throw new Error(data.error || 'Proof not found');
         }
-        const actionData = await res.json();
-
-        const res2 = await fetch(`/api/proof/${proofId}`);
-        if (res2.ok) {
-          const data = await res2.json();
-          setProof(data);
-        } else {
-          const circuitName = extractCircuitFromTitle(actionData.title);
-          setProof({
-            id: proofId,
-            circuitName,
-            label: actionData.title,
-            description: actionData.description,
-            publicSignals: [],
-            createdAt: new Date().toISOString(),
-            expiresAt: '',
-            verifiedOffChain: true,
-          });
-        }
+        setProof(await res.json());
       } catch (err: any) {
         setError(err.message || 'Failed to load proof');
       } finally {
@@ -77,8 +59,9 @@ export default function VerifyPage() {
   }, [proofId]);
 
   const meta = proof ? (CIRCUIT_META[proof.circuitName] || { title: proof.circuitName, emoji: '🔮', statement: proof.description }) : null;
-  const blinkUrl = `solana-action:${typeof window !== 'undefined' ? window.location.origin : ''}/api/actions/verify?id=${proofId}`;
-  const verifyUrl = `${typeof window !== 'undefined' ? window.location.origin : ''}/api/actions/verify?id=${proofId}`;
+  const origin = typeof window !== 'undefined' ? window.location.origin : '';
+  const blinkUrl = `https://dial.to/?action=solana-action:${origin}/api/actions/verify?id=${proofId}`;
+  const verifyPageUrl = `${origin}/verify/${proofId}`;
 
   return (
     <main className="min-h-screen bg-zk-darker">
@@ -187,7 +170,7 @@ export default function VerifyPage() {
                 <button
                   onClick={() => {
                     const text = encodeURIComponent(
-                      `Check out this verified ${meta.title} — generated with @rune_zk using zero-knowledge cryptography.\n\n${verifyUrl}`
+                      `Check out this verified ${meta.title} — generated with @rune_zk using zero-knowledge cryptography.\n\n${verifyPageUrl}`
                     );
                     window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
                   }}
@@ -197,7 +180,7 @@ export default function VerifyPage() {
                   Share on X
                 </button>
                 <button
-                  onClick={async () => { try { await navigator.clipboard.writeText(verifyUrl); } catch {} }}
+                  onClick={async () => { try { await navigator.clipboard.writeText(verifyPageUrl); } catch {} }}
                   className="flex-1 py-3 border border-zinc-700 text-white rounded-xl hover:border-zinc-500 transition-colors text-sm font-medium"
                 >
                   Copy Link
@@ -222,11 +205,4 @@ export default function VerifyPage() {
       </div>
     </main>
   );
-}
-
-function extractCircuitFromTitle(title: string): string {
-  for (const [id, meta] of Object.entries(CIRCUIT_META)) {
-    if (title.includes(meta.title)) return id;
-  }
-  return 'unknown';
 }

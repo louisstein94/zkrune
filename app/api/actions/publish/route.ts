@@ -135,16 +135,18 @@ export async function POST(req: NextRequest) {
       verifiedOffChain: true,
     });
 
-    const blinkUrl = `solana-action:${baseUrl}/api/actions/verify?id=${stored.id}`;
-    const directUrl = `${baseUrl}/api/actions/verify?id=${stored.id}`;
+    const actionUrl = `${baseUrl}/api/actions/verify?id=${stored.id}`;
+    const blinkUrl = `https://dial.to/?action=solana-action:${actionUrl}`;
+    const verifyPageUrl = `${baseUrl}/verify/${stored.id}`;
 
     return NextResponse.json({
       success: true,
       proofId: stored.id,
       blinkUrl,
-      directUrl,
+      actionUrl,
+      verifyPageUrl,
       expiresAt: new Date(stored.expiresAt).toISOString(),
-      message: 'Proof published as a Blink! Share the blinkUrl on Twitter/X.',
+      message: 'Proof published as a Blink!',
     });
   } catch (err: any) {
     console.error('[actions/publish]', err);

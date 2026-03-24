@@ -259,7 +259,7 @@ export default function ProofAssistant() {
                           const spec = proofState.templateId ? findTemplateById(proofState.templateId) : null;
                           const proofLabel = spec?.name || 'ZK proof';
                           const text = encodeURIComponent(
-                            `I just generated a ${proofLabel} using @rune_zk — verified entirely in my browser with zero-knowledge cryptography.\n\nVerify it on-chain:\n${blinkResult.directUrl}`
+                            `I just generated a ${proofLabel} using @rune_zk — verified entirely in my browser with zero-knowledge cryptography.\n\nVerify it:\n${blinkResult.verifyPageUrl}`
                           );
                           window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
                         }}

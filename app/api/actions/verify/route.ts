@@ -140,6 +140,13 @@ export async function GET(req: NextRequest) {
     return actionErrorResponse('Missing proof id');
   }
 
+  const accept = req.headers.get('accept') || '';
+  const isBrowser = accept.includes('text/html') && !accept.includes('application/json');
+  if (isBrowser) {
+    const baseUrl = getBaseUrl(req);
+    return Response.redirect(`${baseUrl}/verify/${proofId}`, 302);
+  }
+
   const stored = await getProof(proofId);
   if (!stored) {
     return actionErrorResponse('Proof not found or expired', 404);

@@ -745,7 +745,7 @@ export default function TemplatePage() {
                               </button>
                               <button
                                 onClick={() => {
-                                  const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.directUrl}`);
+                                  const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.verifyPageUrl}`);
                                   window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
                                 }}
                                 className="px-4 py-2 bg-zinc-800 text-white text-sm rounded-lg hover:bg-zinc-700 transition-colors"
