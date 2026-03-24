@@ -24,22 +24,16 @@ export default function ProofAssistant() {
   const [proofState, setProofState] = useState<ProofState>({ status: 'idle' });
   const { publish, isPublishing, result: blinkResult, reset: resetBlink } = usePublishBlink();
 
+  const welcomeText = 'Hey! I\'m zkBlink — your zero-knowledge proof builder. Tell me what you want to prove privately, and I\'ll craft the proof for you.\n\nFor example:\n\n- "Prove I\'m over 18"\n- "Show I have more than 10,000 tokens"\n- "I want to vote privately in a DAO"\n- "Prove I\'m a member of a group anonymously"';
   const { messages, sendMessage, status } = useChat({
     transport: chatTransport,
-    initialMessages: [
+    messages: [
       {
         id: 'welcome',
-        role: 'assistant',
-        content:
-          'Hey! I\'m zkBlink — your zero-knowledge proof builder. Tell me what you want to prove privately, and I\'ll craft the proof for you.\n\nFor example:\n\n- "Prove I\'m over 18"\n- "Show I have more than 10,000 tokens"\n- "I want to vote privately in a DAO"\n- "Prove I\'m a member of a group anonymously"',
-        parts: [
-          {
-            type: 'text' as const,
-            text: 'Hey! I\'m zkBlink — your zero-knowledge proof builder. Tell me what you want to prove privately, and I\'ll craft the proof for you.\n\nFor example:\n\n- "Prove I\'m over 18"\n- "Show I have more than 10,000 tokens"\n- "I want to vote privately in a DAO"\n- "Prove I\'m a member of a group anonymously"',
-          },
-        ],
+        role: 'assistant' as const,
+        parts: [{ type: 'text' as const, text: welcomeText }],
       },
-    ],
+    ] as import('ai').UIMessage[],
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';

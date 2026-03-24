@@ -17,22 +17,16 @@ export default function BuilderChat({ onCircuitGenerated }: BuilderChatProps) {
   const [inputValue, setInputValue] = useState('');
   const [isOpen, setIsOpen] = useState(false);
 
+  const welcomeText = 'Describe what you want to prove and I\'ll design the ZK circuit for you. For example:\n\n• "Prove I have more than 10k tokens"\n• "Age verification without revealing birthday"\n• "Anonymous membership proof"';
   const { messages, sendMessage, status } = useChat({
     transport: chatTransport,
-    initialMessages: [
+    messages: [
       {
         id: 'welcome',
-        role: 'assistant',
-        content:
-          'Describe what you want to prove and I\'ll design the ZK circuit for you. For example:\n\n• "Prove I have more than 10k tokens"\n• "Age verification without revealing birthday"\n• "Anonymous membership proof"',
-        parts: [
-          {
-            type: 'text' as const,
-            text: 'Describe what you want to prove and I\'ll design the ZK circuit for you. For example:\n\n• "Prove I have more than 10k tokens"\n• "Age verification without revealing birthday"\n• "Anonymous membership proof"',
-          },
-        ],
+        role: 'assistant' as const,
+        parts: [{ type: 'text' as const, text: welcomeText }],
       },
-    ],
+    ] as import('ai').UIMessage[],
   });
 
   const isLoading = status === 'submitted' || status === 'streaming';

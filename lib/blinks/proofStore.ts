@@ -1,5 +1,8 @@
 import crypto from 'crypto';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
+import type { Database } from '@/lib/supabase/types';
+
+type ProofInsert = Database['public']['Tables']['published_proofs']['Insert'];
 
 export interface StoredProof {
   id: string;
@@ -34,7 +37,7 @@ function evictExpired() {
 
 // ─── Supabase helpers ───────────────────────────────────────────────
 
-function toDbRow(entry: StoredProof) {
+function toDbRow(entry: StoredProof): ProofInsert {
   return {
     id: entry.id,
     circuit_name: entry.circuitName,
@@ -89,7 +92,7 @@ export async function storeProof(
   };
 
   if (isSupabaseConfigured()) {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('published_proofs')
       .insert(toDbRow(entry));
 
@@ -111,7 +114,7 @@ export async function storeProof(
 
 export async function getProof(id: string): Promise<StoredProof | null> {
   if (isSupabaseConfigured()) {
-    const { data, error } = await supabase
+    const { data, error } = await (supabase as any)
       .from('published_proofs')
       .select('*')
       .eq('id', id)
@@ -134,7 +137,7 @@ export async function getProof(id: string): Promise<StoredProof | null> {
 
 export async function deleteProof(id: string): Promise<boolean> {
   if (isSupabaseConfigured()) {
-    const { error } = await supabase
+    const { error } = await (supabase as any)
       .from('published_proofs')
       .delete()
       .eq('id', id);
