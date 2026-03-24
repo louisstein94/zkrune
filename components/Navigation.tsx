@@ -21,6 +21,7 @@ export default function Navigation() {
   const navItems: NavItem[] = [
     { name: "Home", href: "/" },
     { name: "Templates", href: "/templates" },
+    { name: "zkBlink", href: "/proof-assistant" },
     { 
       name: "Token", 
       href: "#",

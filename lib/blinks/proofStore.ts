@@ -1,0 +1,146 @@
+import crypto from 'crypto';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
+
+export interface StoredProof {
+  id: string;
+  circuitName: string;
+  proof: {
+    pi_a: string[];
+    pi_b: string[][];
+    pi_c: string[];
+    protocol: string;
+    curve: string;
+  };
+  publicSignals: string[];
+  label: string;
+  description: string;
+  createdAt: number;
+  expiresAt: number;
+  verifiedOffChain: boolean;
+  creatorWallet?: string;
+}
+
+const PROOF_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+
+// ─── In-memory fallback (dev without Supabase) ─────────────────────
+const memStore = new Map<string, StoredProof>();
+
+function evictExpired() {
+  const now = Date.now();
+  for (const [id, entry] of memStore) {
+    if (now > entry.expiresAt) memStore.delete(id);
+  }
+}
+
+// ─── Supabase helpers ───────────────────────────────────────────────
+
+function toDbRow(entry: StoredProof) {
+  return {
+    id: entry.id,
+    circuit_name: entry.circuitName,
+    proof: entry.proof as any,
+    public_signals: entry.publicSignals as any,
+    label: entry.label,
+    description: entry.description,
+    created_at: new Date(entry.createdAt).toISOString(),
+    expires_at: new Date(entry.expiresAt).toISOString(),
+    verified_off_chain: entry.verifiedOffChain,
+    creator_wallet: entry.creatorWallet || null,
+  };
+}
+
+function fromDbRow(row: any): StoredProof {
+  return {
+    id: row.id,
+    circuitName: row.circuit_name,
+    proof: row.proof,
+    publicSignals: row.public_signals,
+    label: row.label,
+    description: row.description,
+    createdAt: new Date(row.created_at).getTime(),
+    expiresAt: new Date(row.expires_at).getTime(),
+    verifiedOffChain: row.verified_off_chain,
+    creatorWallet: row.creator_wallet || undefined,
+  };
+}
+
+// ─── Public API ─────────────────────────────────────────────────────
+
+export async function storeProof(
+  circuitName: string,
+  proof: StoredProof['proof'],
+  publicSignals: string[],
+  opts: { label?: string; description?: string; wallet?: string; verifiedOffChain?: boolean } = {},
+): Promise<StoredProof> {
+  const id = crypto.randomBytes(16).toString('hex');
+  const now = Date.now();
+
+  const entry: StoredProof = {
+    id,
+    circuitName,
+    proof,
+    publicSignals,
+    label: opts.label || `zkRune ${circuitName} Proof`,
+    description: opts.description || `Zero-knowledge proof generated with zkRune (${circuitName})`,
+    createdAt: now,
+    expiresAt: now + PROOF_TTL_MS,
+    verifiedOffChain: opts.verifiedOffChain ?? false,
+    creatorWallet: opts.wallet,
+  };
+
+  if (isSupabaseConfigured()) {
+    const { error } = await supabase
+      .from('published_proofs')
+      .insert(toDbRow(entry));
+
+    if (error) {
+      console.error('[proofStore] Supabase insert error, falling back to memory:', error.message);
+      memStore.set(id, entry);
+    }
+  } else {
+    evictExpired();
+    if (memStore.size >= 10_000) {
+      const oldest = [...memStore.entries()].sort((a, b) => a[1].createdAt - b[1].createdAt)[0];
+      if (oldest) memStore.delete(oldest[0]);
+    }
+    memStore.set(id, entry);
+  }
+
+  return entry;
+}
+
+export async function getProof(id: string): Promise<StoredProof | null> {
+  if (isSupabaseConfigured()) {
+    const { data, error } = await supabase
+      .from('published_proofs')
+      .select('*')
+      .eq('id', id)
+      .gt('expires_at', new Date().toISOString())
+      .single();
+
+    if (error || !data) {
+      // Fallback: check memory too
+      const mem = memStore.get(id);
+      if (mem && Date.now() <= mem.expiresAt) return mem;
+      return null;
+    }
+
+    return fromDbRow(data);
+  }
+
+  evictExpired();
+  return memStore.get(id) ?? null;
+}
+
+export async function deleteProof(id: string): Promise<boolean> {
+  if (isSupabaseConfigured()) {
+    const { error } = await supabase
+      .from('published_proofs')
+      .delete()
+      .eq('id', id);
+
+    if (!error) return true;
+  }
+
+  return memStore.delete(id);
+}

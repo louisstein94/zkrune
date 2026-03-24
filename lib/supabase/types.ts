@@ -298,6 +298,46 @@ export interface Database {
         };
       };
 
+      // Published ZK Proofs (for Solana Blinks)
+      published_proofs: {
+        Row: {
+          id: string;
+          circuit_name: string;
+          proof: Json;
+          public_signals: Json;
+          label: string;
+          description: string;
+          created_at: string;
+          expires_at: string;
+          verified_off_chain: boolean;
+          creator_wallet: string | null;
+        };
+        Insert: {
+          id: string;
+          circuit_name: string;
+          proof: Json;
+          public_signals: Json;
+          label?: string;
+          description?: string;
+          created_at?: string;
+          expires_at: string;
+          verified_off_chain?: boolean;
+          creator_wallet?: string | null;
+        };
+        Update: {
+          id?: string;
+          circuit_name?: string;
+          proof?: Json;
+          public_signals?: Json;
+          label?: string;
+          description?: string;
+          created_at?: string;
+          expires_at?: string;
+          verified_off_chain?: boolean;
+          creator_wallet?: string | null;
+        };
+      };
+
       // Ceremony Contributions
       ceremony_contributions: {
         Row: {

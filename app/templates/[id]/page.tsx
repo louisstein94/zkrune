@@ -26,6 +26,7 @@ import {
   VotingIcon 
 } from "@/components/TemplateIcons";
 import { generateClientProof } from "@/lib/clientZkProof";
+import { usePublishBlink } from "@/lib/blinks/usePublishBlink";
 
 // Template data
 const templates: { [key: string]: any } = {
@@ -313,6 +314,7 @@ export default function TemplatePage() {
   const [birthDate, setBirthDate] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [proof, setProof] = useState<any>(null);
+  const { publish, isPublishing, result: blinkResult, error: blinkError, reset: resetBlink } = usePublishBlink();
 
   // Auto-advance tutorial when form is filled
   useEffect(() => {
@@ -717,8 +719,78 @@ export default function TemplatePage() {
 
                   {/* Actions */}
                   <div className="space-y-3">
+                    {proof.groth16Proof && proof.publicSignals && (
+                      <div className="space-y-3">
+                        {blinkResult ? (
+                          <div className="p-4 bg-violet-500/10 border border-violet-500/25 rounded-xl space-y-3">
+                            <div className="flex items-center gap-2">
+                              <svg className="w-4 h-4 text-violet-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                              </svg>
+                              <span className="text-violet-300 text-sm font-medium">Blink Created!</span>
+                            </div>
+                            <div className="bg-black/30 rounded-lg p-2.5 font-mono text-xs text-violet-300 break-all select-all">
+                              {blinkResult.blinkUrl}
+                            </div>
+                            <div className="flex gap-2">
+                              <button
+                                onClick={async () => {
+                                  try {
+                                    await navigator.clipboard.writeText(blinkResult.blinkUrl);
+                                  } catch {}
+                                }}
+                                className="flex-1 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-500 transition-colors font-medium"
+                              >
+                                Copy URL
+                              </button>
+                              <button
+                                onClick={() => {
+                                  const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.directUrl}`);
+                                  window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+                                }}
+                                className="px-4 py-2 bg-zinc-800 text-white text-sm rounded-lg hover:bg-zinc-700 transition-colors"
+                              >
+                                Tweet
+                              </button>
+                            </div>
+                            <p className="text-zinc-500 text-xs text-center">
+                              Expires: {new Date(blinkResult.expiresAt).toLocaleString()}
+                            </p>
+                          </div>
+                        ) : (
+                          <button
+                            onClick={() => publish({
+                              circuitName: templateId,
+                              proof: proof.groth16Proof,
+                              publicSignals: proof.publicSignals,
+                              label: `${template.name} — zkRune`,
+                              description: `ZK proof: "${proof.statement}"`,
+                            })}
+                            disabled={isPublishing}
+                            className="w-full py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white font-medium rounded-lg hover:from-violet-500 hover:to-fuchsia-500 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
+                          >
+                            {isPublishing ? (
+                              <>
+                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                                Publishing Blink...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                                </svg>
+                                Share as Solana Blink
+                              </>
+                            )}
+                          </button>
+                        )}
+                        {blinkError && (
+                          <p className="text-red-400 text-xs text-center">{blinkError}</p>
+                        )}
+                      </div>
+                    )}
                     <button
-                      onClick={resetForm}
+                      onClick={() => { resetForm(); resetBlink(); }}
                       className="w-full py-3 border border-zk-gray/30 text-white rounded-lg hover:border-zk-primary hover:text-zk-primary transition-colors"
                     >
                       ← Generate New Proof

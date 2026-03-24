@@ -2,9 +2,10 @@
 
 import Navigation from "@/components/Navigation";
 import CircuitCanvas from "@/components/circuit-builder/CircuitCanvas";
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Node, Edge } from "reactflow";
 import CircuitActions from "@/components/circuit-builder/CircuitActions";
+import BuilderChat from "@/components/circuit-builder/BuilderChat";
 import { getRandomTemplate, getAllTemplates } from "@/lib/circuitTemplates";
 
 const featuredTemplateIds = ['age-verification', 'balance-proof', 'password-proof'];
@@ -13,6 +14,17 @@ export default function BuilderPage() {
   const [nodes, setNodes] = useState<Node[]>([]);
   const [edges, setEdges] = useState<Edge[]>([]);
   const [showTemplates, setShowTemplates] = useState(false);
+  const [aiCircomCode, setAiCircomCode] = useState<string | null>(null);
+
+  const handleCircuitGenerated = useCallback(
+    (newNodes: Node[], newEdges: Edge[], circomCode: string, _name: string) => {
+      setNodes(newNodes);
+      setEdges(newEdges);
+      setAiCircomCode(circomCode);
+      setShowTemplates(false);
+    },
+    [],
+  );
 
   const allTemplates = getAllTemplates();
   const featuredTemplates = allTemplates.filter(t => featuredTemplateIds.includes(t.id));
@@ -133,8 +145,10 @@ export default function BuilderPage() {
           </div>
         )}
 
-        <CircuitCanvas nodes={nodes} edges={edges} setNodes={setNodes} setEdges={setEdges} />
+        <CircuitCanvas nodes={nodes} edges={edges} setNodes={setNodes} setEdges={setEdges} aiCircomCode={aiCircomCode} />
       </div>
+
+      <BuilderChat onCircuitGenerated={handleCircuitGenerated} />
     </main>
   );
 }

@@ -3,6 +3,7 @@
 import { Node, Edge } from 'reactflow';
 import { useState, useEffect, useCallback } from 'react';
 import { generateCircomCode, validateCircuit } from '@/lib/circuitGenerator';
+import { usePublishBlink } from '@/lib/blinks/usePublishBlink';
 
 interface CircuitActionsProps {
   nodes: Node[];
@@ -65,7 +66,9 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
   const [isTesting, setIsTesting] = useState(false);
   const [isCompiling, setIsCompiling] = useState(false);
   const [showClearConfirm, setShowClearConfirm] = useState(false);
+  const [showBlinkModal, setShowBlinkModal] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const { publish, isPublishing, result: blinkResult, reset: resetBlink } = usePublishBlink();
 
   const addToast = useCallback((message: string, type: ToastType) => {
     const id = Date.now();
@@ -176,6 +179,25 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
     addToast('Canvas cleared.', 'info');
   };
 
+  const handleCreateBlink = () => {
+    const validation = validateCircuit(nodes, edges);
+    if (!validation.valid) {
+      addToast('Cannot create Blink: ' + validation.errors[0], 'error');
+      return;
+    }
+    setShowBlinkModal(true);
+  };
+
+  const copyBlinkUrl = async () => {
+    if (!blinkResult) return;
+    try {
+      await navigator.clipboard.writeText(blinkResult.blinkUrl);
+      addToast('Blink URL copied!', 'success');
+    } catch {
+      addToast('Failed to copy', 'error');
+    }
+  };
+
   const hasNodes = nodes.length > 0;
 
   return (
@@ -235,6 +257,101 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
       >
         {isCompiling ? 'Compiling...' : 'Compile'}
       </button>
+
+      <div className="w-px h-4 bg-zk-gray/20 mx-1" />
+
+      <button
+        onClick={handleCreateBlink}
+        disabled={!hasNodes || isPublishing}
+        className="px-4 py-1.5 text-xs bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-md hover:from-violet-500 hover:to-fuchsia-500 transition-all font-medium disabled:opacity-30 disabled:cursor-not-allowed flex items-center gap-1.5"
+      >
+        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+          <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+        </svg>
+        {isPublishing ? 'Publishing...' : 'Create Blink'}
+      </button>
+
+      {/* Blink info modal */}
+      {showBlinkModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4" onClick={() => { setShowBlinkModal(false); resetBlink(); }}>
+          <div className="bg-zinc-900 border border-zinc-700/50 rounded-2xl p-6 max-w-md w-full shadow-2xl" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-600 to-fuchsia-600 flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="text-white font-semibold text-lg">Create Blink</h3>
+                <p className="text-zinc-400 text-xs">Share your ZK proof as a Solana Blink</p>
+              </div>
+            </div>
+
+            {blinkResult ? (
+              <div className="space-y-4">
+                <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
+                  <p className="text-emerald-400 text-sm font-medium mb-2">Blink Created!</p>
+                  <p className="text-zinc-400 text-xs mb-3">Share this link on Twitter/X — it will unfurl as an interactive verification card.</p>
+                  <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-violet-300 break-all">
+                    {blinkResult.blinkUrl}
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    onClick={copyBlinkUrl}
+                    className="flex-1 px-4 py-2.5 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-500 transition-colors font-medium"
+                  >
+                    Copy Blink URL
+                  </button>
+                  <button
+                    onClick={() => {
+                      const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.directUrl}`);
+                      window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
+                    }}
+                    className="px-4 py-2.5 bg-zinc-800 text-white text-sm rounded-lg hover:bg-zinc-700 transition-colors font-medium"
+                  >
+                    Tweet
+                  </button>
+                </div>
+                <p className="text-zinc-500 text-xs text-center">
+                  Expires: {new Date(blinkResult.expiresAt).toLocaleString()}
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-zinc-800/50 rounded-xl p-4">
+                  <p className="text-zinc-300 text-sm">
+                    This will compile your circuit, generate a proof, and publish it as a shareable Solana Blink. Anyone with the link can verify your proof on-chain.
+                  </p>
+                  <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
+                    <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+                    </svg>
+                    Your private inputs never leave your browser.
+                  </div>
+                </div>
+                <p className="text-amber-400/80 text-xs bg-amber-500/10 border border-amber-500/15 rounded-lg p-3">
+                  Note: Blink creation requires a compiled circuit with proof artifacts (.wasm, .zkey). Use the Templates page to generate a proof first, then publish it as a Blink.
+                </p>
+                <div className="flex gap-2">
+                  <button
+                    onClick={() => { setShowBlinkModal(false); resetBlink(); }}
+                    className="flex-1 px-4 py-2.5 bg-zinc-800 text-zinc-300 text-sm rounded-lg hover:bg-zinc-700 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={() => window.location.href = '/templates'}
+                    className="flex-1 px-4 py-2.5 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white text-sm rounded-lg hover:from-violet-500 hover:to-fuchsia-500 transition-all font-medium"
+                  >
+                    Go to Templates
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Toast notifications */}
       {toasts.length > 0 && (

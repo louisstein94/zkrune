@@ -237,11 +237,12 @@ contract Groth16Verifier {
         G1Point memory c1, G2Point memory c2,
         G1Point memory d1, G2Point memory d2
     ) internal view returns (bool) {
+        // EIP-197: G2 encodes Fp2 as real (c0) then imaginary (c1) per coordinate
         uint256[24] memory input = [
-            a1.x, a1.y, a2.x[1], a2.x[0], a2.y[1], a2.y[0],
-            b1.x, b1.y, b2.x[1], b2.x[0], b2.y[1], b2.y[0],
-            c1.x, c1.y, c2.x[1], c2.x[0], c2.y[1], c2.y[0],
-            d1.x, d1.y, d2.x[1], d2.x[0], d2.y[1], d2.y[0]
+            a1.x, a1.y, a2.x[0], a2.x[1], a2.y[0], a2.y[1],
+            b1.x, b1.y, b2.x[0], b2.x[1], b2.y[0], b2.y[1],
+            c1.x, c1.y, c2.x[0], c2.x[1], c2.y[0], c2.y[1],
+            d1.x, d1.y, d2.x[0], d2.x[1], d2.y[0], d2.y[1]
         ];
         uint256[1] memory out;
         bool success;

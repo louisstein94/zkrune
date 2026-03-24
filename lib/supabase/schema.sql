@@ -154,6 +154,23 @@ CREATE TABLE IF NOT EXISTS ceremony_contributions (
 );
 
 -- =====================================================
+-- PUBLISHED ZK PROOFS (Solana Blinks)
+-- =====================================================
+
+CREATE TABLE IF NOT EXISTS published_proofs (
+  id TEXT PRIMARY KEY,
+  circuit_name TEXT NOT NULL,
+  proof JSONB NOT NULL,
+  public_signals JSONB NOT NULL,
+  label TEXT NOT NULL DEFAULT '',
+  description TEXT NOT NULL DEFAULT '',
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  expires_at TIMESTAMPTZ NOT NULL,
+  verified_off_chain BOOLEAN DEFAULT FALSE,
+  creator_wallet TEXT
+);
+
+-- =====================================================
 -- INDEXES
 -- =====================================================
 
@@ -172,6 +189,8 @@ CREATE INDEX IF NOT EXISTS idx_staking_txsig ON staking_positions(transaction_si
 CREATE INDEX IF NOT EXISTS idx_premium_wallet ON premium_status(wallet);
 CREATE INDEX IF NOT EXISTS idx_burn_wallet ON burn_history(wallet);
 CREATE INDEX IF NOT EXISTS idx_ceremony_index ON ceremony_contributions(contribution_index);
+CREATE INDEX IF NOT EXISTS idx_proofs_expires ON published_proofs(expires_at);
+CREATE INDEX IF NOT EXISTS idx_proofs_circuit ON published_proofs(circuit_name);
 
 -- =====================================================
 -- ROW LEVEL SECURITY (RLS)
@@ -187,6 +206,7 @@ ALTER TABLE premium_status ENABLE ROW LEVEL SECURITY;
 ALTER TABLE burn_history ENABLE ROW LEVEL SECURITY;
 ALTER TABLE ceremony_contributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE treasury_distributions ENABLE ROW LEVEL SECURITY;
+ALTER TABLE published_proofs ENABLE ROW LEVEL SECURITY;
 
 -- Drop existing policies (idempotent re-run)
 DROP POLICY IF EXISTS "Public read proposals" ON proposals;
@@ -241,6 +261,14 @@ CREATE POLICY "Public read burn" ON burn_history FOR SELECT USING (true);
 CREATE POLICY "Public read ceremony" ON ceremony_contributions FOR SELECT USING (true);
 CREATE POLICY "Public read distributions" ON treasury_distributions FOR SELECT USING (true);
 CREATE POLICY "Allow insert distributions" ON treasury_distributions FOR INSERT WITH CHECK (true);
+
+-- Published proofs: public read, anyone can insert, delete by id
+DROP POLICY IF EXISTS "Public read proofs" ON published_proofs;
+DROP POLICY IF EXISTS "Allow insert proofs" ON published_proofs;
+DROP POLICY IF EXISTS "Allow delete proofs" ON published_proofs;
+CREATE POLICY "Public read proofs" ON published_proofs FOR SELECT USING (true);
+CREATE POLICY "Allow insert proofs" ON published_proofs FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow delete proofs" ON published_proofs FOR DELETE USING (true);
 
 -- =====================================================
 -- SEED DATA

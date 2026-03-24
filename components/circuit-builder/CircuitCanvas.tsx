@@ -36,16 +36,23 @@ interface CircuitCanvasProps {
   edges: Edge[];
   setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
   setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
+  aiCircomCode?: string | null;
 }
 
-function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasProps) {
+function CircuitCanvasInner({ nodes, edges, setNodes, setEdges, aiCircomCode }: CircuitCanvasProps) {
   const [showCodePanel, setShowCodePanel] = useState(false);
   const [codeCopied, setCodeCopied] = useState(false);
   const nodeCountRef = useRef(0);
+  const prevAiCodeRef = useRef(aiCircomCode);
+
+  if (aiCircomCode && aiCircomCode !== prevAiCodeRef.current) {
+    prevAiCodeRef.current = aiCircomCode;
+    if (!showCodePanel) setShowCodePanel(true);
+  }
 
   const generatedCode = useMemo(
-    () => (nodes.length > 0 ? generateCircomCode(nodes, edges) : ''),
-    [nodes, edges]
+    () => aiCircomCode || (nodes.length > 0 ? generateCircomCode(nodes, edges) : ''),
+    [nodes, edges, aiCircomCode]
   );
 
   const validation = useMemo(
@@ -215,7 +222,7 @@ function CircuitCanvasInner({ nodes, edges, setNodes, setEdges }: CircuitCanvasP
                   <svg className="w-3.5 h-3.5 text-emerald-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
-                  Circuit valid — ready to compile
+                  {aiCircomCode ? 'AI-generated circuit — ready to compile' : 'Circuit valid — ready to compile'}
                 </p>
               </div>
             )}

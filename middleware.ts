@@ -94,6 +94,11 @@ const embedCsp = [
 ].join('; ');
 
 export function middleware(request: NextRequest) {
+  // Solana Actions/Blinks: skip security headers entirely — CORS handled by route
+  if (request.nextUrl.pathname.startsWith('/api/actions/')) {
+    return NextResponse.next();
+  }
+
   const response = NextResponse.next();
   const isEmbed = request.nextUrl.pathname.startsWith('/widget/embed');
 
