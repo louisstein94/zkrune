@@ -3,6 +3,12 @@
 import { poseidon1, poseidon2 } from 'poseidon-lite';
 import { MembershipRegistry } from '@/packages/zkrune-sdk/src/membership/registry';
 
+const CIRCUIT_V = process.env.NEXT_PUBLIC_CIRCUIT_V || '';
+
+function circuitUrl(file: string): string {
+  return `/circuits/${file}${CIRCUIT_V ? `?v=${CIRCUIT_V}` : ''}`;
+}
+
 const DEMO_MEMBERS = ['alice', 'bob', 'charlie', 'diana', 'eve'];
 
 function stringToBigInt(s: string): bigint {
@@ -115,9 +121,8 @@ export async function generateClientProof(
     // Dynamically import snarkjs (browser compatible)
     const snarkjs = await import("snarkjs") as any;
 
-    // Load circuit files from public folder
-    const wasmPath = `/circuits/${templateId}.wasm`;
-    const zkeyPath = `/circuits/${templateId}.zkey`;
+    const wasmPath = circuitUrl(`${templateId}.wasm`);
+    const zkeyPath = circuitUrl(`${templateId}.zkey`);
 
     console.log(`[Client ZK] Generating proof for ${templateId}...`);
 
@@ -131,12 +136,16 @@ export async function generateClientProof(
     const proofTime = Date.now() - startTime;
     console.log(`[Client ZK] Proof generated in ${proofTime}ms`);
 
-    // Load verification key
-    const vkeyResponse = await fetch(`/circuits/${templateId}_vkey.json`);
+    const vkeyResponse = await fetch(circuitUrl(`${templateId}_vkey.json`));
     const vKey = await vkeyResponse.json();
 
-    // Never surface a proof as publishable if browser-side verification fails.
-    const isValid = await snarkjs.groth16.verify(vKey, publicSignals, groth16Proof);
+    let isValid: boolean;
+    try {
+      isValid = await snarkjs.groth16.verify(vKey, publicSignals, groth16Proof) === true;
+    } catch {
+      isValid = false;
+    }
+
     if (!isValid) {
       return {
         success: false,

@@ -1,8 +1,13 @@
 // Temporarily disable PWA to fix Babel dependencies issue
 // import withPWA from '@ducanh2912/next-pwa';
 
+const BUILD_ID = Date.now().toString(36);
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  env: {
+    NEXT_PUBLIC_CIRCUIT_V: BUILD_ID,
+  },
   images: {
     domains: ['www.figma.com'],
     formats: ['image/webp', 'image/avif'],

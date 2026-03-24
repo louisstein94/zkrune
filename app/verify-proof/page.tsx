@@ -175,12 +175,14 @@ export default function VerifyProofPage() {
       // Use a fixed birthYear that makes someone 18+ (1990)
       const inputs = {
         birthYear: 1990,
-        currentYear: 2026,
-        minAge: 18
+        currentYear: new Date().getFullYear(),
+        minimumAge: 18
       };
       
-      const wasmPath = '/circuits/age-verification.wasm';
-      const zkeyPath = '/circuits/age-verification.zkey';
+      const cv = process.env.NEXT_PUBLIC_CIRCUIT_V || '';
+      const qs = cv ? `?v=${cv}` : '';
+      const wasmPath = `/circuits/age-verification.wasm${qs}`;
+      const zkeyPath = `/circuits/age-verification.zkey${qs}`;
       
       // Generate real proof
       const { proof: groth16Proof, publicSignals } = await snarkjs.groth16.fullProve(

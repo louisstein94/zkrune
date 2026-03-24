@@ -167,14 +167,16 @@ export default function WhaleChatPage() {
       addLine('> Generating zk-SNARK proof in browser...');
       addLine('> (This may take 10–40 seconds for depth=20)');
 
+      const cv = process.env.NEXT_PUBLIC_CIRCUIT_V || '';
+      const qs = cv ? `?v=${cv}` : '';
       const { proof: rawProof, publicSignals } = await snarkjs.groth16.fullProve(
         inputs,
-        '/circuits/whale-holder.wasm',
-        '/circuits/whale-holder.zkey',
+        `/circuits/whale-holder.wasm${qs}`,
+        `/circuits/whale-holder.zkey${qs}`,
       );
 
       addLine('> Loading verification key...');
-      const vKey = await (await fetch('/circuits/whale-holder_vkey.json')).json();
+      const vKey = await (await fetch(`/circuits/whale-holder_vkey.json${qs}`)).json();
 
       addLine('> Verifying proof...');
       const isValid = await snarkjs.groth16.verify(vKey, publicSignals, rawProof);
