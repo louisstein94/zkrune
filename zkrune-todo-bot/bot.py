@@ -1,6 +1,8 @@
 import os
+import re
 import logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
+import httpx
 from supabase import create_client, Client
 from telegram import Update
 from telegram.ext import Application, CommandHandler, ContextTypes
@@ -16,6 +18,8 @@ SUPABASE_KEY = os.environ.get("SUPABASE_SERVICE_KEY")
 TELEGRAM_TOKEN = os.environ.get("TELEGRAM_BOT_TOKEN")
 
 TABLE = "bot_todos"
+GITHUB_REPO = os.environ.get("GITHUB_REPO", "louisstein94/zkrune")
+ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
 
 def get_supabase() -> Client:
@@ -30,7 +34,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/bulkadd — Add multiple tasks (one per line)\n"
         "/show — List all tasks\n"
         "/done <number> — Mark a task as done\n"
-        "/clear — Remove all completed tasks"
+        "/clear — Remove all completed tasks\n"
+        "/devupdate — What did devs ship today?"
     )
 
 
@@ -140,6 +145,108 @@ async def done(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     await update.message.reply_text(f"✅ Marked as done: {task_name}")
 
 
+async def summarize_with_claude(commit_messages: list[str], date_str: str) -> str:
+    prompt = f"""You are the community update writer for zkRune, a zero-knowledge proof platform on Solana.
+
+Below are the raw git commit messages from {date_str}. Your job is to translate them into a clear, engaging summary that non-technical community members can understand.
+
+Rules:
+- Write in English, friendly and confident tone
+- Explain WHY each change matters to users, not just what it is
+- Group related changes together under clear headings
+- Use simple analogies for technical concepts (e.g. "zero-knowledge proofs = proving something without revealing private details")
+- Keep it concise — max 2-3 sentences per point
+- Use emojis sparingly for section headers
+- End with a one-liner "TLDR" at the bottom
+- Do NOT use markdown formatting (no **, no ##, no ```)
+- Use plain text with emojis for headers
+
+Commit messages:
+{chr(10).join(f"- {m}" for m in commit_messages)}"""
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 1024,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=30,
+        )
+
+    if resp.status_code != 200:
+        logger.error("Claude API error: %s %s", resp.status_code, resp.text)
+        return None
+
+    data = resp.json()
+    return data["content"][0]["text"]
+
+
+async def dev_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    target_date = None
+    if context.args:
+        try:
+            target_date = datetime.strptime(context.args[0], "%Y-%m-%d").date()
+        except ValueError:
+            await update.message.reply_text("Usage: /devupdate or /devupdate 2026-03-25")
+            return
+
+    today = target_date or datetime.now(timezone.utc).date()
+    since = datetime(today.year, today.month, today.day, tzinfo=timezone.utc)
+    until = since + timedelta(days=1)
+
+    url = f"https://api.github.com/repos/{GITHUB_REPO}/commits"
+    params = {
+        "since": since.isoformat(),
+        "until": until.isoformat(),
+        "per_page": 100,
+    }
+
+    await update.message.reply_text("Fetching today's commits and preparing summary...")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.get(url, params=params, timeout=15)
+
+    if resp.status_code != 200:
+        await update.message.reply_text("Could not fetch GitHub data. Try again later.")
+        return
+
+    commits = resp.json()
+    if not commits:
+        date_str = today.strftime("%B %d, %Y")
+        await update.message.reply_text(f"No commits found for {date_str}.")
+        return
+
+    messages = []
+    authors = set()
+    for c in commits:
+        msg = c.get("commit", {}).get("message", "").split("\n")[0]
+        author = c.get("commit", {}).get("author", {}).get("name", "Unknown")
+        authors.add(author)
+        messages.append(msg)
+
+    date_str = today.strftime("%B %d, %Y")
+    header = (
+        f"🛠 Dev Update — {date_str}\n"
+        f"📊 {len(commits)} commit(s) by {', '.join(authors)}\n\n"
+    )
+
+    if ANTHROPIC_API_KEY:
+        summary = await summarize_with_claude(messages, date_str)
+        if summary:
+            await update.message.reply_text(header + summary)
+            return
+
+    fallback = "\n".join(f"• {m}" for m in messages)
+    await update.message.reply_text(header + fallback)
+
+
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = str(update.effective_chat.id)
     db = get_supabase()
@@ -174,6 +281,7 @@ def main() -> None:
     app.add_handler(CommandHandler("show", show))
     app.add_handler(CommandHandler("done", done))
     app.add_handler(CommandHandler("clear", clear))
+    app.add_handler(CommandHandler("devupdate", dev_update))
 
     logger.info("zkrune Todo Bot is running...")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
