@@ -27,6 +27,7 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "Welcome to zkrune Todo Bot!\n\n"
         "Commands:\n"
         "/addtodo <task> — Add a new task\n"
+        "/bulkadd — Add multiple tasks (one per line)\n"
         "/show — List all tasks\n"
         "/done <number> — Mark a task as done\n"
         "/clear — Remove all completed tasks"
@@ -51,6 +52,34 @@ async def add_todo(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     }).execute()
 
     await update.message.reply_text(f"✅ Added: {task_text}")
+
+
+async def bulk_add(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    text = update.message.text or ""
+    after_command = text.split(None, 1)
+    if len(after_command) < 2:
+        await update.message.reply_text(
+            "Usage: /bulkadd\nTask one\nTask two\nTask three"
+        )
+        return
+
+    lines = [line.strip() for line in after_command[1].splitlines() if line.strip()]
+    if not lines:
+        await update.message.reply_text("No tasks found. Put each task on a new line.")
+        return
+
+    chat_id = str(update.effective_chat.id)
+    added_by = update.effective_user.username or update.effective_user.first_name
+
+    rows = [
+        {"chat_id": chat_id, "task": task, "added_by": added_by, "done": False}
+        for task in lines
+    ]
+
+    db = get_supabase()
+    db.table(TABLE).insert(rows).execute()
+
+    await update.message.reply_text(f"✅ Added {len(rows)} tasks at once.")
 
 
 async def show(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -141,6 +170,7 @@ def main() -> None:
 
     app.add_handler(CommandHandler("start", start))
     app.add_handler(CommandHandler("addtodo", add_todo))
+    app.add_handler(CommandHandler("bulkadd", bulk_add))
     app.add_handler(CommandHandler("show", show))
     app.add_handler(CommandHandler("done", done))
     app.add_handler(CommandHandler("clear", clear))
