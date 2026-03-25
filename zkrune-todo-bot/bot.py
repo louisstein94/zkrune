@@ -1,5 +1,6 @@
 import os
 import re
+import random
 import logging
 from datetime import datetime, timezone, timedelta
 import httpx
@@ -21,6 +22,43 @@ TABLE = "bot_todos"
 GITHUB_REPO = os.environ.get("GITHUB_REPO", "louisstein94/zkrune")
 ANTHROPIC_API_KEY = os.environ.get("ANTHROPIC_API_KEY")
 
+ZKRUNE_CONTEXT = """zkRune is a privacy verification infrastructure on Solana. It lets users prove claims (age, balance, membership, reputation, eligibility) without revealing the underlying data. 100% client-side Groth16 zk-SNARK proofs — secrets never leave the device.
+
+Key facts:
+- 13 production-ready ZK circuit templates (age verification, balance proof, NFT ownership, private voting, anonymous reputation, etc.)
+- Proof generation in <1 second, proof size ~200 bytes, verification <2ms
+- SDK available: npm install zkrune-sdk
+- Embeddable widget for any website
+- zkRUNE token on Solana (governance, staking up to 36% APY, burn-for-premium tiers, marketplace payments)
+- Premium tiers: Free, Builder (burn 100), Pro (burn 500), Enterprise (burn 2000)
+- Marketplace where creators sell circuit templates (95% revenue to creators)
+- Trusted setup ceremony completed with multi-party computation
+- Use cases: gated access, DeFi eligibility, private DAO voting, anti-sybil, credential verification, private DEX swaps
+- Website: zkrune.com | Twitter: @rune_zk | Developer: @legelsteinn"""
+
+XPOST_ANGLES = [
+    "Why privacy matters in crypto and how zkRune solves it",
+    "A real use case: proving you're eligible for a token drop without doxxing your wallet",
+    "How zkRune's client-side proofs are different from server-side KYC",
+    "The power of the zkRune marketplace — creators earning from privacy circuits",
+    "Why DAOs need anonymous voting and how zkRune enables it",
+    "zkRune staking and tokenomics explained simply",
+    "How zkRune protects whales from being tracked on-chain",
+    "The problem with on-chain transparency and how ZK proofs fix it",
+    "How developers can integrate zkRune in 5 lines of code",
+    "Why Solana is the perfect chain for client-side ZK proofs",
+    "Private credential verification without KYC — the zkRune way",
+    "How zkRune's burn mechanism creates deflationary token pressure",
+    "Imagine proving your credit score without showing your balance",
+    "Anti-sybil for DAOs using zero-knowledge proofs",
+    "The future of DeFi access: prove eligibility, keep privacy",
+    "How zkRune enables gated communities without doxxing members",
+    "Why builders should sell their ZK circuits on the zkRune marketplace",
+    "NFT holder verification without revealing which NFT you own",
+    "Quadratic voting on Solana with privacy — powered by zkRune",
+    "zkRune vs traditional identity verification — speed, privacy, cost",
+]
+
 
 def get_supabase() -> Client:
     return create_client(SUPABASE_URL, SUPABASE_KEY)
@@ -35,7 +73,8 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
         "/show — List all tasks\n"
         "/done <number> — Mark a task as done\n"
         "/clear — Remove all completed tasks\n"
-        "/devupdate — What did devs ship today?"
+        "/devupdate — What did devs ship today?\n"
+        "/xpost — Generate an X post idea for zkRune"
     )
 
 
@@ -247,6 +286,57 @@ async def dev_update(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None
     await update.message.reply_text(header + fallback)
 
 
+async def xpost(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    if not ANTHROPIC_API_KEY:
+        await update.message.reply_text("ANTHROPIC_API_KEY is not configured.")
+        return
+
+    if context.args:
+        angle = " ".join(context.args)
+    else:
+        angle = random.choice(XPOST_ANGLES)
+
+    prompt = f"""{ZKRUNE_CONTEXT}
+
+Write ONE tweet (max 280 chars) about this angle: "{angle}"
+
+Rules:
+- Engaging, punchy, crypto-native tone — not corporate
+- Include 1-2 relevant emojis max
+- End with @rune_zk mention or relevant hashtag
+- No cringe, no "gm", no generic hype phrases like "the future is here"
+- Sound like a real builder, not a marketing bot
+- Do NOT use quotes around the tweet
+- Output ONLY the tweet text, nothing else"""
+
+    await update.message.reply_text("Generating post idea...")
+
+    async with httpx.AsyncClient() as client:
+        resp = await client.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json",
+            },
+            json={
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 150,
+                "messages": [{"role": "user", "content": prompt}],
+            },
+            timeout=20,
+        )
+
+    if resp.status_code != 200:
+        logger.error("Claude API error: %s %s", resp.status_code, resp.text)
+        await update.message.reply_text("Could not generate post. Try again later.")
+        return
+
+    tweet = resp.json()["content"][0]["text"].strip()
+    reply = f"📝 X Post Idea\n\n{tweet}\n\n— Angle: {angle}"
+    await update.message.reply_text(reply)
+
+
 async def clear(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = str(update.effective_chat.id)
     db = get_supabase()
@@ -282,6 +372,7 @@ def main() -> None:
     app.add_handler(CommandHandler("done", done))
     app.add_handler(CommandHandler("clear", clear))
     app.add_handler(CommandHandler("devupdate", dev_update))
+    app.add_handler(CommandHandler("xpost", xpost))
 
     logger.info("zkrune Todo Bot is running...")
     app.run_polling(allowed_updates=Update.ALL_TYPES)
