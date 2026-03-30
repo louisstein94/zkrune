@@ -7,9 +7,11 @@ import {
 } from '@solana/web3.js';
 import { actionJsonResponse, actionCorsPreflightResponse, actionErrorResponse } from '@/lib/blinks/actionHeaders';
 import { getProof } from '@/lib/blinks/proofStore';
+import * as snarkjs from 'snarkjs';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
+export const maxDuration = 30;
 
 const GROTH16_PROGRAM = new PublicKey(
   process.env.NEXT_PUBLIC_GROTH16_VERIFIER_PROGRAM || '9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad',
@@ -130,20 +132,78 @@ function getBaseUrl(req: NextRequest): string {
   return `${proto}://${host}`;
 }
 
+// ─── On-the-fly proof generation (cached per cold start) ────────────
+
+let cachedProof: {
+  proof: { pi_a: string[]; pi_b: string[][]; pi_c: string[] };
+  publicSignals: string[];
+} | null = null;
+
+async function generateDemoProof(baseUrl: string) {
+  if (cachedProof) return cachedProof;
+
+  const [wasmResp, zkeyResp] = await Promise.all([
+    fetch(`${baseUrl}/circuits/age-verification.wasm`),
+    fetch(`${baseUrl}/circuits/age-verification.zkey`),
+  ]);
+
+  if (!wasmResp.ok || !zkeyResp.ok) {
+    throw new Error('Failed to fetch circuit files for proof generation');
+  }
+
+  const wasmBuf = new Uint8Array(await wasmResp.arrayBuffer());
+  const zkeyBuf = new Uint8Array(await zkeyResp.arrayBuffer());
+
+  const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+    { birthYear: 1990, currentYear: new Date().getFullYear(), minimumAge: 18 },
+    { type: 'mem', data: wasmBuf } as any,
+    { type: 'mem', data: zkeyBuf } as any,
+  );
+
+  cachedProof = { proof, publicSignals };
+  return cachedProof;
+}
+
+const DEMO_DESCRIPTION = 'Zero-knowledge proof that the user meets the minimum age requirement (18+), generated with zkRune. No personal data is revealed.';
+
 // ─── GET: Return Action metadata for Blink unfurl ───────────────────
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const proofId = searchParams.get('id');
 
+  const baseUrl = getBaseUrl(req);
+  const iconUrl = `${baseUrl}/zkrune-log.png`;
+
+  // No id → live-generated age verification Blink
   if (!proofId) {
-    return actionErrorResponse('Missing proof id');
+    const accept = req.headers.get('accept') || '';
+    const isBrowser = accept.includes('text/html') && !accept.includes('application/json');
+    if (isBrowser) {
+      return Response.redirect(`${baseUrl}/zkblink`, 302);
+    }
+
+    return actionJsonResponse({
+      type: 'action',
+      icon: iconUrl,
+      title: '🎂 zkRune — Age Verification',
+      description: DEMO_DESCRIPTION,
+      label: 'Verify On-Chain',
+      links: {
+        actions: [
+          {
+            type: 'transaction',
+            label: '⛓️ Verify On-Chain',
+            href: `${baseUrl}/api/actions/verify`,
+          },
+        ],
+      },
+    });
   }
 
   const accept = req.headers.get('accept') || '';
   const isBrowser = accept.includes('text/html') && !accept.includes('application/json');
   if (isBrowser) {
-    const baseUrl = getBaseUrl(req);
     return Response.redirect(`${baseUrl}/verify/${proofId}`, 302);
   }
 
@@ -156,9 +216,6 @@ export async function GET(req: NextRequest) {
     title: stored.circuitName,
     emoji: '🔮',
   };
-
-  const baseUrl = getBaseUrl(req);
-  const iconUrl = `${baseUrl}/zkrune-log.png`;
 
   return actionJsonResponse({
     type: 'action',
@@ -185,13 +242,24 @@ export async function POST(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const proofId = searchParams.get('id');
 
-    if (!proofId) {
-      return actionErrorResponse('Missing proof id');
-    }
+    let circuitName: string;
+    let proof: { pi_a: string[]; pi_b: string[][]; pi_c: string[] };
+    let publicSignals: string[];
 
-    const stored = await getProof(proofId);
-    if (!stored) {
-      return actionErrorResponse('Proof not found or expired', 404);
+    if (proofId) {
+      const stored = await getProof(proofId);
+      if (!stored) {
+        return actionErrorResponse('Proof not found or expired', 404);
+      }
+      circuitName = stored.circuitName;
+      proof = stored.proof;
+      publicSignals = stored.publicSignals;
+    } else {
+      const baseUrl = getBaseUrl(req);
+      const generated = await generateDemoProof(baseUrl);
+      circuitName = 'age-verification';
+      proof = generated.proof;
+      publicSignals = generated.publicSignals;
     }
 
     const body = await req.json();
@@ -207,9 +275,9 @@ export async function POST(req: NextRequest) {
       return actionErrorResponse('Invalid account public key');
     }
 
-    const templateId = TEMPLATE_IDS[stored.circuitName];
+    const templateId = TEMPLATE_IDS[circuitName];
     if (templateId === undefined) {
-      return actionErrorResponse(`Unsupported circuit for on-chain verification: ${stored.circuitName}`);
+      return actionErrorResponse(`Unsupported circuit for on-chain verification: ${circuitName}`);
     }
 
     const connection = new Connection(getRpcUrl(), 'confirmed');
@@ -217,8 +285,8 @@ export async function POST(req: NextRequest) {
 
     const ix = buildVerifyInstruction(
       templateId,
-      stored.proof,
-      stored.publicSignals,
+      proof,
+      publicSignals,
       signerPubkey,
     );
 
@@ -233,7 +301,7 @@ export async function POST(req: NextRequest) {
       verifySignatures: false,
     });
 
-    const meta = CIRCUIT_LABELS[stored.circuitName] || { title: stored.circuitName };
+    const meta = CIRCUIT_LABELS[circuitName] || { title: circuitName };
 
     return actionJsonResponse({
       type: 'transaction',
