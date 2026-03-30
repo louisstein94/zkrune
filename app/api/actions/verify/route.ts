@@ -122,8 +122,12 @@ function buildVerifyInstruction(
   });
 }
 
+const MAINNET_PUBLIC_RPC = 'https://api.mainnet-beta.solana.com';
+
 function getRpcUrl(): string {
-  return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
+  return process.env.HELIUS_RPC_URL
+    || process.env.NEXT_PUBLIC_SOLANA_RPC_URL
+    || MAINNET_PUBLIC_RPC;
 }
 
 function getBaseUrl(req: NextRequest): string {
@@ -280,8 +284,15 @@ export async function POST(req: NextRequest) {
       return actionErrorResponse(`Unsupported circuit for on-chain verification: ${circuitName}`);
     }
 
-    const connection = new Connection(getRpcUrl(), 'confirmed');
-    const { blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed');
+    let blockhash: string;
+    let lastValidBlockHeight: number;
+    try {
+      const connection = new Connection(getRpcUrl(), 'confirmed');
+      ({ blockhash, lastValidBlockHeight } = await connection.getLatestBlockhash('confirmed'));
+    } catch {
+      const fallback = new Connection(MAINNET_PUBLIC_RPC, 'confirmed');
+      ({ blockhash, lastValidBlockHeight } = await fallback.getLatestBlockhash('confirmed'));
+    }
 
     const ix = buildVerifyInstruction(
       templateId,
