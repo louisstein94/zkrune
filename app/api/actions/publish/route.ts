@@ -136,17 +136,15 @@ export async function POST(req: NextRequest) {
     });
 
     const actionUrl = `${baseUrl}/api/actions/verify?id=${stored.id}`;
-    const blinkUrl = `https://dial.to/?action=solana-action:${actionUrl}`;
     const verifyPageUrl = `${baseUrl}/verify/${stored.id}`;
 
     return NextResponse.json({
       success: true,
       proofId: stored.id,
-      blinkUrl,
       actionUrl,
       verifyPageUrl,
       expiresAt: new Date(stored.expiresAt).toISOString(),
-      message: 'Proof published as a Blink!',
+      message: 'Proof published!',
     });
   } catch (err: any) {
     console.error('[actions/publish]', err);

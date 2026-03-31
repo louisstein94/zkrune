@@ -245,11 +245,11 @@ export default function ProofAssistant() {
                   <div className="bg-violet-500/10 border border-violet-500/20 rounded-xl p-3 space-y-2">
                     <p className="text-violet-300 text-xs font-medium">Blink Ready!</p>
                     <div className="bg-black/30 rounded-lg p-2 font-mono text-xs text-violet-300 break-all select-all">
-                      {blinkResult.blinkUrl}
+                      {blinkResult.verifyPageUrl}
                     </div>
                     <div className="flex gap-2">
                       <button
-                        onClick={async () => { try { await navigator.clipboard.writeText(blinkResult.blinkUrl); } catch {} }}
+                        onClick={async () => { try { await navigator.clipboard.writeText(blinkResult.verifyPageUrl); } catch {} }}
                         className="flex-1 py-1.5 bg-violet-600 text-white text-xs rounded-lg hover:bg-violet-500 transition-colors"
                       >
                         Copy
@@ -259,7 +259,7 @@ export default function ProofAssistant() {
                           const spec = proofState.templateId ? findTemplateById(proofState.templateId) : null;
                           const proofLabel = spec?.name || 'ZK proof';
                           const text = encodeURIComponent(
-                            `I just generated a ${proofLabel} using @rune_zk — verified entirely in my browser with zero-knowledge cryptography.\n\nVerify it:\n${blinkResult.blinkUrl}`
+                            `I just generated a ${proofLabel} using @rune_zk — verified entirely in my browser with zero-knowledge cryptography.\n\nVerify it:\n${blinkResult.verifyPageUrl}`
                           );
                           window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
                         }}

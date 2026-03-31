@@ -730,13 +730,13 @@ export default function TemplatePage() {
                               <span className="text-violet-300 text-sm font-medium">Blink Created!</span>
                             </div>
                             <div className="bg-black/30 rounded-lg p-2.5 font-mono text-xs text-violet-300 break-all select-all">
-                              {blinkResult.blinkUrl}
+                              {blinkResult.verifyPageUrl}
                             </div>
                             <div className="flex gap-2">
                               <button
                                 onClick={async () => {
                                   try {
-                                    await navigator.clipboard.writeText(blinkResult.blinkUrl);
+                                    await navigator.clipboard.writeText(blinkResult.verifyPageUrl);
                                   } catch {}
                                 }}
                                 className="flex-1 py-2 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-500 transition-colors font-medium"
@@ -745,7 +745,7 @@ export default function TemplatePage() {
                               </button>
                               <button
                                 onClick={() => {
-                                  const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.blinkUrl}`);
+                                  const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.verifyPageUrl}`);
                                   window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
                                 }}
                                 className="px-4 py-2 bg-zinc-800 text-white text-sm rounded-lg hover:bg-zinc-700 transition-colors"

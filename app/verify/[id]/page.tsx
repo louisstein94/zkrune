@@ -248,7 +248,6 @@ export default function VerifyPage() {
   const meta = proof ? (CIRCUIT_META[proof.circuitName] || { title: proof.circuitName, emoji: '🔮', statement: proof.description }) : null;
   const origin = typeof window !== 'undefined' ? window.location.origin : '';
   const verifyPageUrl = `${origin}/verify/${proofId}`;
-  const blinkUrl = `https://dial.to/?action=solana-action:${origin}/api/actions/verify?id=${proofId}`;
 
   const timeAgo = useMemo(() => {
     if (!proof) return '';
@@ -490,11 +489,11 @@ export default function VerifyPage() {
               </div>
 
               {/* Share Actions */}
-              <div className="flex gap-2.5 mb-4">
+              <div className="flex gap-2.5 mb-8">
                 <button
                   onClick={() => {
                     const text = encodeURIComponent(
-                      `I verified a ${meta.title} proof using @rune_zk — zero-knowledge cryptography on Solana.\n\n${blinkUrl}`
+                      `I verified a ${meta.title} proof using @rune_zk — zero-knowledge cryptography on Solana.\n\n${verifyPageUrl}`
                     );
                     window.open(`https://x.com/intent/tweet?text=${text}`, '_blank');
                   }}
@@ -515,27 +514,6 @@ export default function VerifyPage() {
                 >
                   Create Proof
                 </Link>
-              </div>
-
-              {/* Blink URL */}
-              <div className="bg-zinc-900/40 border border-zinc-800/50 rounded-xl p-4 mb-8">
-                <div className="flex items-center justify-between mb-2">
-                  <p className="text-[11px] text-zinc-500 uppercase tracking-widest font-medium">Solana Blink URL</p>
-                  <button
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(blinkUrl);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      } catch {}
-                    }}
-                    className="text-[11px] text-violet-400 hover:text-violet-300 transition-colors font-medium"
-                  >
-                    {copied ? '✓ Copied' : 'Copy'}
-                  </button>
-                </div>
-                <p className="font-mono text-xs text-violet-300/80 break-all select-all leading-relaxed">{blinkUrl}</p>
-                <p className="text-zinc-600 text-[10px] mt-2">Unfurls as interactive Blink on X.com (requires Dialect verification)</p>
               </div>
 
               {/* ZK Privacy Note */}

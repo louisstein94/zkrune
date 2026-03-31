@@ -191,8 +191,8 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
   const copyBlinkUrl = async () => {
     if (!blinkResult) return;
     try {
-      await navigator.clipboard.writeText(blinkResult.blinkUrl);
-      addToast('Blink URL copied!', 'success');
+      await navigator.clipboard.writeText(blinkResult.verifyPageUrl);
+      addToast('Verification link copied!', 'success');
     } catch {
       addToast('Failed to copy', 'error');
     }
@@ -293,7 +293,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
                   <p className="text-emerald-400 text-sm font-medium mb-2">Blink Created!</p>
                   <p className="text-zinc-400 text-xs mb-3">Share this link on Twitter/X — it will unfurl as an interactive verification card.</p>
                   <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-violet-300 break-all">
-                    {blinkResult.blinkUrl}
+                    {blinkResult.verifyPageUrl}
                   </div>
                 </div>
                 <div className="flex gap-2">
@@ -305,7 +305,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
                   </button>
                   <button
                     onClick={() => {
-                      const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.blinkUrl}`);
+                      const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.verifyPageUrl}`);
                       window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
                     }}
                     className="px-4 py-2.5 bg-zinc-800 text-white text-sm rounded-lg hover:bg-zinc-700 transition-colors font-medium"
