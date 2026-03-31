@@ -116,7 +116,7 @@ function buildVerifyInstruction(
   }
 
   return new TransactionInstruction({
-    keys: [{ pubkey: signer, isSigner: true, isWritable: true }],
+    keys: [],
     programId: GROTH16_PROGRAM,
     data: Buffer.from(data),
   });
@@ -168,7 +168,7 @@ async function generateDemoProof(baseUrl: string) {
   return cachedProof;
 }
 
-const DEMO_DESCRIPTION = 'Zero-knowledge proof that the user meets the minimum age requirement (18+), generated with zkRune. No personal data is revealed.';
+const DEMO_DESCRIPTION = 'A zk-SNARK proof was generated client-side proving the user meets the minimum age requirement (18+). By clicking below, you submit this proof to Solana\'s Groth16 verifier program for trustless on-chain verification. No personal data is revealed — only the cryptographic validity is checked.';
 
 // ─── GET: Return Action metadata for Blink unfurl ───────────────────
 
@@ -190,14 +190,14 @@ export async function GET(req: NextRequest) {
     return actionJsonResponse({
       type: 'action',
       icon: iconUrl,
-      title: '🎂 zkRune — Age Verification',
+      title: '🎂 zkRune — Age Verification Proof',
       description: DEMO_DESCRIPTION,
-      label: 'Verify On-Chain',
+      label: 'Verify Proof On-Chain',
       links: {
         actions: [
           {
             type: 'transaction',
-            label: '⛓️ Verify On-Chain',
+            label: '⛓️ Verify Proof On-Chain',
             href: `${baseUrl}/api/actions/verify`,
           },
         ],
@@ -221,17 +221,19 @@ export async function GET(req: NextRequest) {
     emoji: '🔮',
   };
 
+  const verifyDescription = `${stored.description}\n\nSubmit this pre-generated zk-SNARK proof to Solana's Groth16 verifier for trustless on-chain verification. You are not proving anything yourself — you are cryptographically verifying someone else's proof on-chain.`;
+
   return actionJsonResponse({
     type: 'action',
     icon: iconUrl,
     title: `${meta.emoji} zkRune — ${meta.title}`,
-    description: stored.description,
-    label: 'Verify On-Chain',
+    description: verifyDescription,
+    label: 'Verify Proof On-Chain',
     links: {
       actions: [
         {
           type: 'transaction',
-          label: '⛓️ Verify On-Chain',
+          label: '⛓️ Verify Proof On-Chain',
           href: `${baseUrl}/api/actions/verify?id=${proofId}`,
         },
       ],

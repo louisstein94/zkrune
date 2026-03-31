@@ -209,7 +209,7 @@ export default function VerifyPage() {
       }
 
       const ix = new TransactionInstruction({
-        keys: [{ pubkey: wallet.publicKey, isSigner: true, isWritable: true }],
+        keys: [],
         programId: GROTH16_PROGRAM,
         data: Buffer.from(data),
       });
@@ -290,7 +290,7 @@ export default function VerifyPage() {
                 <span className="text-3xl">🔍</span>
               </div>
               <h1 className="font-hatton text-3xl text-white mb-3">Proof Not Found</h1>
-              <p className="text-zinc-400 mb-8 max-w-md mx-auto">This proof may have expired or does not exist. Proofs are valid for 24 hours after creation.</p>
+              <p className="text-zinc-400 mb-8 max-w-md mx-auto">This proof may have expired or does not exist. Proofs are valid for 7 days after creation.</p>
               <Link href="/zkblink" className="inline-flex items-center gap-2 px-6 py-3 bg-emerald-600 text-white rounded-xl hover:bg-emerald-500 transition-colors text-sm font-medium">
                 Create Your Own Proof
               </Link>

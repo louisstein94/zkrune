@@ -2,17 +2,23 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { clusterApiUrl } from '@solana/web3.js';
 
-// Environment-based network selection
-export const SOLANA_NETWORK: WalletAdapterNetwork = 
-  process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'mainnet-beta' 
-    ? WalletAdapterNetwork.Mainnet 
-    : process.env.NEXT_PUBLIC_SOLANA_NETWORK === 'testnet'
-    ? WalletAdapterNetwork.Testnet
-    : WalletAdapterNetwork.Devnet;
+const customRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || '';
 
-// RPC Endpoints - Use custom RPC for production
-export const SOLANA_RPC_ENDPOINT = 
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL || clusterApiUrl(SOLANA_NETWORK);
+// Auto-detect network from RPC URL, fall back to NEXT_PUBLIC_SOLANA_NETWORK env
+function detectNetwork(): WalletAdapterNetwork {
+  const rpc = customRpc.toLowerCase();
+  if (rpc.includes('mainnet')) return WalletAdapterNetwork.Mainnet;
+  if (rpc.includes('devnet')) return WalletAdapterNetwork.Devnet;
+  if (rpc.includes('testnet')) return WalletAdapterNetwork.Testnet;
+
+  const explicit = process.env.NEXT_PUBLIC_SOLANA_NETWORK;
+  if (explicit === 'mainnet-beta') return WalletAdapterNetwork.Mainnet;
+  if (explicit === 'testnet') return WalletAdapterNetwork.Testnet;
+  return WalletAdapterNetwork.Devnet;
+}
+
+export const SOLANA_NETWORK = detectNetwork();
+export const SOLANA_RPC_ENDPOINT = customRpc || clusterApiUrl(SOLANA_NETWORK);
 
 // zkRUNE Token Configuration
 export const ZKRUNE_TOKEN_CONFIG = {

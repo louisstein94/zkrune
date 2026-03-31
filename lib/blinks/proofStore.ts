@@ -23,7 +23,8 @@ export interface StoredProof {
   creatorWallet?: string;
 }
 
-const PROOF_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const PROOF_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
+const PERSISTENT_TTL_MS = 365 * 24 * 60 * 60 * 1000; // 1 year (effectively permanent)
 
 // ─── In-memory fallback (dev without Supabase) ─────────────────────
 const memStore = new Map<string, StoredProof>();
@@ -73,10 +74,11 @@ export async function storeProof(
   circuitName: string,
   proof: StoredProof['proof'],
   publicSignals: string[],
-  opts: { label?: string; description?: string; wallet?: string; verifiedOffChain?: boolean } = {},
+  opts: { label?: string; description?: string; wallet?: string; verifiedOffChain?: boolean; persistent?: boolean } = {},
 ): Promise<StoredProof> {
   const id = crypto.randomBytes(16).toString('hex');
   const now = Date.now();
+  const ttl = opts.persistent ? PERSISTENT_TTL_MS : PROOF_TTL_MS;
 
   const entry: StoredProof = {
     id,
@@ -86,7 +88,7 @@ export async function storeProof(
     label: opts.label || `zkRune ${circuitName} Proof`,
     description: opts.description || `Zero-knowledge proof generated with zkRune (${circuitName})`,
     createdAt: now,
-    expiresAt: now + PROOF_TTL_MS,
+    expiresAt: now + ttl,
     verifiedOffChain: opts.verifiedOffChain ?? false,
     creatorWallet: opts.wallet,
   };

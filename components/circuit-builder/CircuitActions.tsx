@@ -305,7 +305,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
                   </button>
                   <button
                     onClick={() => {
-                      const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.verifyPageUrl}`);
+                      const text = encodeURIComponent(`Verify my ZK proof on-chain:\n${blinkResult.blinkUrl}`);
                       window.open(`https://twitter.com/intent/tweet?text=${text}`, '_blank');
                     }}
                     className="px-4 py-2.5 bg-zinc-800 text-white text-sm rounded-lg hover:bg-zinc-700 transition-colors font-medium"
