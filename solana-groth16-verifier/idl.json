@@ -1,0 +1,73 @@
+{
+  "version": "0.1.0",
+  "name": "zkrune_groth16_verifier",
+  "metadata": {
+    "name": "zkRune Groth16 Verifier",
+    "description": "On-chain zero-knowledge proof verifier using Groth16 pairing checks via Solana altbn254 syscalls",
+    "repository": "https://github.com/louisstein94/zkrune",
+    "website": "https://zkrune.com",
+    "logo": "https://zkrune.com/zkrune-icon.png"
+  },
+  "instructions": [
+    {
+      "name": "verifyProof",
+      "docs": [
+        "Verifies a Groth16 zero-knowledge proof for a given circuit template.",
+        "The proof is verified using BN254 elliptic curve pairing checks.",
+        "If verification succeeds, the instruction completes. If it fails, the transaction is rejected."
+      ],
+      "args": [
+        {
+          "name": "templateId",
+          "type": "u8",
+          "docs": ["Circuit template identifier: 0=age-verification, 1=balance-proof, 2=membership-proof, 3=credential-proof, 4=private-voting, 5=nft-ownership, 6=range-proof, 7=hash-preimage, 8=quadratic-voting, 9=anonymous-reputation, 10=token-swap, 11=patience-proof, 12=signature-verification"]
+        },
+        {
+          "name": "proofA",
+          "type": "bytes",
+          "docs": ["G1 point (64 bytes) - first component of the Groth16 proof"]
+        },
+        {
+          "name": "proofB",
+          "type": "bytes",
+          "docs": ["G2 point (128 bytes) - second component of the Groth16 proof"]
+        },
+        {
+          "name": "proofC",
+          "type": "bytes",
+          "docs": ["G1 point (64 bytes) - third component of the Groth16 proof"]
+        },
+        {
+          "name": "publicInputs",
+          "type": "bytes",
+          "docs": ["Public inputs (n × 32 bytes) - the public signals verified by the proof"]
+        }
+      ],
+      "accounts": []
+    }
+  ],
+  "accounts": [],
+  "types": [],
+  "errors": [
+    {
+      "code": 0,
+      "name": "InvalidInstructionData",
+      "msg": "Instruction data too short or malformed"
+    },
+    {
+      "code": 1,
+      "name": "UnknownTemplate",
+      "msg": "Unknown circuit template ID"
+    },
+    {
+      "code": 2,
+      "name": "InputCountMismatch",
+      "msg": "Number of public inputs does not match the verification key"
+    },
+    {
+      "code": 3,
+      "name": "ProofVerificationFailed",
+      "msg": "Groth16 proof verification failed"
+    }
+  ]
+}

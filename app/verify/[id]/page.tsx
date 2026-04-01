@@ -141,7 +141,7 @@ export default function VerifyPage() {
   const { connection } = useConnection();
   const wallet = useWallet();
 
-  const [chainStatus, setChainStatus] = useState<'idle' | 'building' | 'signing' | 'confirming' | 'success' | 'error'>('idle');
+  const [chainStatus, setChainStatus] = useState<'idle' | 'building' | 'signing' | 'confirming' | 'success' | 'pending' | 'error'>('idle');
   const [txHash, setTxHash] = useState<string>('');
   const [chainError, setChainError] = useState<string>('');
 
@@ -229,10 +229,19 @@ export default function VerifyPage() {
 
       setChainStatus('confirming');
       const signature = await connection.sendRawTransaction(signed.serialize());
-      await connection.confirmTransaction(signature, 'confirmed');
-
       setTxHash(signature);
-      setChainStatus('success');
+
+      try {
+        await connection.confirmTransaction({ signature, blockhash, lastValidBlockHeight }, 'confirmed');
+        setChainStatus('success');
+      } catch (confirmErr: any) {
+        const msg = confirmErr?.message || '';
+        if (msg.includes('was not confirmed') || msg.includes('timeout') || msg.includes('Timed out')) {
+          setChainStatus('pending');
+        } else {
+          throw confirmErr;
+        }
+      }
     } catch (err: any) {
       let message = err.message || 'Transaction failed';
       if (message.includes('ProofVerificationFailed')) {
@@ -411,15 +420,26 @@ export default function VerifyPage() {
                   </span>
                 </div>
 
-                {chainStatus === 'success' ? (
-                  <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
+                {chainStatus === 'success' || chainStatus === 'pending' ? (
+                  <div className={`${chainStatus === 'success' ? 'bg-emerald-500/10 border-emerald-500/20' : 'bg-amber-500/10 border-amber-500/20'} border rounded-lg p-4`}>
                     <div className="flex items-center gap-3 mb-2">
-                      <div className="w-9 h-9 rounded-full bg-emerald-500/20 flex items-center justify-center text-emerald-400 text-lg flex-shrink-0">
-                        ✓
+                      <div className={`w-9 h-9 rounded-full flex items-center justify-center text-lg flex-shrink-0 ${
+                        chainStatus === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-amber-500/20 text-amber-400'
+                      }`}>
+                        {chainStatus === 'success' ? '✓' : '⏳'}
                       </div>
                       <div>
-                        <p className="text-emerald-300 text-sm font-semibold">Verified On-Chain</p>
-                        <p className="text-zinc-500 text-xs">Groth16 pairing check passed via Solana altbn254 syscalls</p>
+                        {chainStatus === 'success' ? (
+                          <>
+                            <p className="text-emerald-300 text-sm font-semibold">Verified On-Chain</p>
+                            <p className="text-zinc-500 text-xs">Groth16 pairing check passed via Solana altbn254 syscalls</p>
+                          </>
+                        ) : (
+                          <>
+                            <p className="text-amber-300 text-sm font-semibold">Transaction Submitted</p>
+                            <p className="text-zinc-500 text-xs">Confirmation is taking longer than usual. Check the transaction status on Solscan.</p>
+                          </>
+                        )}
                       </div>
                     </div>
                     <a
