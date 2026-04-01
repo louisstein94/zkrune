@@ -8,11 +8,23 @@ use solana_program::{
 };
 use groth16_solana::groth16::Groth16Verifier;
 
-// Import the generated VKs for all circuits
+#[cfg(not(feature = "no-entrypoint"))]
+use solana_security_txt::security_txt;
+
 mod generated_vk;
 use generated_vk::get_vk_by_id;
 
 entrypoint!(process_instruction);
+
+#[cfg(not(feature = "no-entrypoint"))]
+security_txt! {
+    name: "zkRune Groth16 Verifier",
+    project_url: "https://zkrune.com",
+    contacts: "link:https://x.com/rune_zk,link:https://github.com/louisstein94/zkrune/issues",
+    policy: "https://github.com/louisstein94/zkrune/security/policy",
+    source_code: "https://github.com/louisstein94/zkrune/tree/main/solana-groth16-verifier",
+    auditors: "N/A"
+}
 
 // Template names for logging
 const TEMPLATE_NAMES: [&str; 13] = [

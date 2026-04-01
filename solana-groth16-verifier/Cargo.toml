@@ -10,6 +10,7 @@ crate-type = ["cdylib", "lib"]
 solana-program = "~1.18"
 borsh = "=0.10.3"
 groth16-solana = "0.2"
+solana-security-txt = "1.1"
 
 # [dev-dependencies]
 # Temporarily disabled to avoid indexmap version conflicts
