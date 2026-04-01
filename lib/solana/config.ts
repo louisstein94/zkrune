@@ -2,11 +2,10 @@
 import { WalletAdapterNetwork } from '@solana/wallet-adapter-base';
 import { clusterApiUrl } from '@solana/web3.js';
 
-const customRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || '';
+const serverRpc = process.env.NEXT_PUBLIC_SOLANA_RPC_URL || '';
 
-// Auto-detect network from RPC URL, fall back to NEXT_PUBLIC_SOLANA_NETWORK env
 function detectNetwork(): WalletAdapterNetwork {
-  const rpc = customRpc.toLowerCase();
+  const rpc = serverRpc.toLowerCase();
   if (rpc.includes('mainnet')) return WalletAdapterNetwork.Mainnet;
   if (rpc.includes('devnet')) return WalletAdapterNetwork.Devnet;
   if (rpc.includes('testnet')) return WalletAdapterNetwork.Testnet;
@@ -18,7 +17,11 @@ function detectNetwork(): WalletAdapterNetwork {
 }
 
 export const SOLANA_NETWORK = detectNetwork();
-export const SOLANA_RPC_ENDPOINT = customRpc || clusterApiUrl(SOLANA_NETWORK);
+
+const isServer = typeof window === 'undefined';
+export const SOLANA_RPC_ENDPOINT = isServer
+  ? (serverRpc || clusterApiUrl(SOLANA_NETWORK))
+  : '/api/rpc';
 
 // zkRUNE Token Configuration
 export const ZKRUNE_TOKEN_CONFIG = {
