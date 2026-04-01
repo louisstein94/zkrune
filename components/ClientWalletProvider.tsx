@@ -10,7 +10,7 @@ import {
   LedgerWalletAdapter,
 } from '@solana/wallet-adapter-wallets';
 import { WalletModalProvider } from '@solana/wallet-adapter-react-ui';
-import { SOLANA_RPC_ENDPOINT, SOLANA_NETWORK } from '@/lib/solana/config';
+import { SOLANA_RPC_ENDPOINT, SOLANA_RPC_PROXY, SOLANA_NETWORK } from '@/lib/solana/config';
 
 // Import wallet adapter styles
 import '@solana/wallet-adapter-react-ui/styles.css';
@@ -20,8 +20,12 @@ interface Props {
 }
 
 export const ClientWalletProvider: FC<Props> = ({ children }) => {
-  // Use configured RPC endpoint
-  const endpoint = useMemo(() => SOLANA_RPC_ENDPOINT, []);
+  const endpoint = useMemo(() => {
+    if (typeof window !== 'undefined') {
+      return `${window.location.origin}${SOLANA_RPC_PROXY}`;
+    }
+    return SOLANA_RPC_ENDPOINT;
+  }, []);
 
   // Initialize wallet adapters
   const wallets = useMemo(

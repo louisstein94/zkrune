@@ -17,11 +17,8 @@ function detectNetwork(): WalletAdapterNetwork {
 }
 
 export const SOLANA_NETWORK = detectNetwork();
-
-const isServer = typeof window === 'undefined';
-export const SOLANA_RPC_ENDPOINT = isServer
-  ? (serverRpc || clusterApiUrl(SOLANA_NETWORK))
-  : '/api/rpc';
+export const SOLANA_RPC_ENDPOINT = serverRpc || clusterApiUrl(SOLANA_NETWORK);
+export const SOLANA_RPC_PROXY = '/api/rpc';
 
 // zkRUNE Token Configuration
 export const ZKRUNE_TOKEN_CONFIG = {
