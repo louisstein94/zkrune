@@ -311,6 +311,7 @@ export interface Database {
           expires_at: string;
           verified_off_chain: boolean;
           creator_wallet: string | null;
+          trust_level: string | null;
         };
         Insert: {
           id: string;
@@ -323,6 +324,7 @@ export interface Database {
           expires_at: string;
           verified_off_chain?: boolean;
           creator_wallet?: string | null;
+          trust_level?: string | null;
         };
         Update: {
           id?: string;
@@ -335,6 +337,7 @@ export interface Database {
           expires_at?: string;
           verified_off_chain?: boolean;
           creator_wallet?: string | null;
+          trust_level?: string | null;
         };
       };
 

@@ -30,5 +30,6 @@ export async function GET(
     createdAt: new Date(stored.createdAt).toISOString(),
     expiresAt: new Date(stored.expiresAt).toISOString(),
     verifiedOffChain: stored.verifiedOffChain,
+    trustLevel: stored.trustLevel || 'self-asserted',
   });
 }

@@ -4,6 +4,7 @@ import { Node, Edge } from 'reactflow';
 import { useState, useEffect, useCallback } from 'react';
 import { generateCircomCode, validateCircuit } from '@/lib/circuitGenerator';
 import { usePublishBlink } from '@/lib/blinks/usePublishBlink';
+import TrustLevelBadge from '@/components/TrustLevelBadge';
 
 interface CircuitActionsProps {
   nodes: Node[];
@@ -290,8 +291,11 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
             {blinkResult ? (
               <div className="space-y-4">
                 <div className="bg-emerald-500/10 border border-emerald-500/20 rounded-xl p-4">
-                  <p className="text-emerald-400 text-sm font-medium mb-2">Blink Created!</p>
-                  <p className="text-zinc-400 text-xs mb-3">Share this link on Twitter/X — it will unfurl as an interactive verification card.</p>
+                  <div className="flex items-center gap-2 mb-2">
+                    <p className="text-emerald-400 text-sm font-medium">Proof Published!</p>
+                    <TrustLevelBadge level="self-asserted" size="sm" />
+                  </div>
+                  <p className="text-zinc-400 text-xs mb-3">Share this link to let anyone verify your proof.</p>
                   <div className="bg-black/40 rounded-lg p-3 font-mono text-xs text-violet-300 break-all">
                     {blinkResult.verifyPageUrl}
                   </div>

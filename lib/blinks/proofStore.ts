@@ -1,6 +1,7 @@
 import crypto from 'crypto';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase/client';
 import type { Database } from '@/lib/supabase/types';
+import type { TrustLevel } from '@/lib/trustLevel';
 
 type ProofInsert = Database['public']['Tables']['published_proofs']['Insert'];
 
@@ -21,6 +22,7 @@ export interface StoredProof {
   expiresAt: number;
   verifiedOffChain: boolean;
   creatorWallet?: string;
+  trustLevel: TrustLevel;
 }
 
 const PROOF_TTL_MS = 7 * 24 * 60 * 60 * 1000; // 7 days
@@ -39,7 +41,7 @@ function evictExpired() {
 // ─── Supabase helpers ───────────────────────────────────────────────
 
 function toDbRow(entry: StoredProof): ProofInsert {
-  return {
+  const row: ProofInsert = {
     id: entry.id,
     circuit_name: entry.circuitName,
     proof: entry.proof as any,
@@ -51,6 +53,7 @@ function toDbRow(entry: StoredProof): ProofInsert {
     verified_off_chain: entry.verifiedOffChain,
     creator_wallet: entry.creatorWallet || null,
   };
+  return row;
 }
 
 function fromDbRow(row: any): StoredProof {
@@ -65,6 +68,7 @@ function fromDbRow(row: any): StoredProof {
     expiresAt: new Date(row.expires_at).getTime(),
     verifiedOffChain: row.verified_off_chain,
     creatorWallet: row.creator_wallet || undefined,
+    trustLevel: row.trust_level || 'self-asserted',
   };
 }
 
@@ -74,7 +78,7 @@ export async function storeProof(
   circuitName: string,
   proof: StoredProof['proof'],
   publicSignals: string[],
-  opts: { label?: string; description?: string; wallet?: string; verifiedOffChain?: boolean; persistent?: boolean } = {},
+  opts: { label?: string; description?: string; wallet?: string; verifiedOffChain?: boolean; persistent?: boolean; trustLevel?: TrustLevel } = {},
 ): Promise<StoredProof> {
   const id = crypto.randomBytes(16).toString('hex');
   const now = Date.now();
@@ -91,6 +95,7 @@ export async function storeProof(
     expiresAt: now + ttl,
     verifiedOffChain: opts.verifiedOffChain ?? false,
     creatorWallet: opts.wallet,
+    trustLevel: opts.trustLevel || 'self-asserted',
   };
 
   if (isSupabaseConfigured()) {

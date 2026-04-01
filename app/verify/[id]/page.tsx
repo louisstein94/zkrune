@@ -3,6 +3,7 @@
 import { useParams } from "next/navigation";
 import Link from "next/link";
 import Navigation from "@/components/Navigation";
+import TrustLevelBadge from "@/components/TrustLevelBadge";
 import { useState, useEffect, useMemo, useCallback } from "react";
 import { useConnection, useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
@@ -81,6 +82,7 @@ interface ProofData {
   createdAt: string;
   expiresAt: string;
   verifiedOffChain: boolean;
+  trustLevel?: string;
 }
 
 const CIRCUIT_META: Record<string, {
@@ -300,11 +302,14 @@ export default function VerifyPage() {
             <>
               {/* Verification Badge */}
               <div className="text-center mb-8">
-                <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full mb-6">
-                  <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                  </svg>
-                  <span className="text-sm font-medium text-emerald-400">Verified ZK Proof</span>
+                <div className="flex items-center justify-center gap-2 mb-6">
+                  <div className="inline-flex items-center gap-2 px-4 py-2 bg-emerald-500/10 border border-emerald-500/20 rounded-full">
+                    <svg className="w-4 h-4 text-emerald-400" fill="currentColor" viewBox="0 0 20 20">
+                      <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                    </svg>
+                    <span className="text-sm font-medium text-emerald-400">Verified ZK Proof</span>
+                  </div>
+                  <TrustLevelBadge level={proof.trustLevel} size="sm" />
                 </div>
                 <h1 className="font-hatton text-3xl sm:text-4xl text-white mb-2">
                   {meta.emoji} {meta.title}
@@ -367,6 +372,9 @@ export default function VerifyPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Trust Level */}
+              <TrustLevelBadge level={proof.trustLevel} size="md" showDescription />
 
               {/* Verification Status Card */}
               <div className="bg-emerald-500/5 border border-emerald-500/15 rounded-xl p-5 mb-5">
