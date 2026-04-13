@@ -5,10 +5,16 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 
 // Token Swap Circuit
 // Proves you have sufficient tokens for a swap without revealing exact balance
+//
+// SECURITY NOTE: swapSecret is included in commitmentHash but the circuit does not
+// verify commitmentHash against a known value. The verifier application MUST check
+// the commitmentHash output against a pre-registered commitment to ensure swap
+// authorization. Without this application-layer check, swapSecret provides no
+// security — anyone who knows the public inputs can generate a valid proof.
 template TokenSwap() {
     // Private inputs
     signal input tokenABalance;       // Your balance of Token A
-    signal input swapSecret;          // Secret to authorize swap
+    signal input swapSecret;          // Secret to authorize swap (see SECURITY NOTE above)
     
     // Public inputs
     signal input requiredTokenA;      // Required amount of Token A

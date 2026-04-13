@@ -17,12 +17,19 @@ template AgeVerification() {
     // Calculate age
     signal age;
     age <== currentYear - birthYear;
-    
-    // Constraint: birthYear must be reasonable (between 1900 and currentYear)
-    // This prevents overflow attacks
-    signal birthYearValid;
-    birthYearValid <== (currentYear - birthYear) * (birthYear - 1900);
-    
+
+    // Constraint: birthYear >= 1900
+    component minBirthYear = GreaterEqThan(32);
+    minBirthYear.in[0] <== birthYear;
+    minBirthYear.in[1] <== 1900;
+    minBirthYear.out === 1;
+
+    // Constraint: birthYear <= currentYear
+    component maxBirthYear = LessEqThan(32);
+    maxBirthYear.in[0] <== birthYear;
+    maxBirthYear.in[1] <== currentYear;
+    maxBirthYear.out === 1;
+
     // Real comparison: age >= minimumAge
     component ageCheck = GreaterEqThan(32);
     ageCheck.in[0] <== age;

@@ -22,11 +22,8 @@ function stringToBigInt(s: string): bigint {
   return val || BigInt(1);
 }
 
-function demoHash(a: string, b: string): string {
-  const str = `${a}-${b}`;
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) hash += str.charCodeAt(i);
-  return hash.toString();
+function computeHash(a: string, b: string): string {
+  return poseidon2([BigInt(a), BigInt(b)]).toString();
 }
 
 function prepareCircuitInputs(templateId: string, params: Record<string, any>): Record<string, any> {
@@ -66,7 +63,7 @@ function prepareCircuitInputs(templateId: string, params: Record<string, any>): 
     if (!params.expectedHash && params.preimage && params.salt) {
       return {
         ...params,
-        expectedHash: demoHash(params.preimage, params.salt),
+        expectedHash: computeHash(params.preimage, params.salt),
       };
     }
     return params;
@@ -87,7 +84,7 @@ function prepareCircuitInputs(templateId: string, params: Record<string, any>): 
     if (!params.commitmentHash && params.startTime && params.secret) {
       return {
         ...params,
-        commitmentHash: demoHash(params.startTime, params.secret),
+        commitmentHash: computeHash(params.startTime, params.secret),
       };
     }
     return params;

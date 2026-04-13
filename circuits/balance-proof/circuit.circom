@@ -23,13 +23,17 @@ template BalanceProof() {
     // Enforce: proof is only satisfiable when balance meets the minimum
     hasMinimum === 1;
     
-    // Additional constraint: balance must be non-negative
-    component nonNegativeCheck = LessThan(64);
-    nonNegativeCheck.in[0] <== balance;
-    nonNegativeCheck.in[1] <== 2**63; // Max safe value
-    
-    // Ensure balance is reasonable
-    nonNegativeCheck.out === 1;
+    // Range check: balance must fit in 53 bits (prevents field overflow attacks)
+    component balanceRange = LessThan(64);
+    balanceRange.in[0] <== balance;
+    balanceRange.in[1] <== 9007199254740992; // 2^53
+    balanceRange.out === 1;
+
+    // Range check: minimumBalance must also be in valid range
+    component minBalanceRange = LessThan(64);
+    minBalanceRange.in[0] <== minimumBalance;
+    minBalanceRange.in[1] <== 9007199254740992; // 2^53
+    minBalanceRange.out === 1;
 }
 
 // Main component
