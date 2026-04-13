@@ -10,46 +10,55 @@ template QuadraticVoting() {
     signal input voterId;           // Voter's secret ID
     signal input tokenBalance;      // Number of tokens owned (private)
     signal input voteChoice;        // Vote option (0, 1, 2, etc.)
-    
+    signal input sqrtVal;           // Prover computes floor(sqrt(tokenBalance)) off-chain
+
     // Public inputs
     signal input pollId;            // Poll identifier
     signal input minTokens;         // Minimum tokens required to vote
-    
+
     // Outputs
     signal output voteCommitment;   // Hash commitment of vote
-    signal output voteWeight;       // Calculated vote weight
+    signal output voteWeight;       // Calculated vote weight (sqrt)
     signal output canVote;          // Eligibility flag
-    
+
     // Check voter has minimum tokens
     component eligibilityCheck = GreaterEqThan(64);
     eligibilityCheck.in[0] <== tokenBalance;
     eligibilityCheck.in[1] <== minTokens;
     canVote <== eligibilityCheck.out;
-    
-    // Calculate vote weight (scaled down for practical use)
-    // voteWeight approximates sqrt(tokens) using linear scaling
-    // This prevents whale dominance while staying quadratic-constraint compatible
-    
-    // Scale tokens down to manageable range
-    signal scaledTokens;
-    component tokenScaleCheck = LessThan(64);
-    tokenScaleCheck.in[0] <== tokenBalance;
-    tokenScaleCheck.in[1] <== 1000000; // Max tokens check
-    tokenScaleCheck.out === 1;
-    
-    // Weight calculation: use direct token count (simplified quadratic)
-    // In production: implement Babylonian square root
-    scaledTokens <== tokenBalance;
-    
-    // Cap vote weight at reasonable maximum
-    component weightCapCheck = LessThan(64);
-    weightCapCheck.in[0] <== scaledTokens;
-    weightCapCheck.in[1] <== 100000;
-    
-    voteWeight <== scaledTokens;
-    
-    // Force weight cap check to pass
+
+    // Range check: tokenBalance must be < 1,000,000 (prevents field overflow)
+    component tokenRangeCheck = LessThan(64);
+    tokenRangeCheck.in[0] <== tokenBalance;
+    tokenRangeCheck.in[1] <== 1000000;
+    tokenRangeCheck.out === 1;
+
+    // Quadratic vote weight via verified square root
+    // Constraint: sqrtVal^2 <= tokenBalance
+    signal sqSquared;
+    sqSquared <== sqrtVal * sqrtVal;
+    component lowerBound = LessEqThan(64);
+    lowerBound.in[0] <== sqSquared;
+    lowerBound.in[1] <== tokenBalance;
+    lowerBound.out === 1;
+
+    // Constraint: tokenBalance < (sqrtVal + 1)^2
+    signal sqrtValPlusOne;
+    sqrtValPlusOne <== sqrtVal + 1;
+    signal upperSq;
+    upperSq <== sqrtValPlusOne * sqrtValPlusOne;
+    component upperBound = LessThan(64);
+    upperBound.in[0] <== tokenBalance;
+    upperBound.in[1] <== upperSq;
+    upperBound.out === 1;
+
+    // Vote weight = floor(sqrt(tokenBalance)), capped at 1000 (sqrt of max 1M)
+    component weightCapCheck = LessEqThan(64);
+    weightCapCheck.in[0] <== sqrtVal;
+    weightCapCheck.in[1] <== 1000;
     weightCapCheck.out === 1;
+
+    voteWeight <== sqrtVal;
     
     // Create vote commitment using Poseidon hash
     component hasher = Poseidon(4);

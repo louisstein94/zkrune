@@ -34,8 +34,11 @@ template HashPreimage() {
     commitmentHasher.inputs[0] <== preimage;
     commitmentHash <== commitmentHasher.out;
     
-    // Constraint: output must be 0 or 1
+    // Constraint: output must be binary
     isValid * (isValid - 1) === 0;
+
+    // Constraint: proof is only valid when hash actually matches
+    isValid === 1;
 }
 
 component main {public [expectedHash]} = HashPreimage();

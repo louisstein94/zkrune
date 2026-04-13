@@ -43,7 +43,7 @@ export default function QuadraticVotingForm({ onProofGenerated }: QuadraticVotin
       }
 
       const canVote = tokenBalanceNum >= minTokensNum;
-      const voteWeight = tokenBalanceNum; // Simplified quadratic weight
+      const voteWeight = Math.floor(Math.sqrt(tokenBalanceNum));
 
       const data = await generateClientProof('quadratic-voting', {
         voterId: voterIdNum.toString(),

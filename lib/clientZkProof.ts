@@ -53,6 +53,15 @@ function prepareCircuitInputs(templateId: string, params: Record<string, any>): 
     return params;
   }
 
+  if (templateId === 'quadratic-voting') {
+    const tokenBalance = parseInt(params.tokenBalance || '0', 10);
+    const sqrtVal = Math.floor(Math.sqrt(tokenBalance));
+    return {
+      ...params,
+      sqrtVal: sqrtVal.toString(),
+    };
+  }
+
   if (templateId === 'hash-preimage') {
     if (!params.expectedHash && params.preimage && params.salt) {
       return {

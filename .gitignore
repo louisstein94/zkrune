@@ -92,6 +92,7 @@ public/og-image-template.md
 docs/
 zkRune_Pitch_Deck.pptx
 zkrune_Security_Fix_Plan.docx
+SECURITY_FIX_DAILY_PLAN.md
 
 # Ceremony files (too large for git)
 ceremony/*.ptau
