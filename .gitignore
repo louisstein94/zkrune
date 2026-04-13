@@ -44,6 +44,8 @@ circuits/**/circuit_0000.zkey
 circuits/**/*.wtns
 circuits/**/test_*.json
 circuits/**/test_*.wtns
+circuits/**/circuit_test.zkey
+circuits/**/final_vkey.json
 circuits/**/example_*.json
 circuits/**/proof.json
 circuits/**/public.json
@@ -65,13 +67,18 @@ circuits/powersOfTau28_hez_final_12.ptau
 temp/
 *.tsbuildinfo
 
-packages/zkrune-sdk/node_modules/
-packages/zkrune-sdk/dist/
-packages/zkrune-cli/node_modules/
-packages/zkrune-cli/dist/
+packages/*/node_modules/
+packages/*/dist/
 
 # Rust build artifacts
 solana-groth16-verifier/target/
+solana-staking-program/target/
+
+# EVM / Hardhat build artifacts
+evm-verifier/artifacts/
+evm-verifier/cache/
+evm-verifier/typechain-types/
+evm-verifier/node_modules/
 
 # Sui ephemeral publication (devnet test-publish)
 sui-groth16-verifier/Pub*.toml
@@ -98,8 +105,9 @@ SECURITY_FIX_DAILY_PLAN.md
 ceremony/*.ptau
 ceremony/zkeys/*.zkey
 
-# Cargo lock (Solana program)
+# Cargo lock (Solana programs)
 solana-groth16-verifier/Cargo.lock
+solana-staking-program/Cargo.lock
 
 # IDE
 .idea/
