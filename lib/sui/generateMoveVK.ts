@@ -8,7 +8,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { convertVKForSui, bytesToHex } from './converter.ts';
+import { convertVKForSui, bytesToHex } from './converter';
 
 const CIRCUITS = [
   { name: 'age-verification', id: 0 },
