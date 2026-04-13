@@ -1,0 +1,126 @@
+{
+  "version": "0.1.0",
+  "name": "zkrune_groth16_verifier",
+  "metadata": {
+    "name": "zkRune Groth16 Verifier (Sui)",
+    "description": "On-chain zero-knowledge proof verifier using Groth16 pairing checks via Sui's native BN254 support",
+    "repository": "https://github.com/louisstein94/zkrune",
+    "website": "https://zkrune.com",
+    "logo": "https://zkrune.com/zkrune-icon.png",
+    "chain": "sui"
+  },
+  "module": "zkrune::groth16_verifier",
+  "structs": [
+    {
+      "name": "AdminCap",
+      "abilities": ["key", "store"],
+      "docs": ["Admin capability for managing the verifier registry. Transferred to deployer at init."]
+    },
+    {
+      "name": "VerifierRegistry",
+      "abilities": ["key"],
+      "docs": ["Shared object containing registered circuit verification keys."]
+    },
+    {
+      "name": "CircuitConfig",
+      "abilities": ["store"],
+      "fields": [
+        { "name": "name", "type": "vector<u8>" },
+        { "name": "pvk", "type": "groth16::PreparedVerifyingKey" },
+        { "name": "n_public", "type": "u8" }
+      ]
+    }
+  ],
+  "functions": [
+    {
+      "name": "register_circuit",
+      "visibility": "public",
+      "docs": [
+        "Register a new circuit template's verification key.",
+        "The vk_bytes must be in Arkworks canonical compressed serialization format.",
+        "The VK is prepared (pairing precomputation) once at registration time."
+      ],
+      "args": [
+        { "name": "_cap", "type": "&AdminCap" },
+        { "name": "registry", "type": "&mut VerifierRegistry" },
+        { "name": "template_id", "type": "u8", "docs": ["Circuit template identifier: 0=age-verification, 1=balance-proof, 2=membership-proof, 3=credential-proof, 4=private-voting, 5=nft-ownership, 6=range-proof, 7=hash-preimage, 8=quadratic-voting, 9=anonymous-reputation, 10=token-swap, 11=patience-proof, 12=signature-verification"] },
+        { "name": "name", "type": "vector<u8>" },
+        { "name": "vk_bytes", "type": "vector<u8>", "docs": ["Arkworks canonical compressed VK (alpha_g1 + beta_g2 + gamma_g2 + delta_g2 + IC)"] },
+        { "name": "n_public", "type": "u8" }
+      ]
+    },
+    {
+      "name": "update_circuit",
+      "visibility": "public",
+      "docs": ["Replace an existing circuit template's verification key."],
+      "args": [
+        { "name": "_cap", "type": "&AdminCap" },
+        { "name": "registry", "type": "&mut VerifierRegistry" },
+        { "name": "template_id", "type": "u8" },
+        { "name": "name", "type": "vector<u8>" },
+        { "name": "vk_bytes", "type": "vector<u8>" },
+        { "name": "n_public", "type": "u8" }
+      ]
+    },
+    {
+      "name": "verify_proof",
+      "visibility": "public",
+      "docs": [
+        "Verify a Groth16 proof for a registered circuit template.",
+        "Aborts if the proof is invalid or the template is not registered."
+      ],
+      "args": [
+        { "name": "registry", "type": "&VerifierRegistry" },
+        { "name": "template_id", "type": "u8" },
+        { "name": "proof_points_bytes", "type": "vector<u8>", "docs": ["Arkworks compressed proof: A_G1(32) + B_G2(64) + C_G1(32) = 128 bytes"] },
+        { "name": "public_inputs_bytes", "type": "vector<u8>", "docs": ["Concatenated 32-byte LE field elements"] }
+      ]
+    },
+    {
+      "name": "verify_proof_static",
+      "visibility": "public",
+      "docs": ["Verify a proof without aborting. Returns false on failure."],
+      "args": [
+        { "name": "registry", "type": "&VerifierRegistry" },
+        { "name": "template_id", "type": "u8" },
+        { "name": "proof_points_bytes", "type": "vector<u8>" },
+        { "name": "public_inputs_bytes", "type": "vector<u8>" }
+      ],
+      "returns": "bool"
+    },
+    {
+      "name": "get_circuit_info",
+      "visibility": "public",
+      "docs": ["Query circuit info. Returns (name, n_public, exists)."],
+      "args": [
+        { "name": "registry", "type": "&VerifierRegistry" },
+        { "name": "template_id", "type": "u8" }
+      ],
+      "returns": "(vector<u8>, u8, bool)"
+    }
+  ],
+  "events": [
+    {
+      "name": "ProofVerified",
+      "fields": [
+        { "name": "template_id", "type": "u8" },
+        { "name": "verifier", "type": "address" },
+        { "name": "valid", "type": "bool" }
+      ]
+    },
+    {
+      "name": "CircuitRegistered",
+      "fields": [
+        { "name": "template_id", "type": "u8" },
+        { "name": "name", "type": "vector<u8>" },
+        { "name": "n_public", "type": "u8" }
+      ]
+    }
+  ],
+  "errors": [
+    { "code": 0, "name": "E_UNKNOWN_TEMPLATE", "msg": "Unknown circuit template ID" },
+    { "code": 1, "name": "E_PROOF_VERIFICATION_FAILED", "msg": "Groth16 proof verification failed" },
+    { "code": 2, "name": "E_TEMPLATE_ALREADY_EXISTS", "msg": "Template ID already registered" },
+    { "code": 3, "name": "E_INVALID_PUBLIC_INPUTS", "msg": "Public inputs byte length does not match expected count" }
+  ]
+}

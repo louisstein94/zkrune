@@ -73,6 +73,9 @@ packages/zkrune-cli/dist/
 # Rust build artifacts
 solana-groth16-verifier/target/
 
+# Sui ephemeral publication (devnet test-publish)
+sui-groth16-verifier/Pub*.toml
+
 # Hackathon submission materials (internal docs)
 HACKATHON_SUBMISSION.md
 DEMO_SCRIPT.md
@@ -87,6 +90,8 @@ SUPABASE_SETUP.md
 STAKING_PLAN.md
 public/og-image-template.md
 docs/
+zkRune_Pitch_Deck.pptx
+zkrune_Security_Fix_Plan.docx
 
 # Ceremony files (too large for git)
 ceremony/*.ptau

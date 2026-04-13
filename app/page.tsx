@@ -1,6 +1,5 @@
 "use client";
 
-import RuneAnimation from "@/components/RuneAnimation";
 import Navigation from "@/components/Navigation";
 import StructuredData from "@/components/StructuredData";
 import { generateOrganizationSchema, generateSoftwareApplicationSchema } from "@/lib/seo";
@@ -138,6 +137,7 @@ export default function Home() {
               <p className="text-xs font-medium text-zk-gray uppercase tracking-wider">
                 Proofs Generated
               </p>
+              <p className="text-[10px] text-zk-gray/50 mt-1">Testnet & Mainnet</p>
             </div>
           </div>
 
@@ -277,6 +277,19 @@ export default function Home() {
             </a>
           </div>
 
+          {/* See All Templates Link */}
+          <div className="mt-8 text-center">
+            <a
+              href="/templates"
+              className="inline-flex items-center gap-2 text-sm text-zk-primary hover:text-zk-primary/80 transition-colors font-medium"
+            >
+              See all 13 templates
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+              </svg>
+            </a>
+          </div>
+
           {/* How It Works */}
           <div className="mt-12 p-6 bg-zk-darker/50 border border-white/5 rounded-2xl">
             <div className="grid md:grid-cols-3 gap-8">
@@ -297,8 +310,52 @@ export default function Home() {
               </div>
             </div>
           </div>
+
+          {/* SDK Quick Start */}
+          <div className="mt-12 p-6 bg-zk-dark/40 border border-zk-primary/15 rounded-2xl">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-8 h-8 bg-zk-primary/15 rounded-lg flex items-center justify-center">
+                <svg className="w-4 h-4 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
+                </svg>
+              </div>
+              <h4 className="text-sm font-bold text-white uppercase tracking-wider">Integrate in 5 lines</h4>
+            </div>
+            <pre className="text-sm text-zk-gray bg-zk-darker/80 rounded-xl p-5 overflow-x-auto font-mono leading-relaxed">
+              <code>{`npm install zkrune-sdk
+
+import { ZkRune } from 'zkrune-sdk';
+
+const zk = new ZkRune();
+const { proof, publicSignals } = await zk.prove('age-verification', {
+  birthYear: 1990,
+  currentYear: 2026,
+  minimumAge: 18,
+});
+
+const { isValid } = await zk.verifyRemote({
+  circuitName: 'age-verification',
+  proof,
+  publicSignals,
+});`}</code>
+            </pre>
+            <div className="mt-4 flex items-center gap-4">
+              <a href="/docs" className="text-xs text-zk-primary hover:text-zk-primary/80 transition-colors font-medium">
+                Full documentation →
+              </a>
+              <a href="/api-docs" className="text-xs text-zk-gray hover:text-zk-primary transition-colors font-medium">
+                API Reference →
+              </a>
+            </div>
+          </div>
         </div>
       </div>
+
+      {/* Trust Badges */}
+      <TrustBadges />
+
+      {/* FAQ Section */}
+      <FAQ />
 
       {/* zkRune Token Utility */}
       <div className="relative z-10 px-6 md:px-12 lg:px-16 py-16 border-t border-white/5">
@@ -386,12 +443,6 @@ export default function Home() {
           </div>
         </div>
       </div>
-
-      {/* Trust Badges */}
-      <TrustBadges />
-
-      {/* FAQ Section */}
-      <FAQ />
 
       {/* Final CTA */}
       <CTAShowcase />

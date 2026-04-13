@@ -36,9 +36,17 @@ export default function CTAShowcase() {
           </h2>
 
           <p className="text-base md:text-lg lg:text-xl text-zk-gray max-w-2xl mx-auto mb-8 px-4">
-            Join developers building the future of privacy with zkRune.
             Create your first zero-knowledge proof in under 60 seconds.
           </p>
+
+          {/* Install Command */}
+          <div className="max-w-lg mx-auto mb-8">
+            <div className="bg-zk-darker/80 border border-zk-primary/20 rounded-xl p-4 font-mono text-sm md:text-base text-left">
+              <span className="text-zk-gray select-none">$ </span>
+              <span className="text-zk-primary">npm install</span>
+              <span className="text-white"> zkrune-sdk</span>
+            </div>
+          </div>
 
           {/* Real Technical Stats */}
           <div className="flex flex-wrap justify-center gap-6 md:gap-8 mb-10">
@@ -67,16 +75,16 @@ export default function CTAShowcase() {
           {/* CTA Buttons */}
           <div className="flex flex-col md:flex-row gap-4 justify-center">
             <a
-              href="/templates"
+              href="/docs"
               className="px-10 py-4 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-2xl shadow-zk-primary/20 text-lg"
             >
-              Try Templates →
+              Get Started →
             </a>
             <a
-              href="/docs"
+              href="/templates"
               className="px-10 py-4 border-2 border-zk-primary/30 text-zk-primary font-medium rounded-full hover:bg-zk-primary/10 transition-all text-lg"
             >
-              Read Documentation
+              Browse Templates
             </a>
           </div>
 

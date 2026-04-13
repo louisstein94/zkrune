@@ -100,8 +100,8 @@ npm install zkrune-sdk
 ```typescript
 import { ZkRune } from 'zkrune-sdk';
 
-const zkrune = new ZkRune();
-const { proof, publicSignals } = await zkrune.generateProof('age-verification', {
+const zk = new ZkRune();
+const { proof, publicSignals } = await zk.prove('age-verification', {
   birthYear: 1990,
   currentYear: 2026,
   minimumAge: 18,
