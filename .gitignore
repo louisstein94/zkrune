@@ -83,6 +83,9 @@ evm-verifier/node_modules/
 # Sui ephemeral publication (devnet test-publish)
 sui-groth16-verifier/Pub*.toml
 
+# Sui Move build artifacts
+sui-groth16-verifier/build/
+
 # Hackathon submission materials (internal docs)
 HACKATHON_SUBMISSION.md
 DEMO_SCRIPT.md

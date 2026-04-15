@@ -89,52 +89,64 @@ pub fn process_instruction(
     
     // Parse public inputs based on VK's expected count
     let remaining = instruction_data.len() - offset;
+
+    // Exact-size validation: remaining must be a multiple of 32 (each input is 32 bytes)
+    if remaining == 0 || remaining % 32 != 0 {
+        msg!("Error: Invalid input size (remaining {} not multiple of 32)", remaining);
+        return Err(ProgramError::InvalidInstructionData);
+    }
+
     let input_count = remaining / 32;
-    
+
     if input_count != vk.nr_pubinputs {
         msg!("Error: Expected {} inputs, got {}", vk.nr_pubinputs, input_count);
         return Err(ProgramError::InvalidInstructionData);
     }
-    
-    // Dynamically handle public inputs (up to 10 supported)
+
+    // Safely convert a 32-byte slice; returns InvalidInstructionData on failure
+    let slice_32 = |start: usize| -> Result<[u8; 32], ProgramError> {
+        instruction_data[start..start + 32]
+            .try_into()
+            .map_err(|_| ProgramError::InvalidInstructionData)
+    };
+
+    // Dynamically handle public inputs (up to 5 supported)
     match vk.nr_pubinputs {
         1 => {
-            let inputs: [[u8; 32]; 1] = [
-                instruction_data[offset..offset + 32].try_into().unwrap(),
-            ];
+            let inputs: [[u8; 32]; 1] = [slice_32(offset)?];
             verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
         }
         2 => {
             let inputs: [[u8; 32]; 2] = [
-                instruction_data[offset..offset + 32].try_into().unwrap(),
-                instruction_data[offset + 32..offset + 64].try_into().unwrap(),
+                slice_32(offset)?,
+                slice_32(offset + 32)?,
             ];
             verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
         }
         3 => {
             let inputs: [[u8; 32]; 3] = [
-                instruction_data[offset..offset + 32].try_into().unwrap(),
-                instruction_data[offset + 32..offset + 64].try_into().unwrap(),
-                instruction_data[offset + 64..offset + 96].try_into().unwrap(),
+                slice_32(offset)?,
+                slice_32(offset + 32)?,
+                slice_32(offset + 64)?,
             ];
             verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
         }
         4 => {
             let inputs: [[u8; 32]; 4] = [
-                instruction_data[offset..offset + 32].try_into().unwrap(),
-                instruction_data[offset + 32..offset + 64].try_into().unwrap(),
-                instruction_data[offset + 64..offset + 96].try_into().unwrap(),
-                instruction_data[offset + 96..offset + 128].try_into().unwrap(),
+                slice_32(offset)?,
+                slice_32(offset + 32)?,
+                slice_32(offset + 64)?,
+                slice_32(offset + 96)?,
             ];
             verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
         }
         5 => {
             let inputs: [[u8; 32]; 5] = [
-                instruction_data[offset..offset + 32].try_into().unwrap(),
-                instruction_data[offset + 32..offset + 64].try_into().unwrap(),
-                instruction_data[offset + 64..offset + 96].try_into().unwrap(),
-                instruction_data[offset + 96..offset + 128].try_into().unwrap(),
-                instruction_data[offset + 128..offset + 160].try_into().unwrap(),
+                slice_32(offset)?,
+                slice_32(offset + 32)?,
+                slice_32(offset + 64)?,
+                slice_32(offset + 96)?,
+                slice_32(offset + 128)?,
             ];
             verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
         }

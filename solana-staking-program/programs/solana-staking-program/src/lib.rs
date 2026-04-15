@@ -25,6 +25,8 @@ pub enum StakingError {
     Underflow,
     #[msg("Unauthorized access")]
     Unauthorized,
+    #[msg("User already has an active stake")]
+    AlreadyStaked,
 }
 
 // ============================================================================
@@ -40,6 +42,9 @@ pub struct LockPeriod {
 impl LockPeriod {
     pub const SIZE: usize = 8 + 2;
 }
+
+/// Maximum allowed multiplier (5x = 50000 bps)
+pub const MAX_MULTIPLIER_BPS: u16 = 50000;
 
 #[account]
 pub struct StakingPool {
@@ -77,28 +82,30 @@ impl StakingPool {
     }
 
     /// Calculate dynamic APY based on current TVL and yearly emission
-    /// Returns APY in basis points, clamped between min and max
+    /// Returns APY in basis points, clamped between min and max.
+    /// On arithmetic overflow, returns max_apy_bps (conservative cap).
     pub fn calculate_dynamic_apy(&self) -> u16 {
         if self.total_staked == 0 {
             return self.max_apy_bps;
         }
-        
-        // raw_apy_bps = (yearly_emission / total_staked) * 10000
-        let raw_apy_bps = (self.yearly_emission as u128)
-            .checked_mul(10000)
-            .unwrap_or(u128::MAX)
-            / (self.total_staked as u128);
-        
+
+        // raw_apy_bps = (yearly_emission * 10000) / total_staked
+        // On overflow, cap at max_apy_bps.
+        let numerator = match (self.yearly_emission as u128).checked_mul(10000) {
+            Some(n) => n,
+            None => return self.max_apy_bps,
+        };
+
+        let raw_apy_bps = numerator / (self.total_staked as u128);
+
         // Clamp between min and max
-        let clamped = if raw_apy_bps > self.max_apy_bps as u128 {
+        if raw_apy_bps > self.max_apy_bps as u128 {
             self.max_apy_bps
         } else if raw_apy_bps < self.min_apy_bps as u128 {
             self.min_apy_bps
         } else {
             raw_apy_bps as u16
-        };
-        
-        clamped
+        }
     }
 }
 
@@ -202,7 +209,8 @@ pub struct CreateStakeVault<'info> {
     #[account(
         mut,
         seeds = [StakingPool::SEED, token_mint.key().as_ref()],
-        bump = staking_pool.bump
+        bump = staking_pool.bump,
+        constraint = staking_pool.authority == authority.key() @ StakingError::Unauthorized
     )]
     pub staking_pool: Box<Account<'info, StakingPool>>,
 
@@ -231,7 +239,8 @@ pub struct CreateRewardVault<'info> {
     #[account(
         mut,
         seeds = [StakingPool::SEED, token_mint.key().as_ref()],
-        bump = staking_pool.bump
+        bump = staking_pool.bump,
+        constraint = staking_pool.authority == authority.key() @ StakingError::Unauthorized
     )]
     pub staking_pool: Box<Account<'info, StakingPool>>,
 
@@ -281,8 +290,13 @@ pub struct Stake<'info> {
     )]
     pub staking_pool: Account<'info, StakingPool>,
 
+    /// User's stake position PDA.
+    /// Uses `init_if_needed` so users can re-stake after a prior `unstake`
+    /// (which sets `is_active = false` but leaves the account in place).
+    /// The handler enforces that the existing position must be inactive
+    /// before a new stake can be written.
     #[account(
-        init,
+        init_if_needed,
         payer = user,
         space = UserStake::SIZE,
         seeds = [UserStake::SEED, staking_pool.key().as_ref(), user.key().as_ref()],
@@ -395,7 +409,8 @@ pub struct DepositRewards<'info> {
     #[account(
         mut,
         seeds = [StakingPool::SEED, staking_pool.token_mint.as_ref()],
-        bump = staking_pool.bump
+        bump = staking_pool.bump,
+        constraint = staking_pool.authority == depositor.key() @ StakingError::Unauthorized
     )]
     pub staking_pool: Account<'info, StakingPool>,
 
@@ -443,6 +458,15 @@ pub mod zkrune_staking {
             LockPeriod { duration_seconds: 365 * 24 * 60 * 60, multiplier_bps: 30000 }, // 365 days — 3.0x
         ];
 
+        // Defensive: every multiplier must fit within MAX_MULTIPLIER_BPS (5x cap).
+        // Protects against future changes that might raise multipliers past the cap.
+        for period in pool.lock_periods.iter() {
+            require!(
+                period.multiplier_bps <= MAX_MULTIPLIER_BPS,
+                StakingError::InvalidLockPeriod
+            );
+        }
+
         pool.min_stake_amount = params.min_stake_amount;
         pool.base_apy_bps = params.base_apy_bps;
         pool.early_withdrawal_penalty_bps = params.early_withdrawal_penalty_bps;
@@ -479,6 +503,11 @@ pub mod zkrune_staking {
         let user_stake = &mut ctx.accounts.user_stake;
         let clock = Clock::get()?;
 
+        // Re-stake protection: with `init_if_needed`, an existing account may be
+        // passed in. Reject overwriting an active position. After `unstake`,
+        // `is_active` is false and the same PDA can be safely reused.
+        require!(!user_stake.is_active, StakingError::AlreadyStaked);
+
         require!(params.amount >= pool.min_stake_amount, StakingError::BelowMinimumStake);
         require!(params.lock_period_index < 4, StakingError::InvalidLockPeriod);
 
@@ -488,16 +517,28 @@ pub mod zkrune_staking {
         let multiplier_bps = pool.get_multiplier(params.lock_period_index)
             .ok_or(StakingError::InvalidLockPeriod)?;
 
+        // Defensive: reject multipliers that exceed the 5x cap.
+        require!(
+            multiplier_bps <= MAX_MULTIPLIER_BPS,
+            StakingError::InvalidLockPeriod
+        );
+
         // Calculate dynamic APY based on current TVL
         let base_dynamic_apy = pool.calculate_dynamic_apy();
-        
+
         // Apply lock period multiplier: effective_apy = base_dynamic_apy * multiplier / 10000
-        // Then cap at max_apy_bps
-        let effective_apy_bps = ((base_dynamic_apy as u32) * (multiplier_bps as u32) / 10000) as u16;
-        let locked_apy = if effective_apy_bps > pool.max_apy_bps {
+        // Use checked arithmetic to prevent silent truncation/overflow.
+        let effective_apy_u32 = (base_dynamic_apy as u32)
+            .checked_mul(multiplier_bps as u32)
+            .ok_or(StakingError::Overflow)?
+            / 10000;
+
+        // Cap at max_apy_bps (u16 cast is safe since divisor keeps result in u16 range
+        // given both inputs are bounded and base_apy <= max_apy).
+        let locked_apy = if effective_apy_u32 > pool.max_apy_bps as u32 {
             pool.max_apy_bps
         } else {
-            effective_apy_bps
+            effective_apy_u32 as u16
         };
 
         let cpi_accounts = Transfer {
@@ -684,5 +725,133 @@ pub mod zkrune_staking {
 
         msg!("Deposited {} tokens to reward pool", amount);
         Ok(())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn build_pool(total_staked: u64, yearly_emission: u64, max_apy: u16, min_apy: u16) -> StakingPool {
+        StakingPool {
+            authority: Pubkey::default(),
+            token_mint: Pubkey::default(),
+            stake_vault: Pubkey::default(),
+            reward_vault: Pubkey::default(),
+            total_staked,
+            total_stakers: 0,
+            total_rewards_distributed: 0,
+            reward_pool_balance: 0,
+            lock_periods: [
+                LockPeriod { duration_seconds: 2_592_000, multiplier_bps: 10000 },
+                LockPeriod { duration_seconds: 7_776_000, multiplier_bps: 15000 },
+                LockPeriod { duration_seconds: 15_552_000, multiplier_bps: 20000 },
+                LockPeriod { duration_seconds: 31_536_000, multiplier_bps: 30000 },
+            ],
+            min_stake_amount: 0,
+            base_apy_bps: 1200,
+            early_withdrawal_penalty_bps: 5000,
+            yearly_emission,
+            max_apy_bps: max_apy,
+            min_apy_bps: min_apy,
+            bump: 0,
+        }
+    }
+
+    // P2-03: calculate_dynamic_apy must not panic on overflow
+    #[test]
+    fn dynamic_apy_overflow_returns_max() {
+        // yearly_emission * 10000 overflows u128 when yearly_emission > u128::MAX / 10000.
+        // u64::MAX (~1.8e19) * 10000 (~1e4) = ~1.8e23, fits in u128 (~3.4e38).
+        // So u64 values cannot overflow u128 via this multiplication.
+        // The overflow branch is effectively unreachable, but the code path is still safe.
+        let pool = build_pool(1_000_000, u64::MAX, 3600, 500);
+        let apy = pool.calculate_dynamic_apy();
+        // With huge emission and tiny staked, should clamp to max.
+        assert_eq!(apy, 3600);
+    }
+
+    // P2-03: calculate_dynamic_apy clamps to max when raw APY exceeds it
+    #[test]
+    fn dynamic_apy_clamps_to_max() {
+        // 1M tokens staked, 1M yearly emission -> raw APY = 10000 bps (100%)
+        // Should clamp to max_apy_bps (3600 = 36%)
+        let pool = build_pool(1_000_000_000_000, 1_000_000_000_000, 3600, 500);
+        let apy = pool.calculate_dynamic_apy();
+        assert_eq!(apy, 3600);
+    }
+
+    // P2-03: calculate_dynamic_apy clamps to min when raw APY is below it
+    #[test]
+    fn dynamic_apy_clamps_to_min() {
+        // Very large stake pool with small emission
+        let pool = build_pool(10_000_000_000_000_000, 1_000_000_000, 3600, 500);
+        let apy = pool.calculate_dynamic_apy();
+        assert_eq!(apy, 500);
+    }
+
+    // P2-03: calculate_dynamic_apy returns max when pool is empty
+    #[test]
+    fn dynamic_apy_empty_pool_returns_max() {
+        let pool = build_pool(0, 1_000_000_000, 3600, 500);
+        let apy = pool.calculate_dynamic_apy();
+        assert_eq!(apy, 3600);
+    }
+
+    // P2-03: MAX_MULTIPLIER_BPS cap is 5x
+    #[test]
+    fn max_multiplier_is_5x() {
+        assert_eq!(MAX_MULTIPLIER_BPS, 50000);
+    }
+
+    // P2-03: All hardcoded multipliers are below the cap
+    #[test]
+    fn default_multipliers_below_cap() {
+        let pool = build_pool(0, 0, 3600, 500);
+        for period in pool.lock_periods.iter() {
+            assert!(period.multiplier_bps <= MAX_MULTIPLIER_BPS);
+        }
+    }
+
+    // P2-03: reward calculation with locked APY
+    #[test]
+    fn reward_calculation_with_locked_apy() {
+        let stake = UserStake {
+            owner: Pubkey::default(),
+            pool: Pubkey::default(),
+            amount: 1_000_000_000, // 1000 tokens (6 decimals)
+            lock_period_index: 0,
+            staked_at: 0,
+            unlock_at: 2_592_000,
+            last_claim_at: 0,
+            total_claimed: 0,
+            is_active: true,
+            locked_apy_bps: 1200, // 12%
+            bump: 0,
+        };
+
+        // After 1 year with 12% APY: 1000 * 0.12 = 120 tokens
+        let rewards = stake.calculate_pending_rewards(31_536_000).unwrap();
+        assert!(rewards > 119_000_000 && rewards < 121_000_000);
+    }
+
+    // P2-03: reward calculation returns 0 for inactive stake
+    #[test]
+    fn inactive_stake_returns_zero_rewards() {
+        let stake = UserStake {
+            owner: Pubkey::default(),
+            pool: Pubkey::default(),
+            amount: 1_000_000_000,
+            lock_period_index: 0,
+            staked_at: 0,
+            unlock_at: 2_592_000,
+            last_claim_at: 0,
+            total_claimed: 0,
+            is_active: false,
+            locked_apy_bps: 1200,
+            bump: 0,
+        };
+        let rewards = stake.calculate_pending_rewards(31_536_000).unwrap();
+        assert_eq!(rewards, 0);
     }
 }
