@@ -90,6 +90,11 @@ export function useMarketplace() {
     tags: string[];
     nodes?: any;
     edges?: any;
+    // P3-05: server requires a wallet signature binding the creator address
+    // and template name. Callers must produce these via buildSignedPayload()
+    // from @/lib/auth/useWalletAuth.
+    signedMessage: string;
+    signature: string;
   }) => {
     try {
       const response = await fetch('/api/marketplace/templates', {

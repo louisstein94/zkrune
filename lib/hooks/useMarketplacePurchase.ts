@@ -54,8 +54,11 @@ export function useMarketplacePurchase() {
       const decimals = ZKRUNE_TOKEN.DECIMALS;
 
       const rawTotal = BigInt(Math.round(priceUi * 10 ** decimals));
-      const platformFeeBps = MARKETPLACE_CONFIG.PLATFORM_FEE;
-      const rawPlatformFee = (rawTotal * BigInt(platformFeeBps)) / 100n;
+      // MARKETPLACE_CONFIG.PLATFORM_FEE and REWARD_POOL_SHARE are stored as
+      // integer percentages (e.g. 5 = 5%, 100 = 100%), NOT basis points.
+      // Divide by 100 to convert percent → fraction.
+      const platformFeePct = MARKETPLACE_CONFIG.PLATFORM_FEE;
+      const rawPlatformFee = (rawTotal * BigInt(platformFeePct)) / 100n;
       const rawCreatorAmount = rawTotal - rawPlatformFee;
 
       const buyerAta = getAssociatedTokenAddressSync(mintPubkey, publicKey);
@@ -73,8 +76,9 @@ export function useMarketplacePurchase() {
       );
 
       if (rawPlatformFee > 0n) {
-        const rewardShare = MARKETPLACE_CONFIG.REWARD_POOL_SHARE;
-        const rawToRewardVault = (rawPlatformFee * BigInt(rewardShare)) / 100n;
+        // REWARD_POOL_SHARE is also a percentage (100 = 100% of fee to vault).
+        const rewardSharePct = MARKETPLACE_CONFIG.REWARD_POOL_SHARE;
+        const rawToRewardVault = (rawPlatformFee * BigInt(rewardSharePct)) / 100n;
         const rawToTreasury = rawPlatformFee - rawToRewardVault;
 
         if (rawToRewardVault > 0n && ZKRUNE_TOKEN.REWARD_VAULT_ADDRESS) {

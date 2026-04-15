@@ -4,6 +4,7 @@ import {
   isSupabaseServerConfigured,
   supabaseServerFetch,
 } from '@/lib/supabase/serverClient';
+import { verifyAuth } from '@/lib/auth/verifyWalletSignature';
 
 interface MarketplaceTemplate {
   id: string;
@@ -47,9 +48,22 @@ export async function GET(request: NextRequest) {
   try {
     let url = 'marketplace_templates?select=*&order=downloads.desc';
 
-    if (category) url += `&category=eq.${category}`;
+    if (category) {
+      // Category is an enum value — whitelist to alnum/dash.
+      const safeCategory = category.replace(/[^a-zA-Z0-9_-]/g, '');
+      if (safeCategory) url += `&category=eq.${safeCategory}`;
+    }
     if (featured === 'true') url += '&featured=eq.true';
-    if (search) url += `&or=(name.ilike.*${search}*,description.ilike.*${search}*)`;
+    if (search) {
+      // P3-07: strip PostgREST control characters (parens, commas, asterisks,
+      // dots) from the search input before interpolating it into the or()
+      // filter. Without this, a crafted query can break out of the filter
+      // and inject additional operators.
+      const safeSearch = search.replace(/[^a-zA-Z0-9\s-]/g, '').trim();
+      if (safeSearch) {
+        url += `&or=(name.ilike.*${safeSearch}*,description.ilike.*${safeSearch}*)`;
+      }
+    }
 
     const response = await supabaseFetch(url, { next: { revalidate: 30 } } as RequestInit);
     if (!response.ok) throw new Error(`Supabase error: ${response.status}`);
@@ -76,6 +90,7 @@ export async function POST(request: NextRequest) {
     const {
       name, description, creator, creatorAddress,
       price, category, circuitCode, tags, nodes, edges,
+      signedMessage, signature,
     } = body;
 
     if (!name || !description || !creator || !creatorAddress || !price || !category || !circuitCode) {
@@ -85,7 +100,45 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
-    const finalPrice = Math.max(price, MARKETPLACE_CONFIG.MIN_TEMPLATE_PRICE);
+    // P3-05: wallet signature required — prevents impersonation of other
+    // creator addresses and unauthenticated listing spam.
+    if (!signedMessage || !signature) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Wallet signature required (signedMessage, signature)',
+        },
+        { status: 400 },
+      );
+    }
+
+    if (!verifyAuth(
+      { wallet: creatorAddress, signedMessage, signature },
+      'create-template',
+      { name },
+    )) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid or expired wallet signature',
+        },
+        { status: 401 },
+      );
+    }
+
+    // P3-06: validate price is a finite non-negative number before clamp.
+    const numericPrice = Number(price);
+    if (!Number.isFinite(numericPrice) || numericPrice < 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Price must be a non-negative number',
+        },
+        { status: 400 },
+      );
+    }
+
+    const finalPrice = Math.max(numericPrice, MARKETPLACE_CONFIG.MIN_TEMPLATE_PRICE);
 
     const response = await supabaseFetch('marketplace_templates', {
       method: 'POST',
