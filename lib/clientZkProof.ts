@@ -26,28 +26,89 @@ function computeHash(a: string, b: string): string {
   return poseidon2([BigInt(a), BigInt(b)]).toString();
 }
 
-function prepareCircuitInputs(templateId: string, params: Record<string, any>): Record<string, any> {
-  if (templateId === 'nft-ownership') {
-    if (params.collectionRoot) return params;
+// A15: per-process cache for verification keys. First successful fetch is
+// retained, so a later MITM cannot swap in a different VK mid-session.
+const vkeyCache = new Map<string, unknown>();
 
+/**
+ * Verifies that a fetched vKey has the expected Groth16 structure before
+ * handing it to snarkjs. A structurally invalid VK is rejected up front
+ * instead of being passed to snarkjs, which may silently accept a
+ * malformed-but-valid-for-bogus-proof object in corner cases.
+ */
+function assertValidVkey(vkey: unknown): asserts vkey is Record<string, unknown> {
+  if (!vkey || typeof vkey !== 'object') {
+    throw new Error('Verification key is not an object');
+  }
+  const vk = vkey as Record<string, unknown>;
+  if (vk.protocol !== 'groth16') {
+    throw new Error(`Unexpected VK protocol: ${String(vk.protocol)}`);
+  }
+  if (vk.curve !== 'bn128') {
+    throw new Error(`Unexpected VK curve: ${String(vk.curve)}`);
+  }
+  if (typeof vk.nPublic !== 'number' || vk.nPublic < 1) {
+    throw new Error('VK nPublic is missing or invalid');
+  }
+  if (!Array.isArray(vk.IC) || vk.IC.length !== (vk.nPublic as number) + 1) {
+    throw new Error('VK IC length does not match nPublic + 1');
+  }
+  for (const field of ['vk_alpha_1', 'vk_beta_2', 'vk_gamma_2', 'vk_delta_2']) {
+    if (!Array.isArray(vk[field])) {
+      throw new Error(`VK is missing required field: ${field}`);
+    }
+  }
+}
+
+async function loadVkey(templateId: string): Promise<unknown> {
+  const cached = vkeyCache.get(templateId);
+  if (cached) return cached;
+
+  const url = circuitUrl(`${templateId}_vkey.json`);
+  const vkeyResponse = await fetch(url);
+  if (!vkeyResponse.ok) {
+    throw new Error(`Failed to fetch verification key (${vkeyResponse.status})`);
+  }
+
+  const contentType = vkeyResponse.headers.get('content-type') || '';
+  if (!contentType.includes('application/json')) {
+    throw new Error(`Unexpected VK content-type: ${contentType}`);
+  }
+
+  const vKey = await vkeyResponse.json();
+  assertValidVkey(vKey);
+  vkeyCache.set(templateId, vKey);
+  return vKey;
+}
+
+function prepareCircuitInputs(templateId: string, params: Record<string, any>): Record<string, any> {
+  // P4-03: public inputs derived from secrets (collectionRoot, expectedHash,
+  // commitmentHash) are ALWAYS computed from the private inputs. Any value
+  // the caller supplies for those fields is discarded so a malicious UI
+  // cannot feed in a pre-chosen root/hash to bypass the circuit's ownership
+  // / preimage checks.
+
+  if (templateId === 'nft-ownership') {
     const nftTokenId = params.nftTokenId || params.tokenId;
     const ownerSecret = params.ownerSecret;
     const collectionSize = params.collectionSize || params.maxTokenId;
 
-    if (nftTokenId && ownerSecret) {
-      const ownerHash = poseidon2([BigInt(nftTokenId), BigInt(ownerSecret)]);
-      const collectionRoot = poseidon1([ownerHash]);
-
-      return {
-        ...params,
-        nftTokenId,
-        ownerSecret,
-        collectionRoot: collectionRoot.toString(),
-        minTokenId: params.minTokenId || '1',
-        maxTokenId: collectionSize || '10000',
-      };
+    if (!nftTokenId || !ownerSecret) {
+      throw new Error('nft-ownership requires nftTokenId and ownerSecret');
     }
-    return params;
+
+    const ownerHash = poseidon2([BigInt(nftTokenId), BigInt(ownerSecret)]);
+    const collectionRoot = poseidon1([ownerHash]);
+
+    return {
+      ...params,
+      nftTokenId,
+      ownerSecret,
+      // Always computed — never accept a caller-supplied value.
+      collectionRoot: collectionRoot.toString(),
+      minTokenId: params.minTokenId || '1',
+      maxTokenId: collectionSize || '10000',
+    };
   }
 
   if (templateId === 'quadratic-voting') {
@@ -60,13 +121,14 @@ function prepareCircuitInputs(templateId: string, params: Record<string, any>): 
   }
 
   if (templateId === 'hash-preimage') {
-    if (!params.expectedHash && params.preimage && params.salt) {
-      return {
-        ...params,
-        expectedHash: computeHash(params.preimage, params.salt),
-      };
+    if (!params.preimage || !params.salt) {
+      throw new Error('hash-preimage requires preimage and salt');
     }
-    return params;
+    return {
+      ...params,
+      // Always computed from preimage + salt.
+      expectedHash: computeHash(params.preimage, params.salt),
+    };
   }
 
   if (templateId === 'credential-proof') {
@@ -74,20 +136,23 @@ function prepareCircuitInputs(templateId: string, params: Record<string, any>): 
     if (!result.currentTime) {
       result.currentTime = Math.floor(Date.now() / 1000).toString();
     }
-    if (!result.expectedHash && result.credentialHash) {
-      result.expectedHash = result.credentialHash;
+    // Always derive expectedHash from credentialHash at proving time.
+    if (!result.credentialHash) {
+      throw new Error('credential-proof requires credentialHash');
     }
+    result.expectedHash = result.credentialHash;
     return result;
   }
 
   if (templateId === 'patience-proof') {
-    if (!params.commitmentHash && params.startTime && params.secret) {
-      return {
-        ...params,
-        commitmentHash: computeHash(params.startTime, params.secret),
-      };
+    if (!params.startTime || !params.secret) {
+      throw new Error('patience-proof requires startTime and secret');
     }
-    return params;
+    return {
+      ...params,
+      // Always computed from startTime + secret.
+      commitmentHash: computeHash(params.startTime, params.secret),
+    };
   }
 
   if (templateId === 'membership-proof') {
@@ -142,8 +207,9 @@ export async function generateClientProof(
     const proofTime = Date.now() - startTime;
     console.log(`[Client ZK] Proof generated in ${proofTime}ms`);
 
-    const vkeyResponse = await fetch(circuitUrl(`${templateId}_vkey.json`));
-    const vKey = await vkeyResponse.json();
+    // A15: loadVkey caches + validates the VK structure and throws on
+    // unexpected content-type / HTTP status / missing fields.
+    const vKey = await loadVkey(templateId);
 
     let isValid: boolean;
     try {
