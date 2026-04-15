@@ -117,13 +117,28 @@ export function useMarketplace() {
   const purchaseTemplate = useCallback(async (
     templateId: string,
     buyerAddress: string,
-    transactionSignature?: string
+    // transactionSignature is now REQUIRED — the server rejects purchases
+    // without an on-chain payment reference.
+    transactionSignature: string,
+    // Signed payload binds buyer + templateId + tx so an intercepted call
+    // cannot be replayed by a different buyer or for a different template.
+    signedMessage: string,
+    signature: string,
   ) => {
+    if (!transactionSignature) {
+      return { success: false, error: 'transactionSignature is required' };
+    }
     try {
       const response = await fetch('/api/marketplace/purchases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ templateId, buyerAddress, transactionSignature }),
+        body: JSON.stringify({
+          templateId,
+          buyerAddress,
+          transactionSignature,
+          signedMessage,
+          signature,
+        }),
       });
 
       const data = await response.json();

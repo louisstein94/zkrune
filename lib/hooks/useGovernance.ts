@@ -70,6 +70,14 @@ export function useGovernance() {
     additionalData?: any
   ) => {
     try {
+      // Bind signature to the proposal type + title so the server can
+      // verify the caller actually controls `creator` and is not
+      // impersonating another wallet.
+      const { signedMessage, signature } = await buildSignedPayload('create-proposal', {
+        type,
+        title,
+      });
+
       const response = await fetch('/api/governance/proposals', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -80,6 +88,8 @@ export function useGovernance() {
           creator,
           templateData: type === 'template' ? additionalData : undefined,
           featureData: type === 'feature' ? additionalData : undefined,
+          signedMessage,
+          signature,
         }),
       });
 
@@ -92,7 +102,7 @@ export function useGovernance() {
     } catch (err: any) {
       return { success: false, error: err.message };
     }
-  }, [fetchProposals]);
+  }, [fetchProposals, buildSignedPayload]);
 
   const castVote = useCallback(async (
     proposalId: string,

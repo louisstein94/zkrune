@@ -4,6 +4,7 @@ import {
   isSupabaseServerConfigured,
   supabaseServerFetch,
 } from '@/lib/supabase/serverClient';
+import { verifyAuth } from '@/lib/auth/verifyWalletSignature';
 
 interface Proposal {
   id: string;
@@ -92,13 +93,51 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { type, title, description, creator, templateData, featureData } = body;
+    const { type, title, description, creator, templateData, featureData, signedMessage, signature } = body;
 
     if (!type || !title || !description || !creator) {
       return NextResponse.json({
         success: false,
         error: 'Missing required fields: type, title, description, creator',
       }, { status: 400 });
+    }
+
+    if (!signedMessage || !signature) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Wallet signature required (signedMessage, signature)',
+        },
+        { status: 400 },
+      );
+    }
+
+    // Bind signature to type + title so the caller cannot be impersonated
+    // and a previously-signed payload cannot be replayed against a
+    // different proposal.
+    if (!verifyAuth(
+      { wallet: creator, signedMessage, signature },
+      'create-proposal',
+      { type, title },
+    )) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid or expired wallet signature',
+        },
+        { status: 401 },
+      );
+    }
+
+    // Whitelist proposal type to the configured enum.
+    if (!GOVERNANCE_CONFIG.PROPOSAL_TYPES.includes(type)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `type must be one of ${GOVERNANCE_CONFIG.PROPOSAL_TYPES.join(', ')}`,
+        },
+        { status: 400 },
+      );
     }
 
     const now = new Date();

@@ -10,6 +10,7 @@ import {
   getOrCreateAssociatedTokenAccount,
 } from '@solana/spl-token';
 import { ZKRUNE_TOKEN, MARKETPLACE_CONFIG } from '@/lib/token/config';
+import { useWalletAuth } from '@/lib/auth/useWalletAuth';
 
 export type PurchaseStage =
   | 'idle'
@@ -31,6 +32,7 @@ interface PurchaseState {
 export function useMarketplacePurchase() {
   const { connection } = useConnection();
   const { publicKey, sendTransaction } = useWallet();
+  const { buildSignedPayload } = useWalletAuth();
   const [state, setState] = useState<PurchaseState>({
     stage: 'idle',
     error: null,
@@ -117,6 +119,14 @@ export function useMarketplacePurchase() {
 
       setState(s => ({ ...s, stage: 'recording' }));
 
+      // Sign a payload that binds the templateId + txSignature so the
+      // server can verify the caller owns the buyer wallet and cannot
+      // replay the signed message against another purchase.
+      const { signedMessage, signature } = await buildSignedPayload(
+        'purchase-template',
+        { templateId, transactionSignature: txSignature },
+      );
+
       const res = await fetch('/api/marketplace/purchases', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -124,6 +134,8 @@ export function useMarketplacePurchase() {
           templateId,
           buyerAddress: publicKey.toBase58(),
           transactionSignature: txSignature,
+          signedMessage,
+          signature,
         }),
       });
 
@@ -141,7 +153,7 @@ export function useMarketplacePurchase() {
       setState({ stage: 'error', error: message, txSignature: null });
       return { success: false, error: message };
     }
-  }, [publicKey, sendTransaction, connection]);
+  }, [publicKey, sendTransaction, connection, buildSignedPayload]);
 
   const reset = useCallback(() => {
     setState({ stage: 'idle', error: null, txSignature: null });
