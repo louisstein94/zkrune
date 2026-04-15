@@ -1,10 +1,13 @@
 /**
  * Environment variables validation and type-safe access
+ *
+ * Validates env vars at module load. Missing or malformed values throw in
+ * every environment (production, development, test) so misconfiguration
+ * surfaces immediately instead of at first runtime call.
  */
 
 import { envSchema } from './validation';
 
-// Validate environment variables on startup
 function validateEnv() {
   const env = {
     NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
@@ -17,19 +20,21 @@ function validateEnv() {
   };
 
   const result = envSchema.safeParse(env);
-  
+
   if (!result.success) {
-    console.warn('[ENV] Environment validation warnings:', result.error.format());
-    // Don't fail in development, just warn
-    if (process.env.NODE_ENV === 'production') {
-      throw new Error('Invalid environment variables configuration');
-    }
+    // Fail closed in every environment (previously only production threw
+    // and dev silently returned the raw unvalidated object). Swallowing
+    // malformed env values hides real misconfiguration and lets tests
+    // pass against accidentally-wrong NODE_ENV / analytics flags.
+    const formatted = JSON.stringify(result.error.format(), null, 2);
+    throw new Error(`Invalid environment variables configuration:\n${formatted}`);
   }
-  
-  return result.success ? result.data : env;
+
+  return result.data;
 }
 
-// Export validated environment
+// Export validated environment. Any error thrown here will crash module
+// load and surface at the first import — this is intentional.
 export const env = validateEnv();
 
 // Type-safe environment access
@@ -45,4 +50,3 @@ export const isAnalyticsEnabled = env.NEXT_PUBLIC_ENABLE_ANALYTICS === 'true';
 
 // Check if telemetry enabled
 export const isTelemetryEnabled = env.NEXT_PUBLIC_ENABLE_TELEMETRY === 'true';
-

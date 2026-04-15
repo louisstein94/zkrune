@@ -1,7 +1,9 @@
+import { NextRequest, NextResponse } from 'next/server';
 import { openai } from '@ai-sdk/openai';
 import { anthropic } from '@ai-sdk/anthropic';
 import { streamText, tool, convertToModelMessages, jsonSchema } from 'ai';
 import { getCircuitSystemPrompt } from '@/lib/ai/circuitSystemPrompt';
+import { checkIpBucket } from '@/lib/rateLimit/ipBuckets';
 
 export const maxDuration = 45;
 export const runtime = 'nodejs';
@@ -13,7 +15,27 @@ function getModel() {
   return openai(process.env.AI_MODEL || 'gpt-4o-mini');
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
+  // A17: per-IP rate limit, same reasoning as /api/ai-chat. Circuit
+  // generation is heavier, so cap is slightly lower (5/min).
+  const { allowed, resetAt } = checkIpBucket('ai-circuit', req, {
+    windowMs: 60_000,
+    limit: 5,
+  });
+  if (!allowed) {
+    return NextResponse.json(
+      { error: 'Too many requests', message: 'AI rate limit exceeded' },
+      {
+        status: 429,
+        headers: {
+          'Retry-After': String(Math.ceil((resetAt - Date.now()) / 1000)),
+          'X-RateLimit-Limit': '5',
+          'X-RateLimit-Remaining': '0',
+        },
+      },
+    );
+  }
+
   const { messages } = await req.json();
   const modelMessages = await convertToModelMessages(messages);
 

@@ -252,6 +252,92 @@ describe('client hooks send signed payloads', () => {
 });
 
 // ============================================================
+// RPC proxy hardening (Phase 4 Day 25)
+// ============================================================
+describe('rpc proxy', () => {
+  const content = read('app/api/rpc/route.ts');
+
+  it('rejects methods outside the whitelist', () => {
+    expect(content).toContain('ALLOWED_RPC_METHODS');
+    expect(content).toContain('getBalance');
+    expect(content).toContain('sendTransaction');
+    // No wildcard / pass-through: the whitelist is a Set<string>.
+    expect(content).toMatch(/new Set<string>/);
+  });
+
+  it('rate limits independently from global middleware', () => {
+    expect(content).toContain('RPC_RATE_LIMIT');
+    expect(content).toContain('RPC_RATE_WINDOW_MS');
+    expect(content).toContain('checkRpcRate');
+  });
+
+  it('caps body size and batch length', () => {
+    expect(content).toMatch(/50\s*\*\s*1024/);
+    expect(content).toMatch(/batch\.length\s*>\s*20/);
+  });
+});
+
+// ============================================================
+// AI routes rate limit (Phase 4 Day 25)
+// ============================================================
+describe('AI routes rate limiting', () => {
+  const chat = read('app/api/ai-chat/route.ts');
+  const circuit = read('app/api/ai-circuit/route.ts');
+
+  it('ai-chat uses checkIpBucket', () => {
+    expect(chat).toContain("checkIpBucket('ai-chat'");
+  });
+
+  it('ai-circuit uses checkIpBucket', () => {
+    expect(circuit).toContain("checkIpBucket('ai-circuit'");
+  });
+
+  it('both routes return 429 on limit', () => {
+    expect(chat).toContain('429');
+    expect(circuit).toContain('429');
+  });
+});
+
+// ============================================================
+// Validation cleanup (Phase 4 Day 26)
+// ============================================================
+describe('validation.ts cleanup', () => {
+  const content = read('lib/validation.ts');
+
+  it('removes the non-functional sanitizeString helper', () => {
+    expect(content).not.toMatch(/export function sanitizeString/);
+  });
+
+  it('publicSignals array is length-bounded', () => {
+    expect(content).toMatch(/publicSignals:\s*z\.array\([^)]+\)\.max\(\d+\)/);
+  });
+
+  it('vk_alphabeta_12 uses structured schema, not z.any()', () => {
+    // Inside the vk_alphabeta_12 block, z.any() must not appear.
+    const match = content.match(/vk_alphabeta_12[\s\S]*?IC:/);
+    expect(match).not.toBeNull();
+    expect(match![0]).not.toContain('z.any()');
+  });
+
+  it('drops SQL-keyword false-positive from containsMaliciousPattern', () => {
+    expect(content).not.toMatch(/union\|select\|insert\|update\|delete\|drop/);
+  });
+});
+
+// ============================================================
+// env.ts fail-closed (Phase 4 Day 26)
+// ============================================================
+describe('env.ts validation', () => {
+  const content = read('lib/env.ts');
+
+  it('throws on invalid env in every environment', () => {
+    // Must NOT gate the throw on NODE_ENV === 'production' anymore.
+    expect(content).not.toMatch(/NODE_ENV\s*===\s*'production'[\s\S]*?throw/);
+    expect(content).toMatch(/throw new Error\([^)]*Invalid environment variables/);
+  });
+});
+
+// ============================================================
 // Middleware hardening (Phase 4 Day 21-22)
 // ============================================================
 describe('middleware rate limiting and CSP', () => {

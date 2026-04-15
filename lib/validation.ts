@@ -5,26 +5,44 @@
 
 import { z } from 'zod';
 
-// Proof verification schema
+// A numeric field element expressed as a decimal string — snarkjs proof fields
+// are decimal strings of 256-bit integers. We bound the length to prevent
+// pathologically large payloads and reject non-digit content.
+const fieldElementString = z
+  .string()
+  .min(1)
+  .max(80)
+  .regex(/^-?\d+$/, 'Field element must be a decimal string');
+
+// Proof verification schema.
+// Every array is length-bounded so a single request cannot force the server
+// to parse megabytes of fake field elements.
 export const proofVerificationSchema = z.object({
   proof: z.object({
-    pi_a: z.array(z.string()).length(3),
-    pi_b: z.array(z.array(z.string()).length(2)).length(3),
-    pi_c: z.array(z.string()).length(3),
-    protocol: z.string().optional(),
-    curve: z.string().optional(),
+    pi_a: z.array(fieldElementString).length(3),
+    pi_b: z.array(z.array(fieldElementString).length(2)).length(3),
+    pi_c: z.array(fieldElementString).length(3),
+    protocol: z.string().max(32).optional(),
+    curve: z.string().max(32).optional(),
   }),
-  publicSignals: z.array(z.string()),
+  // nPublic is bounded at 32 by the snarkjs + groth16-solana pipeline in
+  // practice; give a generous 64 to absorb future circuits.
+  publicSignals: z.array(fieldElementString).max(64),
   vKey: z.object({
-    protocol: z.string(),
-    curve: z.string(),
-    nPublic: z.number().int().positive(),
-    vk_alpha_1: z.array(z.string()),
-    vk_beta_2: z.array(z.array(z.string())),
-    vk_gamma_2: z.array(z.array(z.string())),
-    vk_delta_2: z.array(z.array(z.string())),
-    vk_alphabeta_12: z.array(z.any()),
-    IC: z.array(z.array(z.string())),
+    protocol: z.literal('groth16'),
+    curve: z.literal('bn128'),
+    nPublic: z.number().int().positive().max(64),
+    vk_alpha_1: z.array(fieldElementString).length(3),
+    vk_beta_2: z.array(z.array(fieldElementString).length(2)).length(3),
+    vk_gamma_2: z.array(z.array(fieldElementString).length(2)).length(3),
+    vk_delta_2: z.array(z.array(fieldElementString).length(2)).length(3),
+    // alphabeta_12 is an Fp12 element: 2x3x2 nested array of field elements.
+    // Enforce the shape instead of allowing z.any() so a malicious request
+    // cannot smuggle in arbitrary nested objects.
+    vk_alphabeta_12: z
+      .array(z.array(z.array(fieldElementString).length(2)).length(3))
+      .length(2),
+    IC: z.array(z.array(fieldElementString).length(3)).max(65),
   }),
 });
 
@@ -76,15 +94,6 @@ export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).optional(),
 });
 
-// Sanitize string input (prevent XSS)
-export function sanitizeString(input: string): string {
-  return input
-    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '') // Remove script tags
-    .replace(/javascript:/gi, '') // Remove javascript: protocol
-    .replace(/on\w+\s*=/gi, '') // Remove event handlers
-    .trim();
-}
-
 // Validate and sanitize object
 export function validateAndSanitize<T>(
   schema: z.ZodSchema<T>,
@@ -117,17 +126,22 @@ export function safeJsonParse<T = any>(json: string): T | null {
   }
 }
 
-// Check for common injection patterns
+// Coarse screen for clearly dangerous substrings in circuit inputs.
+// NOTE: this is NOT a sanitization primitive — inputs are never rendered
+// as HTML anywhere. We only use it as a defensive filter for the proof
+// input path where values must be numeric strings or booleans. The
+// "SQL-keyword" paranoid check was removed because it produced false
+// positives on benign words like "select" / "delete".
 export function containsMaliciousPattern(input: string): boolean {
   const patterns = [
-    /(<script|<iframe|<object|<embed)/i,
-    /(javascript:|data:text\/html)/i,
-    /(onerror|onload|onclick)=/i,
-    /\.\.\//g, // Path traversal
-    /(union|select|insert|update|delete|drop)\s+/i, // SQL injection (paranoid check)
+    /<\s*(script|iframe|object|embed)\b/i,
+    /(javascript|data):/i,
+    /on\w+\s*=/i,
+    // Path traversal covering ./, ..\, and URL-encoded variants.
+    /\.\.[/\\]/,
+    /%2e%2e[/\\]/i,
   ];
-  
-  return patterns.some(pattern => pattern.test(input));
+  return patterns.some((pattern) => pattern.test(input));
 }
 
 // Rate limit key generator
