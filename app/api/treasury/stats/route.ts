@@ -1,21 +1,14 @@
 import { NextResponse } from 'next/server';
 import { MARKETPLACE_CONFIG } from '@/lib/token/config';
+import {
+  isSupabaseServerConfigured,
+  supabaseServerFetch,
+} from '@/lib/supabase/serverClient';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-
-async function supabaseFetch(endpoint: string) {
-  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
-    headers: {
-      'apikey': supabaseKey!,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-    },
-  });
-}
+const supabaseFetch = supabaseServerFetch;
 
 export async function GET() {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!isSupabaseServerConfigured()) {
     return NextResponse.json({ success: false, error: 'Database not configured' }, { status: 503 });
   }
 

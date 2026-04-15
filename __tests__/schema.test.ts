@@ -52,6 +52,44 @@ describe('Supabase Schema', () => {
   it('has index on staking_positions.transaction_signature', () => {
     expect(schema).toContain('idx_staking_txsig');
   });
+
+  // A1: Phase 3 Day 12 — write policies must be restricted to service_role
+  describe('RLS write policies restricted to service_role', () => {
+    const writeTables = [
+      { table: 'proposals', ops: ['INSERT', 'UPDATE'] },
+      { table: 'votes', ops: ['INSERT'] },
+      { table: 'marketplace_templates', ops: ['INSERT', 'UPDATE'] },
+      { table: 'purchases', ops: ['INSERT'] },
+      { table: 'staking_positions', ops: ['INSERT', 'UPDATE'] },
+      { table: 'premium_status', ops: ['INSERT', 'UPDATE'] },
+      { table: 'burn_history', ops: ['INSERT'] },
+      { table: 'ceremony_contributions', ops: ['INSERT'] },
+      { table: 'treasury_distributions', ops: ['INSERT'] },
+    ];
+
+    for (const { table, ops } of writeTables) {
+      for (const op of ops) {
+        it(`${table} ${op} requires service_role`, () => {
+          // Find the CREATE POLICY block for this table + op
+          const policyRegex = new RegExp(
+            `CREATE POLICY\\s+"[^"]*"\\s+ON\\s+${table}\\s+FOR\\s+${op}[\\s\\S]*?TO service_role`,
+            'i',
+          );
+          expect(schema).toMatch(policyRegex);
+        });
+      }
+    }
+
+    it('no WITH CHECK (true) without TO service_role', () => {
+      // Find any FOR INSERT/UPDATE policy that doesn't scope to service_role.
+      // This regex looks for "FOR (INSERT|UPDATE) WITH CHECK (true)" with no
+      // "TO service_role" between them.
+      const permissiveWrite =
+        /CREATE POLICY\s+"[^"]*"\s+ON\s+\w+\s+FOR\s+(INSERT|UPDATE)\s+WITH CHECK \(true\)/g;
+      const matches = schema.match(permissiveWrite) || [];
+      expect(matches).toEqual([]);
+    });
+  });
 });
 
 describe('Supabase Types', () => {

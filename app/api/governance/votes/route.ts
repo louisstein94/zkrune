@@ -3,9 +3,10 @@ import { Connection, PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
 import { GOVERNANCE_CONFIG, ZKRUNE_TOKEN } from '@/lib/token/config';
 import { verifyAuth } from '@/lib/auth/verifyWalletSignature';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import {
+  isSupabaseServerConfigured,
+  supabaseServerFetch,
+} from '@/lib/supabase/serverClient';
 
 interface Vote {
   id: string;
@@ -26,22 +27,12 @@ interface Proposal {
 }
 
 function requireSupabase() {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!isSupabaseServerConfigured()) {
     throw new Error('Supabase not configured');
   }
 }
 
-async function supabaseFetch(endpoint: string, options?: RequestInit) {
-  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
-    ...options,
-    headers: {
-      'apikey': supabaseKey!,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-}
+const supabaseFetch = supabaseServerFetch;
 
 export async function GET(request: NextRequest) {
   try {

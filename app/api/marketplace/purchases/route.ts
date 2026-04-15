@@ -10,8 +10,10 @@ import {
   type TxInfo,
 } from '@/lib/solana/txVerification';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import {
+  isSupabaseServerConfigured,
+  supabaseServerFetch,
+} from '@/lib/supabase/serverClient';
 
 interface Purchase {
   id: string;
@@ -33,22 +35,12 @@ interface MarketplaceTemplate {
 }
 
 function requireSupabase() {
-  if (!supabaseUrl || !supabaseKey) {
+  if (!isSupabaseServerConfigured()) {
     throw new Error('Supabase not configured');
   }
 }
 
-async function supabaseFetch(endpoint: string, options?: RequestInit) {
-  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
-    ...options,
-    headers: {
-      'apikey': supabaseKey!,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-}
+const supabaseFetch = supabaseServerFetch;
 
 export async function GET(request: NextRequest) {
   try {

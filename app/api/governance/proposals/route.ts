@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { GOVERNANCE_CONFIG } from '@/lib/token/config';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import {
+  isSupabaseServerConfigured,
+  supabaseServerFetch,
+} from '@/lib/supabase/serverClient';
 
 interface Proposal {
   id: string;
@@ -22,22 +23,12 @@ interface Proposal {
 }
 
 function requireSupabase() {
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.');
+  if (!isSupabaseServerConfigured()) {
+    throw new Error('Supabase not configured. Set NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY.');
   }
 }
 
-async function supabaseFetch(endpoint: string, options?: RequestInit) {
-  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
-    ...options,
-    headers: {
-      'apikey': supabaseKey!,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-}
+const supabaseFetch = supabaseServerFetch;
 
 async function finalizeExpiredProposals() {
   const now = new Date().toISOString();

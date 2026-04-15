@@ -9,9 +9,10 @@ import {
   verifySplTransferToDestination,
   toRawAmount,
 } from '@/lib/solana/txVerification';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import {
+  isSupabaseServerConfigured,
+  supabaseServerFetch,
+} from '@/lib/supabase/serverClient';
 
 interface StakingPosition {
   id: string;
@@ -27,21 +28,8 @@ interface StakingPosition {
   transaction_signature: string;
 }
 
-function isSupabaseConfigured(): boolean {
-  return Boolean(supabaseUrl && supabaseKey);
-}
-
-async function supabaseFetch(endpoint: string, options?: RequestInit) {
-  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
-    ...options,
-    headers: {
-      'apikey': supabaseKey!,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-}
+const isSupabaseConfigured = isSupabaseServerConfigured;
+const supabaseFetch = supabaseServerFetch;
 
 // GET staking positions
 export async function GET(request: NextRequest) {

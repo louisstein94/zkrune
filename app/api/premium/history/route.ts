@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+import {
+  isSupabaseServerConfigured,
+  supabaseServerFetch,
+} from '@/lib/supabase/serverClient';
 
 interface BurnHistory {
   id: string;
@@ -12,21 +13,8 @@ interface BurnHistory {
   created_at: string;
 }
 
-function isSupabaseConfigured(): boolean {
-  return Boolean(supabaseUrl && supabaseKey);
-}
-
-async function supabaseFetch(endpoint: string, options?: RequestInit) {
-  return fetch(`${supabaseUrl}/rest/v1/${endpoint}`, {
-    ...options,
-    headers: {
-      'apikey': supabaseKey!,
-      'Authorization': `Bearer ${supabaseKey}`,
-      'Content-Type': 'application/json',
-      ...options?.headers,
-    },
-  });
-}
+const isSupabaseConfigured = isSupabaseServerConfigured;
+const supabaseFetch = supabaseServerFetch;
 
 // GET burn history
 export async function GET(request: NextRequest) {

@@ -208,7 +208,7 @@ ALTER TABLE ceremony_contributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE treasury_distributions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE published_proofs ENABLE ROW LEVEL SECURITY;
 
--- Drop existing policies (idempotent re-run)
+-- Drop existing policies (idempotent re-run) — covers both legacy and new names
 DROP POLICY IF EXISTS "Public read proposals" ON proposals;
 DROP POLICY IF EXISTS "Public read templates" ON marketplace_templates;
 DROP POLICY IF EXISTS "Allow insert proposals" ON proposals;
@@ -231,28 +231,38 @@ DROP POLICY IF EXISTS "Public read burn" ON burn_history;
 DROP POLICY IF EXISTS "Public read ceremony" ON ceremony_contributions;
 DROP POLICY IF EXISTS "Public read distributions" ON treasury_distributions;
 DROP POLICY IF EXISTS "Allow insert distributions" ON treasury_distributions;
+-- New service-role policy names
+DROP POLICY IF EXISTS "Service insert proposals" ON proposals;
+DROP POLICY IF EXISTS "Service update proposals" ON proposals;
+DROP POLICY IF EXISTS "Service insert votes" ON votes;
+DROP POLICY IF EXISTS "Service insert templates" ON marketplace_templates;
+DROP POLICY IF EXISTS "Service update templates" ON marketplace_templates;
+DROP POLICY IF EXISTS "Service insert purchases" ON purchases;
+DROP POLICY IF EXISTS "Service insert staking" ON staking_positions;
+DROP POLICY IF EXISTS "Service update staking" ON staking_positions;
+DROP POLICY IF EXISTS "Service insert premium" ON premium_status;
+DROP POLICY IF EXISTS "Service update premium" ON premium_status;
+DROP POLICY IF EXISTS "Service insert burn" ON burn_history;
+DROP POLICY IF EXISTS "Service insert ceremony" ON ceremony_contributions;
+DROP POLICY IF EXISTS "Service insert distributions" ON treasury_distributions;
 
--- Public read access for proposals and templates
+-- =====================================================
+-- RLS POLICIES
+-- =====================================================
+-- Model: anon role (NEXT_PUBLIC_SUPABASE_ANON_KEY, used by client code) can ONLY
+-- read public data. All writes go through server-side API routes that authenticate
+-- with SUPABASE_SERVICE_ROLE_KEY, which bypasses RLS. The write policies below
+-- are restricted to the service_role as a defense-in-depth measure: even if a
+-- future client is accidentally given elevated privileges, it still cannot
+-- mutate rows directly.
+--
+-- Tables containing user-specific records (votes, staking, premium, burn,
+-- purchases, published proofs) are read-only for anon. The app UI composes
+-- user views through API routes when authentication is needed.
+
+-- Public (anon) read access
 CREATE POLICY "Public read proposals" ON proposals FOR SELECT USING (true);
 CREATE POLICY "Public read templates" ON marketplace_templates FOR SELECT USING (true);
-
--- Allow inserting for any authenticated request (wallet-based auth)
-CREATE POLICY "Allow insert proposals" ON proposals FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert votes" ON votes FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert templates" ON marketplace_templates FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert purchases" ON purchases FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert staking" ON staking_positions FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert premium" ON premium_status FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert burn" ON burn_history FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow insert ceremony" ON ceremony_contributions FOR INSERT WITH CHECK (true);
-
--- Allow updates
-CREATE POLICY "Allow update proposals" ON proposals FOR UPDATE USING (true);
-CREATE POLICY "Allow update templates" ON marketplace_templates FOR UPDATE USING (true);
-CREATE POLICY "Allow update staking" ON staking_positions FOR UPDATE USING (true);
-CREATE POLICY "Allow update premium" ON premium_status FOR UPDATE USING (true);
-
--- Public read for votes, purchases, staking, premium, burn
 CREATE POLICY "Public read votes" ON votes FOR SELECT USING (true);
 CREATE POLICY "Public read purchases" ON purchases FOR SELECT USING (true);
 CREATE POLICY "Public read staking" ON staking_positions FOR SELECT USING (true);
@@ -260,15 +270,52 @@ CREATE POLICY "Public read premium" ON premium_status FOR SELECT USING (true);
 CREATE POLICY "Public read burn" ON burn_history FOR SELECT USING (true);
 CREATE POLICY "Public read ceremony" ON ceremony_contributions FOR SELECT USING (true);
 CREATE POLICY "Public read distributions" ON treasury_distributions FOR SELECT USING (true);
-CREATE POLICY "Allow insert distributions" ON treasury_distributions FOR INSERT WITH CHECK (true);
 
--- Published proofs: public read, anyone can insert, delete by id
+-- Service-role-only writes (defense-in-depth; service_role already bypasses RLS)
+CREATE POLICY "Service insert proposals" ON proposals FOR INSERT
+  TO service_role WITH CHECK (true);
+CREATE POLICY "Service update proposals" ON proposals FOR UPDATE
+  TO service_role USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service insert votes" ON votes FOR INSERT
+  TO service_role WITH CHECK (true);
+
+CREATE POLICY "Service insert templates" ON marketplace_templates FOR INSERT
+  TO service_role WITH CHECK (true);
+CREATE POLICY "Service update templates" ON marketplace_templates FOR UPDATE
+  TO service_role USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service insert purchases" ON purchases FOR INSERT
+  TO service_role WITH CHECK (true);
+
+CREATE POLICY "Service insert staking" ON staking_positions FOR INSERT
+  TO service_role WITH CHECK (true);
+CREATE POLICY "Service update staking" ON staking_positions FOR UPDATE
+  TO service_role USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service insert premium" ON premium_status FOR INSERT
+  TO service_role WITH CHECK (true);
+CREATE POLICY "Service update premium" ON premium_status FOR UPDATE
+  TO service_role USING (true) WITH CHECK (true);
+
+CREATE POLICY "Service insert burn" ON burn_history FOR INSERT
+  TO service_role WITH CHECK (true);
+
+CREATE POLICY "Service insert ceremony" ON ceremony_contributions FOR INSERT
+  TO service_role WITH CHECK (true);
+
+CREATE POLICY "Service insert distributions" ON treasury_distributions FOR INSERT
+  TO service_role WITH CHECK (true);
+
+-- Published proofs: public read, service-role write + delete
 DROP POLICY IF EXISTS "Public read proofs" ON published_proofs;
 DROP POLICY IF EXISTS "Allow insert proofs" ON published_proofs;
 DROP POLICY IF EXISTS "Allow delete proofs" ON published_proofs;
 CREATE POLICY "Public read proofs" ON published_proofs FOR SELECT USING (true);
-CREATE POLICY "Allow insert proofs" ON published_proofs FOR INSERT WITH CHECK (true);
-CREATE POLICY "Allow delete proofs" ON published_proofs FOR DELETE USING (true);
+CREATE POLICY "Service insert proofs" ON published_proofs FOR INSERT
+  TO service_role WITH CHECK (true);
+CREATE POLICY "Service delete proofs" ON published_proofs FOR DELETE
+  TO service_role USING (true);
 
 -- =====================================================
 -- SEED DATA
