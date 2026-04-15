@@ -76,8 +76,15 @@ module zkrune::groth16_verifier {
             n_public,
         });
 
+        // Guard against u8 overflow: when template_id == 255, (template_id + 1)
+        // wraps to 0 and corrupts the counter. Cap at 255 since that is the
+        // highest representable count in u8 anyway.
         if (template_id >= registry.circuit_count) {
-            registry.circuit_count = template_id + 1;
+            if (template_id == 255) {
+                registry.circuit_count = 255;
+            } else {
+                registry.circuit_count = template_id + 1;
+            };
         };
 
         event::emit(CircuitRegistered { template_id, name, n_public });

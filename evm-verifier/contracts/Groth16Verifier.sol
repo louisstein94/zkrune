@@ -124,9 +124,7 @@ contract Groth16Verifier {
         require(vk.exists, "Circuit not registered");
         require(publicInputs.length + 1 == vk.ic.length, "Input count mismatch");
 
-        for (uint256 i = 0; i < publicInputs.length; i++) {
-            require(publicInputs[i] < PRIME_R, "Input exceeds field size");
-        }
+        _validateInputs(a, b, c, publicInputs);
 
         Proof memory proof = Proof(
             G1Point(a[0], a[1]),
@@ -152,9 +150,7 @@ contract Groth16Verifier {
         require(vk.exists, "Circuit not registered");
         require(publicInputs.length + 1 == vk.ic.length, "Input count mismatch");
 
-        for (uint256 i = 0; i < publicInputs.length; i++) {
-            require(publicInputs[i] < PRIME_R, "Input exceeds field size");
-        }
+        _validateInputs(a, b, c, publicInputs);
 
         Proof memory proof = Proof(
             G1Point(a[0], a[1]),
@@ -163,6 +159,46 @@ contract Groth16Verifier {
         );
 
         return _verify(proof, publicInputs, vk);
+    }
+
+    /**
+     * @dev Validates that proof points have coordinates < PRIME_Q, that G1 points
+     *      sit on the BN254 curve (y^2 = x^3 + 3), and that public inputs fit
+     *      in the scalar field. The pairing precompile (0x08) already fails on
+     *      off-curve G2 points, but we check G2 coordinates here for early exit.
+     */
+    function _validateInputs(
+        uint256[2] calldata a,
+        uint256[2][2] calldata b,
+        uint256[2] calldata c,
+        uint256[] calldata publicInputs
+    ) internal pure {
+        // G1 coordinates < PRIME_Q
+        require(a[0] < PRIME_Q && a[1] < PRIME_Q, "A coord >= q");
+        require(c[0] < PRIME_Q && c[1] < PRIME_Q, "C coord >= q");
+        // G2 coordinates < PRIME_Q
+        require(b[0][0] < PRIME_Q && b[0][1] < PRIME_Q, "B.x coord >= q");
+        require(b[1][0] < PRIME_Q && b[1][1] < PRIME_Q, "B.y coord >= q");
+        // G1 on-curve: y^2 == x^3 + 3 (mod q)
+        require(_isOnCurve(a[0], a[1]), "A not on curve");
+        require(_isOnCurve(c[0], c[1]), "C not on curve");
+        // Public inputs must be in scalar field
+        for (uint256 i = 0; i < publicInputs.length; i++) {
+            require(publicInputs[i] < PRIME_R, "Input exceeds field size");
+        }
+    }
+
+    /**
+     * @dev Check if (x, y) is on BN254 G1: y^2 == x^3 + 3 (mod PRIME_Q).
+     *      The point (0, 0) is the encoded "point at infinity" in EIP-196.
+     */
+    function _isOnCurve(uint256 x, uint256 y) internal pure returns (bool) {
+        if (x == 0 && y == 0) return true; // point at infinity
+        uint256 lhs = mulmod(y, y, PRIME_Q);
+        uint256 x2 = mulmod(x, x, PRIME_Q);
+        uint256 x3 = mulmod(x2, x, PRIME_Q);
+        uint256 rhs = addmod(x3, 3, PRIME_Q);
+        return lhs == rhs;
     }
 
     function getCircuitInfo(uint8 templateId) external view returns (

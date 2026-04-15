@@ -136,6 +136,61 @@ describe("Groth16Verifier", function () {
         verifier.verifyProof(0, [0, 0], [[0, 0], [0, 0]], [0, 0], [PRIME_R, 0, 0]),
       ).to.be.revertedWith("Input exceeds field size");
     });
+
+    // A10: curve validation
+    it("rejects proof A with coordinate >= PRIME_Q", async function () {
+      await registerCircuit(verifier, 0, "age-verification");
+      const PRIME_Q = "21888242871839275222246405745257275088696311157297823662689037894645226208583";
+      await expect(
+        verifier.verifyProof(0, [PRIME_Q, 0], [[0, 0], [0, 0]], [0, 0], [1, 2, 3]),
+      ).to.be.revertedWith("A coord >= q");
+    });
+
+    it("rejects proof C with coordinate >= PRIME_Q", async function () {
+      await registerCircuit(verifier, 0, "age-verification");
+      const PRIME_Q = "21888242871839275222246405745257275088696311157297823662689037894645226208583";
+      await expect(
+        verifier.verifyProof(0, [0, 0], [[0, 0], [0, 0]], [PRIME_Q, 0], [1, 2, 3]),
+      ).to.be.revertedWith("C coord >= q");
+    });
+
+    it("rejects proof B with coordinate >= PRIME_Q", async function () {
+      await registerCircuit(verifier, 0, "age-verification");
+      const PRIME_Q = "21888242871839275222246405745257275088696311157297823662689037894645226208583";
+      await expect(
+        verifier.verifyProof(0, [0, 0], [[PRIME_Q, 0], [0, 0]], [0, 0], [1, 2, 3]),
+      ).to.be.revertedWith("B.x coord >= q");
+    });
+
+    it("rejects proof A not on BN254 curve", async function () {
+      await registerCircuit(verifier, 0, "age-verification");
+      // (1, 1) is not on y^2 = x^3 + 3 (1 != 4)
+      await expect(
+        verifier.verifyProof(0, [1, 1], [[0, 0], [0, 0]], [0, 0], [1, 2, 3]),
+      ).to.be.revertedWith("A not on curve");
+    });
+
+    it("rejects proof C not on BN254 curve", async function () {
+      await registerCircuit(verifier, 0, "age-verification");
+      await expect(
+        verifier.verifyProof(0, [0, 0], [[0, 0], [0, 0]], [1, 1], [1, 2, 3]),
+      ).to.be.revertedWith("C not on curve");
+    });
+
+    it("accepts G1 point at infinity (0, 0)", async function () {
+      await registerCircuit(verifier, 0, "age-verification");
+      // (0, 0) is encoded as point at infinity per EIP-196 and should pass validation.
+      // The pairing check will still fail (returning false), but validation should not revert.
+      // The call reaches the pairing precompile which returns false for this bogus proof.
+      // We only assert the validation step does not revert with "not on curve".
+      try {
+        await verifier.verifyProof(0, [0, 0], [[0, 0], [0, 0]], [0, 0], [1, 2, 3]);
+      } catch (e: any) {
+        // If it reverts, it must NOT be due to curve validation
+        expect(e.message).to.not.include("not on curve");
+        expect(e.message).to.not.include("coord >= q");
+      }
+    });
   });
 
   describe("Ownership", function () {
