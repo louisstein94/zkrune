@@ -252,6 +252,69 @@ describe('client hooks send signed payloads', () => {
 });
 
 // ============================================================
+// Middleware hardening (Phase 4 Day 21-22)
+// ============================================================
+describe('middleware rate limiting and CSP', () => {
+  const content = read('middleware.ts');
+
+  it('prefers x-real-ip / cf-connecting-ip over x-forwarded-for', () => {
+    // getClientIp must check the trusted platform headers before falling
+    // back to the spoofable x-forwarded-for.
+    const ipFn = content.slice(content.indexOf('function getClientIp'));
+    const realIpIdx = ipFn.indexOf('x-real-ip');
+    const fwdIpIdx = ipFn.indexOf('x-forwarded-for');
+    expect(realIpIdx).toBeGreaterThan(0);
+    expect(realIpIdx).toBeLessThan(fwdIpIdx);
+  });
+
+  it('caps rate limit map size and sweeps expired entries', () => {
+    expect(content).toContain('RATE_LIMIT_MAX_KEYS');
+    expect(content).toMatch(/function sweepExpired/);
+  });
+
+  it('uses per-request nonce in script-src', () => {
+    expect(content).toContain('generateNonce');
+    expect(content).toMatch(/'nonce-\$\{nonce\}'/);
+    expect(content).toContain("'strict-dynamic'");
+  });
+
+  it('no script-src includes unsafe-inline', () => {
+    // Find every script-src directive and assert it never contains
+    // 'unsafe-inline'. This is the core A21/P4-02 invariant.
+    const matches = content.match(/script-src[^,\n]+/g) || [];
+    expect(matches.length).toBeGreaterThan(0);
+    for (const m of matches) {
+      expect(m).not.toContain("'unsafe-inline'");
+    }
+  });
+
+  it('embed CSP uses env-configured frame-ancestors, not wildcard', () => {
+    expect(content).toContain('EMBED_ALLOWED_PARENTS');
+    // Strip line comments before asserting, so prose referencing the old
+    // wildcard in a comment does not trip the regex.
+    const codeOnly = content
+      .split('\n')
+      .filter((line) => !line.trim().startsWith('//'))
+      .join('\n');
+    expect(codeOnly).not.toMatch(/frame-ancestors\s+\*/);
+  });
+
+  it('/api/actions gets base security headers', () => {
+    // Actions path must NOT early-return before baseSecurityHeaders are set.
+    expect(content).toMatch(/baseSecurityHeaders/);
+    const actionsEarly = content.match(/isActions[\s\S]{0,200}NextResponse\.next\(\)[^;]*;/);
+    // The early `return NextResponse.next()` pattern from the old middleware
+    // must be gone.
+    expect(actionsEarly).toBeNull();
+  });
+
+  it('/api/actions is subject to rate limiting', () => {
+    // shouldRateLimit should be true for any /api/ path including actions.
+    expect(content).toMatch(/shouldRateLimit\s*=\s*isApi/);
+  });
+});
+
+// ============================================================
 // Migration files exist (Phase 3 DB state)
 // ============================================================
 describe('Phase 3 migrations present', () => {
