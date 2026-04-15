@@ -127,6 +127,30 @@ export async function POST(request: NextRequest) {
       }, { status: 400 });
     }
 
+    // P4-05: amount must be a finite positive number
+    const numericAmount = Number(amount);
+    if (!Number.isFinite(numericAmount) || numericAmount <= 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'amount must be a positive number',
+        },
+        { status: 400 },
+      );
+    }
+
+    // lockPeriodDays must also be a finite positive integer
+    const numericLockDays = Number(lockPeriodDays);
+    if (!Number.isFinite(numericLockDays) || numericLockDays <= 0 || !Number.isInteger(numericLockDays)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'lockPeriodDays must be a positive integer',
+        },
+        { status: 400 },
+      );
+    }
+
     // Verify caller owns the staker wallet AND that all critical params are bound in the signature
     if (!verifyAuth(
       { wallet: staker, signedMessage, signature },
@@ -320,6 +344,19 @@ export async function PATCH(request: NextRequest) {
         success: false,
         error: 'Missing required fields: positionId, staker, action, signedMessage, signature',
       }, { status: 400 });
+    }
+
+    // Whitelist action before passing it to verifyAuth, so a user cannot
+    // supply an arbitrary string that would also be accepted by the signed
+    // canonical message. Only 'claim' and 'unstake' are valid here.
+    if (action !== 'claim' && action !== 'unstake') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'action must be "claim" or "unstake"',
+        },
+        { status: 400 },
+      );
     }
 
     // positionId is bound in the signature so the message can't be replayed

@@ -14,6 +14,7 @@ import {
   isSupabaseServerConfigured,
   supabaseServerFetch,
 } from '@/lib/supabase/serverClient';
+import { verifyAuth } from '@/lib/auth/verifyWalletSignature';
 
 interface Purchase {
   id: string;
@@ -82,13 +83,48 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
-    const { templateId, buyerAddress, transactionSignature } = body;
+    const { templateId, buyerAddress, transactionSignature, signedMessage, signature } = body;
 
-    if (!templateId || !buyerAddress || !transactionSignature) {
+    if (!templateId || !buyerAddress || !transactionSignature || !signedMessage || !signature) {
       return NextResponse.json({
         success: false,
-        error: 'Missing required fields: templateId, buyerAddress, transactionSignature',
+        error: 'Missing required fields: templateId, buyerAddress, transactionSignature, signedMessage, signature',
       }, { status: 400 });
+    }
+
+    // Verify the purchase is signed by the buyer wallet. Binding templateId +
+    // transactionSignature prevents replaying a signed payload against a
+    // different template or a different on-chain transaction.
+    if (!verifyAuth(
+      { wallet: buyerAddress, signedMessage, signature },
+      'purchase-template',
+      { templateId, transactionSignature },
+    )) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Invalid or expired wallet signature',
+        },
+        { status: 401 },
+      );
+    }
+
+    // Replay protection: reject if this txSig was already used for any
+    // purchase (regardless of template/buyer), in addition to the existing
+    // "template already owned" check. An attacker could otherwise reuse
+    // one payment to claim multiple templates from different buyer addresses.
+    const existingTxRes = await supabaseFetch(
+      `purchases?transaction_signature=eq.${transactionSignature}&select=id`,
+    );
+    const existingTx: Purchase[] = await existingTxRes.json();
+    if (Array.isArray(existingTx) && existingTx.length > 0) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'This transaction has already been used for a purchase',
+        },
+        { status: 400 },
+      );
     }
 
     const templateRes = await supabaseFetch(`marketplace_templates?id=eq.${templateId}&select=*`);

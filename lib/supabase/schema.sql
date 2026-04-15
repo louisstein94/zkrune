@@ -78,7 +78,9 @@ CREATE TABLE IF NOT EXISTS purchases (
   reward_vault_amount NUMERIC DEFAULT 0,
   treasury_amount NUMERIC DEFAULT 0,
   fee_destination TEXT DEFAULT 'treasury',
-  transaction_signature TEXT,
+  -- transaction_signature is UNIQUE so a single on-chain payment cannot be
+  -- reused to purchase multiple templates from different buyer addresses.
+  transaction_signature TEXT UNIQUE,
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
@@ -167,7 +169,10 @@ CREATE TABLE IF NOT EXISTS published_proofs (
   created_at TIMESTAMPTZ DEFAULT NOW(),
   expires_at TIMESTAMPTZ NOT NULL,
   verified_off_chain BOOLEAN DEFAULT FALSE,
-  creator_wallet TEXT
+  creator_wallet TEXT,
+  -- Optional trust level tag for the proof (e.g. 'verified', 'experimental').
+  -- Matches the trust_level field in lib/supabase/types.ts Row/Insert/Update.
+  trust_level TEXT
 );
 
 -- =====================================================
@@ -186,6 +191,7 @@ CREATE INDEX IF NOT EXISTS idx_purchases_seller ON purchases(seller);
 CREATE INDEX IF NOT EXISTS idx_staking_staker ON staking_positions(staker);
 CREATE INDEX IF NOT EXISTS idx_staking_active ON staking_positions(is_active);
 CREATE INDEX IF NOT EXISTS idx_staking_txsig ON staking_positions(transaction_signature);
+CREATE INDEX IF NOT EXISTS idx_purchases_txsig ON purchases(transaction_signature);
 CREATE INDEX IF NOT EXISTS idx_premium_wallet ON premium_status(wallet);
 CREATE INDEX IF NOT EXISTS idx_burn_wallet ON burn_history(wallet);
 CREATE INDEX IF NOT EXISTS idx_ceremony_index ON ceremony_contributions(contribution_index);
