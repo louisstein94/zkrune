@@ -3,17 +3,15 @@
 import { FC, useState, useMemo } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
 import { WalletMultiButton } from '@solana/wallet-adapter-react-ui';
-import { 
-    PublicKey, 
+import {
+    PublicKey,
     Transaction,
-    TransactionInstruction 
+    TransactionInstruction
 } from '@solana/web3.js';
+import { serializeProof } from '@/lib/solana/proofSerializer';
 
 // Deployed Program ID - zkRune Groth16 Verifier (same ID on devnet & mainnet)
 const PROGRAM_ID = new PublicKey("9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad");
-
-// BN254 curve prime field modulus (for negation)
-const BN254_PRIME = BigInt('21888242871839275222246405745257275088696311157297823662689037894645226208583');
 
 // Template ID to numeric mapping (matches Rust program)
 const TEMPLATE_ID_MAP: Record<string, number> = {
@@ -31,94 +29,6 @@ const TEMPLATE_ID_MAP: Record<string, number> = {
     'patience-proof': 11,
     'signature-verification': 12,
 };
-
-/**
- * Convert a decimal string to a 32-byte big-endian array
- */
-function fieldToBytes(decimalStr: string): Uint8Array {
-    let n = BigInt(decimalStr);
-    n = ((n % BN254_PRIME) + BN254_PRIME) % BN254_PRIME;
-    
-    const bytes = new Uint8Array(32);
-    for (let i = 31; i >= 0; i--) {
-        bytes[i] = Number(n & BigInt(0xff));
-        n = n >> BigInt(8);
-    }
-    return bytes;
-}
-
-/**
- * Negate G1 point y-coordinate: (x, y) → (x, p - y)
- */
-function negateG1(point: string[]): string[] {
-    const y = BigInt(point[1]);
-    const negY = y === BigInt(0) ? BigInt(0) : BN254_PRIME - (y % BN254_PRIME);
-    return [point[0], negY.toString()];
-}
-
-/**
- * Convert G1 point to 64 bytes (Light Protocol format: direct BE)
- */
-function g1ToBytes(point: string[]): Uint8Array {
-    const result = new Uint8Array(64);
-    result.set(fieldToBytes(point[0]), 0);  // x BE
-    result.set(fieldToBytes(point[1]), 32); // y BE
-    return result;
-}
-
-/**
- * Convert G2 point to 128 bytes (Light Protocol format)
- * snarkjs format: [[x.c1, x.c0], [y.c1, y.c0]]
- * Output: [x.c0 BE, x.c1 BE, y.c0 BE, y.c1 BE]
- */
-function g2ToBytes(point: string[][]): Uint8Array {
-    const result = new Uint8Array(128);
-    // snarkjs: point[0] = [x.c1, x.c0], point[1] = [y.c1, y.c0]
-    result.set(fieldToBytes(point[0][1]), 0);   // x.c0 BE
-    result.set(fieldToBytes(point[0][0]), 32);  // x.c1 BE
-    result.set(fieldToBytes(point[1][1]), 64);  // y.c0 BE
-    result.set(fieldToBytes(point[1][0]), 96);  // y.c1 BE
-    return result;
-}
-
-/**
- * Serialize proof for on-chain Groth16 verification
- */
-function serializeProof(
-    templateId: number,
-    proof: any,
-    publicSignals: string[]
-): Uint8Array {
-    const size = 1 + 64 + 128 + 64 + (publicSignals.length * 32);
-    const data = new Uint8Array(size);
-    
-    let offset = 0;
-    
-    // Template ID (1 byte)
-    data[offset] = templateId;
-    offset += 1;
-    
-    // Proof A (64 bytes - G1 point, NEGATED)
-    const negatedA = negateG1(proof.pi_a);
-    data.set(g1ToBytes(negatedA), offset);
-    offset += 64;
-    
-    // Proof B (128 bytes - G2 point)
-    data.set(g2ToBytes(proof.pi_b), offset);
-    offset += 128;
-    
-    // Proof C (64 bytes - G1 point)
-    data.set(g1ToBytes(proof.pi_c), offset);
-    offset += 64;
-    
-    // Public inputs (n * 32 bytes, big-endian)
-    for (const input of publicSignals) {
-        data.set(fieldToBytes(input), offset);
-        offset += 32;
-    }
-    
-    return data;
-}
 
 interface Props {
     proof: any; // snarkjs proof object

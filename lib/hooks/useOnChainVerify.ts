@@ -7,6 +7,7 @@ import {
   SystemProgram 
 } from '@solana/web3.js';
 import { PROGRAM_IDS, getSolscanUrl } from '@/lib/solana/config';
+import { serializeProof } from '@/lib/solana/proofSerializer';
 
 interface VerificationResult {
   success: boolean;
@@ -21,6 +22,7 @@ interface ProofData {
   pi_c: string[];
   protocol: string;
   curve: string;
+  [key: string]: unknown;
 }
 
 interface OnChainVerifyState {
@@ -46,101 +48,10 @@ export const TEMPLATE_IDS: Record<string, number> = {
   'signature-verification': 12,
 };
 
-// BN254 curve prime field modulus (for negation)
-const BN254_PRIME = BigInt('21888242871839275222246405745257275088696311157297823662689037894645226208583');
-
-/**
- * Convert a decimal string to a 32-byte big-endian array
- */
-function fieldToBytes(decimalStr: string): Uint8Array {
-  let n = BigInt(decimalStr);
-  n = ((n % BN254_PRIME) + BN254_PRIME) % BN254_PRIME;
-  
-  const bytes = new Uint8Array(32);
-  for (let i = 31; i >= 0; i--) {
-    bytes[i] = Number(n & BigInt(0xff));
-    n = n >> BigInt(8);
-  }
-  return bytes;
-}
-
-/**
- * Negate G1 point y-coordinate: (x, y) → (x, p - y)
- */
-function negateG1(point: string[]): string[] {
-  const y = BigInt(point[1]);
-  const negY = y === BigInt(0) ? BigInt(0) : BN254_PRIME - (y % BN254_PRIME);
-  return [point[0], negY.toString()];
-}
-
-/**
- * Convert G1 point to 64 bytes (Light Protocol format: direct BE)
- */
-function g1ToBytes(point: string[]): Uint8Array {
-  const result = new Uint8Array(64);
-  result.set(fieldToBytes(point[0]), 0);  // x BE
-  result.set(fieldToBytes(point[1]), 32); // y BE
-  return result;
-}
-
-/**
- * Convert G2 point to 128 bytes (Light Protocol format)
- * snarkjs format: [[x.c1, x.c0], [y.c1, y.c0]]
- * Output: [x.c0 BE, x.c1 BE, y.c0 BE, y.c1 BE]
- */
-function g2ToBytes(point: string[][]): Uint8Array {
-  const result = new Uint8Array(128);
-  // snarkjs: point[0] = [x.c1, x.c0], point[1] = [y.c1, y.c0]
-  result.set(fieldToBytes(point[0][1]), 0);   // x.c0 BE
-  result.set(fieldToBytes(point[0][0]), 32);  // x.c1 BE
-  result.set(fieldToBytes(point[1][1]), 64);  // y.c0 BE
-  result.set(fieldToBytes(point[1][0]), 96);  // y.c1 BE
-  return result;
-}
-
-/**
- * Serialize proof for on-chain verification (Light Protocol format)
- * - proof_a: NEGATED, then converted to bytes
- * - proof_b: G2 in [c0 BE, c1 BE] order
- * - proof_c: G1 direct BE
- */
-export function serializeProof(
-  templateId: number,
-  proof: ProofData,
-  publicInputs: string[]
-): Uint8Array {
-  // Calculate total size
-  // 1 byte template ID + 64 bytes proof_a + 128 bytes proof_b + 64 bytes proof_c + (n * 32) bytes public inputs
-  const size = 1 + 64 + 128 + 64 + (publicInputs.length * 32);
-  const data = new Uint8Array(size);
-  
-  let offset = 0;
-  
-  // Template ID (1 byte)
-  data[offset] = templateId;
-  offset += 1;
-  
-  // Proof A (64 bytes - G1 point, NEGATED)
-  const negatedA = negateG1(proof.pi_a);
-  data.set(g1ToBytes(negatedA), offset);
-  offset += 64;
-  
-  // Proof B (128 bytes - G2 point)
-  data.set(g2ToBytes(proof.pi_b), offset);
-  offset += 128;
-  
-  // Proof C (64 bytes - G1 point)
-  data.set(g1ToBytes(proof.pi_c), offset);
-  offset += 64;
-  
-  // Public inputs (n * 32 bytes, big-endian)
-  for (const input of publicInputs) {
-    data.set(fieldToBytes(input), offset);
-    offset += 32;
-  }
-  
-  return data;
-}
+// serializeProof is re-exported from the shared module below so existing
+// imports (`import { serializeProof } from '@/lib/hooks/useOnChainVerify'`)
+// keep working during the migration.
+export { serializeProof };
 
 export function useOnChainVerify() {
   const { connection } = useConnection();

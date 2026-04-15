@@ -16,6 +16,7 @@ import {
   getAccount,
 } from '@solana/spl-token';
 import { ZKRUNE_TOKEN_CONFIG, TX_SETTINGS, getExplorerUrl } from '@/lib/solana/config';
+import { toRawAmount } from '@/lib/solana/txVerification';
 
 interface TokenBalance {
   amount: number;
@@ -115,15 +116,53 @@ export function useSolana(): UseSolanaReturn {
     }
   }, [connected, publicKey, fetchSolBalance, fetchTokenBalance]);
 
-  // Auto-refresh balances on connection
+  // Auto-refresh balances on connection. The interval pauses while the
+  // tab is hidden so background tabs do not burn RPC credits and the
+  // full balance refresh happens immediately when the user returns.
   useEffect(() => {
-    if (connected && publicKey) {
-      refreshBalances();
-      
-      // Set up polling for balance updates
-      const interval = setInterval(refreshBalances, 30000); // Every 30 seconds
-      return () => clearInterval(interval);
+    if (!connected || !publicKey) return;
+
+    refreshBalances();
+
+    let interval: ReturnType<typeof setInterval> | null = null;
+
+    const start = () => {
+      if (interval !== null) return;
+      interval = setInterval(refreshBalances, 30000); // 30s
+    };
+    const stop = () => {
+      if (interval !== null) {
+        clearInterval(interval);
+        interval = null;
+      }
+    };
+
+    const handleVisibility = () => {
+      if (typeof document === 'undefined') return;
+      if (document.visibilityState === 'visible') {
+        refreshBalances();
+        start();
+      } else {
+        stop();
+      }
+    };
+
+    if (typeof document !== 'undefined' && document.visibilityState === 'hidden') {
+      // Start paused if the tab is already hidden on mount.
+    } else {
+      start();
     }
+
+    if (typeof document !== 'undefined') {
+      document.addEventListener('visibilitychange', handleVisibility);
+    }
+
+    return () => {
+      stop();
+      if (typeof document !== 'undefined') {
+        document.removeEventListener('visibilitychange', handleVisibility);
+      }
+    };
   }, [connected, publicKey, refreshBalances]);
 
   // Send transaction with instructions
@@ -181,8 +220,9 @@ export function useSolana(): UseSolanaReturn {
       const mintPubkey = new PublicKey(ZKRUNE_TOKEN_CONFIG.MINT_ADDRESS);
       const ata = await getAssociatedTokenAddress(mintPubkey, publicKey);
       
-      // Convert UI amount to raw amount
-      const rawAmount = BigInt(Math.floor(amount * Math.pow(10, ZKRUNE_TOKEN_CONFIG.DECIMALS)));
+      // Convert UI amount to raw amount using integer-string arithmetic
+      // to avoid floating-point drift.
+      const rawAmount = toRawAmount(amount, ZKRUNE_TOKEN_CONFIG.DECIMALS);
       
       const burnIx = createBurnInstruction(
         ata,           // Token account to burn from

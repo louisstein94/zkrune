@@ -15,6 +15,7 @@ export default function VerifyProofPage() {
     }
 
     setIsVerifying(true);
+    const verifyStart = performance.now();
 
     try {
       // Parse the exported JSON from zkRune
@@ -153,7 +154,8 @@ export default function VerifyProofPage() {
           hasCircuitName: hasCircuitName ? "PASS" : "FAIL",
           cryptographicVerification: isRealProof ? (cryptoVerified ? "PASS - Verified" : "FAIL") : "N/A",
         },
-        timing: 1000,
+        // Actual elapsed verification time in ms (rounded).
+        timing: Math.round(performance.now() - verifyStart),
       });
     } catch (error: any) {
       setResult({

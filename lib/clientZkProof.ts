@@ -226,6 +226,18 @@ export async function generateClientProof(
       };
     }
 
+    // Compute a real SHA-256 digest of the proof so downstream consumers
+    // can deduplicate or reference proofs by a collision-resistant id.
+    // The old implementation sliced the first 66 characters of JSON.stringify,
+    // which was neither a hash nor collision-resistant.
+    const proofBytes = new TextEncoder().encode(JSON.stringify(groth16Proof));
+    // Cast the Uint8Array's buffer to ArrayBuffer to satisfy the DOM
+    // TypedArray lib typing; runtime behavior is unchanged.
+    const digest = await crypto.subtle.digest('SHA-256', proofBytes.buffer as ArrayBuffer);
+    const proofHash = Array.from(new Uint8Array(digest))
+      .map((b) => b.toString(16).padStart(2, '0'))
+      .join('');
+
     return {
       success: true,
       proof: {
@@ -234,7 +246,7 @@ export async function generateClientProof(
         verificationKey: vKey,
         timestamp: new Date().toISOString(),
         isValid,
-        proofHash: JSON.stringify(groth16Proof).substring(0, 66),
+        proofHash,
         note: `REAL ZK-SNARK generated in browser! (${(proofTime / 1000).toFixed(2)}s)`,
       },
       timing: proofTime,

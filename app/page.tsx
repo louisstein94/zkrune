@@ -1,4 +1,6 @@
-"use client";
+// Server Component — the contract-copy button is a small client island
+// (see components/CopyContractAddress) so the rest of the page stays on
+// the server render path for SEO + faster initial paint.
 
 import Navigation from "@/components/Navigation";
 import StructuredData from "@/components/StructuredData";
@@ -8,6 +10,7 @@ import CTAShowcase from "@/components/CTAShowcase";
 import InteractiveHeroDemo from "@/components/InteractiveHeroDemo";
 import TrustBadges from "@/components/TrustBadges";
 import TokenStatsBanner from "@/components/TokenStatsBanner";
+import CopyContractAddress from "@/components/CopyContractAddress";
 
 export default function Home() {
 
@@ -478,17 +481,8 @@ const { isValid } = await zk.verifyRemote({
               <p className="text-xs font-medium text-zk-gray uppercase tracking-wider opacity-60">
                 Contract
               </p>
-              <button
-                onClick={() => {
-                  const contractAddress = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
-                  navigator.clipboard.writeText(contractAddress);
-                  alert('Contract address copied!');
-                }}
-                className="text-xs text-zk-accent font-mono hover:text-zk-primary transition-colors cursor-pointer"
-                title="Click to copy"
-              >
-                {process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.substring(0, 8)}...{process.env.NEXT_PUBLIC_CONTRACT_ADDRESS?.substring(process.env.NEXT_PUBLIC_CONTRACT_ADDRESS.length - 5)}
-              </button>
+              <CopyContractAddress address={process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || ''} />
+
             </div>
           </div>
 

@@ -9,7 +9,7 @@
 //   TOKEN_PROGRAM_ID,
 // } from '@solana/spl-token';
 
-import { ZKRUNE_TOKEN, PREMIUM_TIERS, type PremiumTier } from './config';
+import { ZKRUNE_TOKEN, PREMIUM_TIERS, parseTokenAmount, type PremiumTier } from './config';
 
 export interface BurnResult {
   success: boolean;
@@ -165,8 +165,8 @@ export async function createBurnTransaction(
     walletPublicKey
   );
 
-  // Create burn instruction
-  const burnAmount = BigInt(Math.floor(amount * Math.pow(10, ZKRUNE_TOKEN.DECIMALS)));
+  // Create burn instruction (string-based conversion avoids float drift)
+  const burnAmount = parseTokenAmount(amount);
   
   const burnInstruction = createBurnInstruction(
     userTokenAccount,

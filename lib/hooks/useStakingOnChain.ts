@@ -11,6 +11,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import { STAKING_TOKEN_CONFIG, getSolscanUrl } from '@/lib/solana/config';
+import { toRawAmount } from '@/lib/solana/txVerification';
 import { BN } from 'bn.js';
 
 // Program ID from deployed staking program (devnet)
@@ -303,7 +304,9 @@ export function useStakingOnChain() {
 
     try {
       const decimals = STAKING_TOKEN_CONFIG.DECIMALS;
-      const rawAmount = new BN(Math.floor(amount * Math.pow(10, decimals)));
+      // Integer-string conversion avoids floating-point drift that would
+      // cause 0.29 * 10^6 → 289999 instead of 290000, etc.
+      const rawAmount = new BN(toRawAmount(amount, decimals).toString());
 
       const userTokenAccount = getAssociatedTokenAddressSync(tokenMint, publicKey);
 

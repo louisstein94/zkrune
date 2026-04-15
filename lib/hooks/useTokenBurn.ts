@@ -10,6 +10,7 @@ import {
   TOKEN_PROGRAM_ID,
 } from '@solana/spl-token';
 import { ZKRUNE_TOKEN_CONFIG, getSolscanUrl } from '@/lib/solana/config';
+import { toRawAmount } from '@/lib/solana/txVerification';
 
 interface BurnResult {
   success: boolean;
@@ -53,8 +54,10 @@ export function useTokenBurn() {
       const mintAddress = new PublicKey(ZKRUNE_TOKEN_CONFIG.MINT_ADDRESS);
       const decimals = ZKRUNE_TOKEN_CONFIG.DECIMALS;
       
-      // Convert UI amount to raw amount
-      const rawAmount = BigInt(Math.floor(amount * Math.pow(10, decimals)));
+      // Convert UI amount to raw amount using integer arithmetic.
+      // Float-based conversion (amount * 10^decimals) loses precision
+      // on values like 0.1, 0.29, etc.
+      const rawAmount = toRawAmount(amount, decimals);
       
       // Get user's associated token account
       const userTokenAccount = getAssociatedTokenAddressSync(

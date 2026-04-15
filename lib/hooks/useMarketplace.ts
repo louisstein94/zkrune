@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 
 export interface MarketplaceTemplate {
   id: string;
@@ -167,7 +167,9 @@ export function useMarketplace() {
     return purchases.some(p => p.template_id === templateId);
   }, [getUserPurchases]);
 
-  const getStats = useCallback((): MarketplaceStats => {
+  // Memoize stats so downstream consumers don't get a new object identity
+  // on every parent re-render.
+  const stats = useMemo<MarketplaceStats>(() => {
     const uniqueCreators = new Set(templates.map(t => t.creator_address));
     return {
       totalTemplates: templates.length,
@@ -176,6 +178,13 @@ export function useMarketplace() {
       totalVolume: templates.reduce((sum, t) => sum + (t.downloads * t.price), 0),
     };
   }, [templates]);
+
+  const getStats = useCallback(() => stats, [stats]);
+
+  const featuredTemplates = useMemo(
+    () => templates.filter(t => t.featured),
+    [templates],
+  );
 
   useEffect(() => {
     fetchTemplates();
@@ -192,6 +201,6 @@ export function useMarketplace() {
     getUserPurchases,
     isTemplateOwned,
     getStats,
-    featuredTemplates: templates.filter(t => t.featured),
+    featuredTemplates,
   };
 }

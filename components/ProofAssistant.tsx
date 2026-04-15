@@ -233,10 +233,6 @@ export default function ProofAssistant() {
                 )}
 
                 {blinkError && (
-                  <p className="text-xs text-red-400">{blinkError}</p>
-                )}
-
-                {blinkError && (
                   <div className="py-2 px-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-400 text-xs whitespace-pre-wrap break-all">
                     {blinkError}
                   </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useWalletAuth } from '@/lib/auth/useWalletAuth';
 
 export interface Proposal {
@@ -149,14 +149,24 @@ export function useGovernance() {
     return votes.some(v => v.proposal_id === proposalId);
   }, [getUserVotes]);
 
-  const getStats = useCallback((): GovernanceStats => {
-    return {
-      totalProposals: proposals.length,
-      activeProposals: proposals.filter(p => p.status === 'active').length,
-      passedProposals: proposals.filter(p => p.status === 'passed').length,
-      totalVoters: proposals.reduce((sum, p) => sum + p.voter_count, 0),
-    };
-  }, [proposals]);
+  // Memoize derived stats so consumer components don't get a fresh object
+  // (and a fresh re-render) on every parent render.
+  const stats = useMemo<GovernanceStats>(() => ({
+    totalProposals: proposals.length,
+    activeProposals: proposals.filter(p => p.status === 'active').length,
+    passedProposals: proposals.filter(p => p.status === 'passed').length,
+    totalVoters: proposals.reduce((sum, p) => sum + p.voter_count, 0),
+  }), [proposals]);
+
+  // Stable callback shim for legacy callers that expect a getStats() fn.
+  const getStats = useCallback(() => stats, [stats]);
+
+  // Memoize the filtered active list — previously recomputed on every
+  // render, creating a new array identity that churned downstream memos.
+  const activeProposals = useMemo(
+    () => proposals.filter(p => p.status === 'active' && new Date(p.ends_at) > new Date()),
+    [proposals],
+  );
 
   useEffect(() => {
     fetchProposals();
@@ -172,6 +182,6 @@ export function useGovernance() {
     getUserVotes,
     hasVoted,
     getStats,
-    activeProposals: proposals.filter(p => p.status === 'active' && new Date(p.ends_at) > new Date()),
+    activeProposals,
   };
 }

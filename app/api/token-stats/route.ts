@@ -13,8 +13,9 @@ interface TokenStats {
   marketCap: number;
   volume24h: number;
   totalSupply: number;
-  circulatingSupply: number;
-  burned: number;
+  // null when the data source does not expose an authoritative value.
+  circulatingSupply: number | null;
+  burned: number | null;
   holders: number;
   liquidity: number;
   lastUpdated: string;
@@ -80,18 +81,18 @@ async function fetchDexScreener(): Promise<TokenStats | null> {
       const liquidity = parseFloat(mainPair.liquidity?.usd) || 0;
       const marketCap = parseFloat(mainPair.marketCap) || (price * TOTAL_SUPPLY);
       
-      // Estimate burned tokens (typically 0-5% on pump.fun)
-      const burned = Math.floor(TOTAL_SUPPLY * 0.02); // Assume 2% burned
-      const circulatingSupply = TOTAL_SUPPLY - burned;
-
+      // Burned amount is NOT known from DexScreener. Return null so the
+      // UI can render "—" instead of a fabricated 2%-of-supply number.
+      // Authoritative burn totals come from /api/premium/history which
+      // sums on-chain burn_history rows.
       return {
         price,
         priceChange24h,
         marketCap,
         volume24h,
         totalSupply: TOTAL_SUPPLY,
-        circulatingSupply,
-        burned,
+        circulatingSupply: null,
+        burned: null,
         holders: 0, // DexScreener doesn't provide this
         liquidity,
         lastUpdated: new Date().toISOString()
@@ -106,15 +107,17 @@ async function fetchDexScreener(): Promise<TokenStats | null> {
 }
 
 function getMockTokenStats(): TokenStats {
-  // Realistic mock data for a pump.fun token
+  // Placeholder data used when no real source is available. burned /
+  // circulatingSupply are null here too — the UI should treat this
+  // response as "no data yet" and fall back to "—".
   return {
     price: 0.0000042,
     priceChange24h: 12.5,
     marketCap: 4200,
     volume24h: 850,
     totalSupply: TOTAL_SUPPLY,
-    circulatingSupply: 980_000_000,
-    burned: 20_000_000,
+    circulatingSupply: null,
+    burned: null,
     holders: 156,
     liquidity: 2100,
     lastUpdated: new Date().toISOString()

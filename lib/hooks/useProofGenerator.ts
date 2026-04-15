@@ -41,57 +41,73 @@ export function useProofGenerator() {
         };
       }
 
-      // Abort previous generation if exists
+      // Abort any in-flight generation before starting a new one.
       if (abortControllerRef.current) {
         abortControllerRef.current.abort();
       }
 
-      abortControllerRef.current = new AbortController();
-      
+      const controller = new AbortController();
+      abortControllerRef.current = controller;
+
       setIsGenerating(true);
       setProgress(0);
       setError(null);
 
-      try {
-        // Simulate progress updates
-        const progressInterval = setInterval(() => {
-          setProgress((prev) => Math.min(prev + 10, 90));
-        }, 200);
+      // Progress tick lives in a ref so the `finally` block can always
+      // clear it, even when the component unmounts mid-generation.
+      let progressInterval: ReturnType<typeof setInterval> | null = setInterval(() => {
+        setProgress((prev) => Math.min(prev + 10, 90));
+      }, 200);
 
+      const stopProgress = () => {
+        if (progressInterval !== null) {
+          clearInterval(progressInterval);
+          progressInterval = null;
+        }
+      };
+
+      try {
         const result = await generateClientProof(templateId, inputs);
-        
-        clearInterval(progressInterval);
+
+        // Respect cancellation: if another call aborted this controller
+        // while snarkjs was running, discard the result rather than
+        // flipping progress to 100 on a cancelled job.
+        if (controller.signal.aborted) {
+          return { success: false, error: 'Cancelled' };
+        }
+
+        stopProgress();
         setProgress(100);
 
         if (result.success && result.proof) {
-          // Cache the result
           cacheRef.current[cacheKey] = {
             proof: result.proof,
             timestamp: Date.now(),
             inputs,
           };
-
           return {
             success: true,
             proof: result.proof,
             timing: result.timing,
             fromCache: false,
           };
-        } else {
-          throw new Error(result.error || 'Proof generation failed');
         }
+        throw new Error(result.error || 'Proof generation failed');
       } catch (err: any) {
-        if (err.name === 'AbortError') {
-          console.log('[ProofGen] Generation aborted');
+        if (err.name === 'AbortError' || controller.signal.aborted) {
           return { success: false, error: 'Cancelled' };
         }
-        
         const errorMessage = err.message || 'Unknown error during proof generation';
         setError(errorMessage);
         return { success: false, error: errorMessage };
       } finally {
+        stopProgress();
         setIsGenerating(false);
-        abortControllerRef.current = null;
+        // Only clear the ref if we are still the current controller; a
+        // newer call may have replaced it already.
+        if (abortControllerRef.current === controller) {
+          abortControllerRef.current = null;
+        }
       }
     },
     []

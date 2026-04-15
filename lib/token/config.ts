@@ -14,7 +14,13 @@ export const ZKRUNE_TOKEN = {
   // Token name
   NAME: 'zkRune Token',
   
-  // Burn address (Solana system program null address)
+  // Legacy constant kept for external integrations that reference
+  // `BURN_ADDRESS` verbatim. Burns inside this repo MUST go through
+  // `createBurnInstruction` (see lib/token/burn.ts + lib/hooks/useTokenBurn.ts),
+  // which calls the SPL Token program's burn op. Transferring SPL tokens
+  // to the System Program address below would lock them, not burn them,
+  // so the constant is informational only and should not be used to
+  // destroy supply.
   BURN_ADDRESS: '11111111111111111111111111111111',
   
   // Treasury address for marketplace fees (operational reserve)
@@ -201,10 +207,41 @@ export function formatTokenAmount(amount: number): string {
   }).format(amount);
 }
 
-export function parseTokenAmount(displayAmount: number): bigint {
-  return BigInt(Math.floor(displayAmount * Math.pow(10, ZKRUNE_TOKEN.DECIMALS)));
+/**
+ * UI amount → raw base units using integer arithmetic only.
+ *
+ * Using `number * Math.pow(10, decimals)` is unsafe because e.g.
+ * `0.1 * 1e6 === 100000.00000000001` → BigInt(Math.floor(...)) silently
+ * rounds the wrong way on values like 0.29, 1.005, etc.
+ *
+ * We parse the decimal as a string, pad/truncate the fractional part to
+ * exactly `decimals` digits, and concatenate before calling BigInt().
+ * Negative amounts throw; callers always pass non-negative UI values.
+ */
+export function parseTokenAmount(displayAmount: number | string): bigint {
+  const str = typeof displayAmount === 'number'
+    ? displayAmount.toFixed(ZKRUNE_TOKEN.DECIMALS)
+    : String(displayAmount).trim();
+
+  if (str.startsWith('-')) {
+    throw new Error('parseTokenAmount: negative amounts are not allowed');
+  }
+
+  const cleaned = str.replace(/^\+/, '');
+  if (!/^\d+(\.\d*)?$/.test(cleaned)) {
+    throw new Error(`parseTokenAmount: invalid numeric string "${displayAmount}"`);
+  }
+
+  const [intPart, fracPart = ''] = cleaned.split('.');
+  const paddedFrac = fracPart.padEnd(ZKRUNE_TOKEN.DECIMALS, '0').slice(0, ZKRUNE_TOKEN.DECIMALS);
+  return BigInt((intPart || '0') + paddedFrac);
 }
 
+/**
+ * Raw base units → UI number. Still lossy for balances > 2^53, but we
+ * only use this for display, never for on-chain math. Callers that need
+ * full precision should handle the BigInt directly.
+ */
 export function displayTokenAmount(rawAmount: bigint): number {
   return Number(rawAmount) / Math.pow(10, ZKRUNE_TOKEN.DECIMALS);
 }

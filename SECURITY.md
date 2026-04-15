@@ -4,60 +4,102 @@
 
 zkRune takes security seriously. This document outlines our security practices, implemented protections, and vulnerability reporting procedures.
 
+> **Last updated:** 2026-04-14 — Phase 1–4 remediation complete.
+> See `SECURITY_FIX_DAILY_PLAN.md` for the per-day breakdown.
+
 ---
 
 ## ✅ Implemented Security Measures
 
 ### 1. **Security Headers** (via Middleware)
 
-#### Content Security Policy (CSP)
+#### Content Security Policy (CSP) — nonce-based
 ```
 default-src 'self'
-script-src 'self' 'unsafe-eval' 'unsafe-inline'
+script-src 'self' 'nonce-<per-request>' 'strict-dynamic' 'unsafe-eval'
+frame-ancestors 'none' (default) | EMBED_ALLOWED_PARENTS (embed)
 ```
-Note: `unsafe-eval` required for snarkjs cryptographic operations
+- `unsafe-eval` is kept because the snarkjs WASM loader requires it.
+- `'unsafe-inline'` was removed from `script-src` in Phase 4 Day 22.
+- A per-request nonce is forwarded via the `x-nonce` request header.
+- Embed CSP reads `EMBED_ALLOWED_PARENTS` env var instead of `*`.
 
 #### Additional Headers
-- **X-Frame-Options**: DENY (prevents clickjacking)
-- **X-Content-Type-Options**: nosniff (prevents MIME sniffing)
+- **X-Frame-Options**: DENY (default routes; embed pages opt out)
+- **X-Content-Type-Options**: nosniff
 - **X-XSS-Protection**: 1; mode=block
 - **Referrer-Policy**: strict-origin-when-cross-origin
 - **HSTS**: Enabled in production (31536000 seconds)
+- **Permissions-Policy**: camera / microphone / geolocation disabled
+
+All of the above now also apply to `/api/actions/*` (previously they
+short-circuited the middleware and shipped without any headers).
 
 ### 2. **Rate Limiting**
 
-**API Routes Protected:**
-- 100 requests per minute per IP
-- Automatic 429 response when limit exceeded
-- Rate limit headers included in responses
-
-**Headers:**
-```
-X-RateLimit-Limit: 100
-X-RateLimit-Remaining: 95
-Retry-After: 60 (when rate limited)
-```
+- **Global** (middleware): 100 requests per minute per IP.
+- **RPC proxy** (`/api/rpc`): 30 req/min per IP + JSON-RPC method
+  whitelist + 50 KB body cap + batch cap of 20 calls.
+- **AI routes**: 10 req/min for `/api/ai-chat`, 5 req/min for
+  `/api/ai-circuit` (paid upstream models).
+- IP resolution prefers `x-real-ip` / `cf-connecting-ip` /
+  `x-vercel-forwarded-for` over the spoofable `x-forwarded-for`.
+- In-memory store is **capped** at 10 000 entries with oldest-first
+  eviction and a periodic sweep to bound memory under IP spoofing.
+  Multi-instance deployments should migrate to Upstash Redis (TODO
+  marker in `middleware.ts`).
 
 ### 3. **Input Validation**
 
-**Zod Schemas:**
-- Proof verification inputs
-- Zcash address format
-- Template IDs (enum-based)
-- Environment variables
+**Zod schemas with length bounds:**
+- Proof verification: every field-element array has explicit
+  `.length()` / `.max()` caps. `vk_alphabeta_12` is a typed 2×3×2
+  tensor (previously `z.array(z.any())`).
+- `publicSignals.max(64)`, `IC.max(65)`.
+- `vKey.protocol === 'groth16'` and `vKey.curve === 'bn128'` enforced.
+- Zcash address format, template-ID enum, environment variables.
 
-**XSS Prevention:**
-- Script tag removal
-- Event handler sanitization  
-- JavaScript protocol blocking
-- Malicious pattern detection
+**What was removed:**
+The old `sanitizeString` helper (blocklist-based XSS "protection") was
+deleted in Phase 4 Day 26. It was never called and its regex was
+bypassable. No component renders user input as HTML.
 
-### 4. **Client-Side Security**
+### 4. **Authentication & Replay Protection**
+
+- Wallet signatures bind `action + wallet + sorted fields + ts` in a
+  canonical message checked by `verifyAuth`.
+- Timestamps must be **fresh** (≤ 5 min) AND **not more than 30 s in
+  the future** (Phase 4 Day 24 A6b).
+- Successfully verified signatures are recorded for `MAX_AGE_MS + grace`
+  and a replay is rejected at the signature level (Phase 4 Day 24 A6a).
+- Ceremony routes (`/api/ceremony*`) require a bearer
+  `CEREMONY_ADMIN_TOKEN`; all POSTs fail closed when unset.
+
+### 5. **Server-side Data Access**
+
+- Every `/app/api/*` route talks to Supabase via
+  `lib/supabase/serverClient.ts`, which uses `SUPABASE_SERVICE_ROLE_KEY`
+  and throws when unset. No route imports `NEXT_PUBLIC_SUPABASE_ANON_KEY`.
+- All write-side RLS policies are scoped `TO service_role`; anon-reads
+  remain public. Migration SQL is in `lib/supabase/migrations/`.
+- Votes use an atomic PL/pgSQL `cast_vote` RPC: the vote row insert
+  and proposal aggregate update happen in a single transaction, with
+  a unique `(proposal_id, voter)` constraint to prevent double voting.
+- Premium + marketplace purchase routes enforce **tx-signature replay
+  protection** via unique constraints on `burn_history` and `purchases`.
+
+### 6. **Client-Side Security**
 
 **Privacy-First Architecture:**
 - ✅ 100% client-side proof generation
 - ✅ Zero server-side storage of sensitive data
 - ✅ No telemetry without consent
+- ✅ Verification key fetched with integrity checks (HTTP status,
+  content-type, structural validation) and cached per-session to
+  prevent mid-session VK substitution (Phase 4 Day 23 A15).
+- ✅ Public inputs derived from secrets (collectionRoot, expectedHash,
+  commitmentHash) are **always recomputed** from private inputs;
+  caller-supplied values are discarded (Phase 4 Day 23 P4-03).
 - ✅ Local-only cryptographic operations
 
 **Web Security:**
