@@ -515,4 +515,182 @@ describe("zkrune-staking", () => {
       expect(pool.totalStakers).to.be.lessThanOrEqual(2);
     });
   });
+
+  // ======================================================================
+  // P2-05: Phase 2 constraint regression tests
+  // ======================================================================
+  describe("phase2 constraints", () => {
+    // A12: deposit_rewards must reject non-authority depositors
+    it("deposit_rewards rejects non-authority depositor", async () => {
+      const intruder = Keypair.generate();
+      await provider.connection.requestAirdrop(
+        intruder.publicKey,
+        2 * LAMPORTS_PER_SOL,
+      );
+      await new Promise((r) => setTimeout(r, 1000));
+
+      const intruderAta = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        mintAuthority,
+        tokenMint,
+        intruder.publicKey,
+      );
+
+      await mintTo(
+        provider.connection,
+        mintAuthority,
+        tokenMint,
+        intruderAta.address,
+        mintAuthority.publicKey,
+        1000 * TOKENS_PER_UNIT,
+      );
+
+      let reverted = false;
+      try {
+        await program.methods
+          .depositRewards(new BN(100 * TOKENS_PER_UNIT))
+          .accounts({
+            depositor: intruder.publicKey,
+            stakingPool: stakingPoolPda,
+            depositorTokenAccount: intruderAta.address,
+            rewardVault: rewardVaultPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .signers([intruder])
+          .rpc();
+      } catch (e: any) {
+        reverted = true;
+        expect(e.toString()).to.match(/Unauthorized|constraint/i);
+      }
+      expect(reverted, "expected non-authority deposit to revert").to.be.true;
+    });
+
+    // A12: create_stake_vault / create_reward_vault must reject non-authority
+    it("create_stake_vault rejects non-authority caller", async () => {
+      // Derive a fake secondary mint + pool to test vault creation path fresh.
+      // Instead, we just try to call it with an intruder against the existing pool,
+      // which should fail on the init account (already exists) OR the authority
+      // constraint — both are valid protections. We assert that it reverts.
+      const intruder = Keypair.generate();
+      await provider.connection.requestAirdrop(
+        intruder.publicKey,
+        2 * LAMPORTS_PER_SOL,
+      );
+      await new Promise((r) => setTimeout(r, 1000));
+
+      let reverted = false;
+      try {
+        await program.methods
+          .createStakeVault()
+          .accounts({
+            authority: intruder.publicKey,
+            tokenMint: tokenMint,
+            stakingPool: stakingPoolPda,
+            stakeVault: stakeVaultPda,
+            systemProgram: SystemProgram.programId,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+          })
+          .signers([intruder])
+          .rpc();
+      } catch (e: any) {
+        reverted = true;
+      }
+      expect(reverted, "expected non-authority vault creation to revert").to.be.true;
+    });
+
+    // A12: Stake handler must reject re-stake while a position is still active
+    it("stake rejects overwriting an active position", async () => {
+      // User1 should still have an active stake from earlier describe("stake") suite.
+      const stakeAmount = new BN(500 * TOKENS_PER_UNIT);
+
+      let reverted = false;
+      try {
+        await program.methods
+          .stake({ amount: stakeAmount, lockPeriodIndex: 0 })
+          .accounts({
+            user: user1.publicKey,
+            stakingPool: stakingPoolPda,
+            userStake: PublicKey.findProgramAddressSync(
+              [USER_STAKE_SEED, stakingPoolPda.toBuffer(), user1.publicKey.toBuffer()],
+              program.programId,
+            )[0],
+            userTokenAccount: user1TokenAccount,
+            stakeVault: stakeVaultPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([user1])
+          .rpc();
+      } catch (e: any) {
+        reverted = true;
+        // Expect AlreadyStaked error
+        expect(e.toString()).to.match(/AlreadyStaked|already.*stake|constraint/i);
+      }
+      expect(reverted, "expected re-stake over active position to revert").to.be.true;
+    });
+
+    // P2-03: Multiplier bounds — all 4 lock periods must be <= MAX_MULTIPLIER_BPS (50000)
+    it("all lock period multipliers are within MAX_MULTIPLIER_BPS cap", async () => {
+      const pool = await program.account.stakingPool.fetch(stakingPoolPda);
+      const MAX_MULTIPLIER_BPS = 50000;
+      for (let i = 0; i < pool.lockPeriods.length; i++) {
+        expect(
+          pool.lockPeriods[i].multiplierBps,
+          `lock period ${i} multiplier`,
+        ).to.be.at.most(MAX_MULTIPLIER_BPS);
+      }
+    });
+
+    // P2-03: stake must reject invalid lock period index (>= 4)
+    it("stake rejects lock_period_index >= 4", async () => {
+      const user3 = Keypair.generate();
+      await provider.connection.requestAirdrop(
+        user3.publicKey,
+        2 * LAMPORTS_PER_SOL,
+      );
+      await new Promise((r) => setTimeout(r, 1000));
+
+      const user3Ata = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        mintAuthority,
+        tokenMint,
+        user3.publicKey,
+      );
+      await mintTo(
+        provider.connection,
+        mintAuthority,
+        tokenMint,
+        user3Ata.address,
+        mintAuthority.publicKey,
+        1000 * TOKENS_PER_UNIT,
+      );
+
+      const [user3StakePda] = PublicKey.findProgramAddressSync(
+        [USER_STAKE_SEED, stakingPoolPda.toBuffer(), user3.publicKey.toBuffer()],
+        program.programId,
+      );
+
+      let reverted = false;
+      try {
+        await program.methods
+          .stake({ amount: new BN(500 * TOKENS_PER_UNIT), lockPeriodIndex: 4 })
+          .accounts({
+            user: user3.publicKey,
+            stakingPool: stakingPoolPda,
+            userStake: user3StakePda,
+            userTokenAccount: user3Ata.address,
+            stakeVault: stakeVaultPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([user3])
+          .rpc();
+      } catch (e: any) {
+        reverted = true;
+        expect(e.toString()).to.match(/InvalidLockPeriod|lock period|constraint/i);
+      }
+      expect(reverted, "expected invalid lock period to revert").to.be.true;
+    });
+  });
 });
