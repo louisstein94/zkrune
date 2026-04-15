@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+  isCeremonyAdmin,
+  isCeremonyAuthConfigured,
+} from '@/lib/auth/ceremonyAuth';
 
 const BUCKET_NAME = 'ceremony-zkeys';
 
@@ -17,9 +21,23 @@ function getSupabaseAdmin() {
 // POST - Sync DB with storage (clean old records, add real ones)
 export async function POST(request: Request) {
   try {
+    // Admin auth — sync + clean can wipe all ceremony records; must be gated.
+    if (!isCeremonyAuthConfigured()) {
+      return NextResponse.json(
+        { success: false, error: 'Ceremony admin auth not configured' },
+        { status: 503 },
+      );
+    }
+    if (!isCeremonyAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json().catch(() => ({}));
     const { action } = body;
-    
+
     const supabase = getSupabaseAdmin();
     if (!supabase) {
       return NextResponse.json({

@@ -7,8 +7,22 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const ZKRUNE_MINT = process.env.NEXT_PUBLIC_ZKRUNE_MINT || '51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump';
-const ATTESTATION_SECRET = process.env.ATTESTATION_SECRET || 'zkrune-attestation-default-key';
 const ATTESTATION_TTL_MS = 5 * 60 * 1000; // 5 minutes
+
+/**
+ * Reads the HMAC secret at request time. Throws if unset so the route fails
+ * closed with a 500 instead of silently signing attestations with a public
+ * default that anyone can forge.
+ */
+function getAttestationSecret(): string {
+  const secret = process.env.ATTESTATION_SECRET;
+  if (!secret || secret.length < 16) {
+    throw new Error(
+      'ATTESTATION_SECRET is not configured. Set a long random value in the server environment.',
+    );
+  }
+  return secret;
+}
 
 function getRpcUrl(): string {
   return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
@@ -16,7 +30,7 @@ function getRpcUrl(): string {
 
 function signAttestation(walletAddress: string, balance: string, mintAddress: string, timestamp: number): string {
   const payload = `${walletAddress}:${balance}:${mintAddress}:${timestamp}`;
-  return crypto.createHmac('sha256', ATTESTATION_SECRET).update(payload).digest('hex');
+  return crypto.createHmac('sha256', getAttestationSecret()).update(payload).digest('hex');
 }
 
 function verifyAttestation(

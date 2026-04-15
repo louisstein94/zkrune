@@ -1,5 +1,9 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
+import {
+  isCeremonyAdmin,
+  isCeremonyAuthConfigured,
+} from '@/lib/auth/ceremonyAuth';
 
 // Supabase client with service role for storage operations
 function getSupabaseAdmin() {
@@ -123,6 +127,21 @@ export async function GET(request: Request) {
 // Usage: POST /api/ceremony/zkey with multipart form data
 export async function POST(request: Request) {
   try {
+    // Admin auth — zkey uploads directly influence the trusted setup;
+    // unauthenticated writes could poison proofs.
+    if (!isCeremonyAuthConfigured()) {
+      return NextResponse.json(
+        { success: false, error: 'Ceremony admin auth not configured' },
+        { status: 503 },
+      );
+    }
+    if (!isCeremonyAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
     const formData = await request.formData();
     const circuit = formData.get('circuit') as string;
     const contributorName = formData.get('contributorName') as string;

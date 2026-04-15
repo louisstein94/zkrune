@@ -1,4 +1,8 @@
 import { NextResponse } from 'next/server';
+import {
+  isCeremonyAdmin,
+  isCeremonyAuthConfigured,
+} from '@/lib/auth/ceremonyAuth';
 
 // Ceremony contribution type
 interface CeremonyContribution {
@@ -122,6 +126,21 @@ export async function GET() {
 // POST - Add a contribution (for web-based contributions in the future)
 export async function POST(request: Request) {
   try {
+    // Admin auth — ceremony contributions must be gated to prevent
+    // anonymous poisoning of the trusted setup.
+    if (!isCeremonyAuthConfigured()) {
+      return NextResponse.json(
+        { success: false, error: 'Ceremony admin auth not configured' },
+        { status: 503 },
+      );
+    }
+    if (!isCeremonyAdmin(request)) {
+      return NextResponse.json(
+        { success: false, error: 'Unauthorized' },
+        { status: 401 },
+      );
+    }
+
     const body = await request.json();
     const { contributorName, contributionHash } = body;
 

@@ -85,26 +85,26 @@ export async function GET(request: Request) {
       }
     }
 
-    // EXPERIMENTAL: fallback data when all providers fail
-    return NextResponse.json({
-      success: true,
-      balance: 5.12345678,
-      source: 'demo',
-      trustLevel: 'experimental',
-      note: 'Fallback data — external balance APIs unavailable. Do not use for production access decisions.',
-    });
+    // All providers exhausted. Return a real failure so downstream code cannot
+    // treat a fabricated 5.12 ZEC balance as authoritative.
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'All Zcash balance providers unavailable',
+      },
+      { status: 503 },
+    );
 
   } catch (error) {
     console.error('Zcash balance fetch error:', error);
-    
-    // EXPERIMENTAL: fallback data on error
-    return NextResponse.json({
-      success: true,
-      balance: 5.12345678,
-      source: 'demo',
-      trustLevel: 'experimental',
-      note: 'Fallback data — API error. Do not use for production access decisions.',
-    });
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Zcash balance lookup failed',
+      },
+      { status: 502 },
+    );
   }
 }
 

@@ -40,17 +40,16 @@ export async function GET(request: Request) {
 
   } catch (error: any) {
     console.error('Lightwalletd balance fetch error:', error);
-    
-    // Fallback to demo mode if Lightwalletd fails
-    console.log('[Lightwalletd] Failed, using demo mode');
-    
-    return NextResponse.json({
-      success: true,
-      balance: 5.12345678,
-      source: 'demo',
-      note: 'Demo mode - Lightwalletd connection failed. In production, this would retry or show error.',
-      error: error.message,
-    });
+
+    // Return a real failure so downstream code cannot treat a fabricated
+    // balance as authoritative.
+    return NextResponse.json(
+      {
+        success: false,
+        error: error?.message || 'Lightwalletd balance lookup failed',
+      },
+      { status: 502 },
+    );
   }
 }
 
