@@ -16,7 +16,7 @@ zkrune_staking = "44ToPJzWsnqJRhvFS5wXLsgWGWpbe3YwhU9t8LkQBRiX"
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]

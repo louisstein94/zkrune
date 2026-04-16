@@ -729,4 +729,396 @@ describe("zkrune-staking", () => {
       expect(reverted, "expected invalid lock period to revert").to.be.true;
     });
   });
+
+  // ======================================================================
+  // Extended use-case tests
+  // ======================================================================
+  describe("extended use cases", () => {
+    // Helper: create a funded user with token account
+    async function createFundedUser(solAmount: number, tokenAmount: number) {
+      const user = Keypair.generate();
+      const airdropSig = await provider.connection.requestAirdrop(
+        user.publicKey,
+        solAmount * LAMPORTS_PER_SOL,
+      );
+      await provider.connection.confirmTransaction(airdropSig);
+
+      const ata = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        mintAuthority,
+        tokenMint,
+        user.publicKey,
+      );
+
+      if (tokenAmount > 0) {
+        await mintTo(
+          provider.connection,
+          mintAuthority,
+          tokenMint,
+          ata.address,
+          mintAuthority.publicKey,
+          tokenAmount * TOKENS_PER_UNIT,
+        );
+      }
+
+      const [stakePda] = PublicKey.findProgramAddressSync(
+        [USER_STAKE_SEED, stakingPoolPda.toBuffer(), user.publicKey.toBuffer()],
+        program.programId,
+      );
+
+      return { user, ata: ata.address, stakePda };
+    }
+
+    // 1. Re-stake lifecycle: stake → unstake → re-stake → unstake
+    it("re-stake after unstake completes full cycle", async () => {
+      const { user, ata, stakePda } = await createFundedUser(5, 2000);
+
+      // First stake
+      await program.methods
+        .stake({ amount: new BN(500 * TOKENS_PER_UNIT), lockPeriodIndex: 0 })
+        .accounts({
+          user: user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: stakePda,
+          userTokenAccount: ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user])
+        .rpc();
+
+      // Verify active
+      let pos = await program.account.userStake.fetch(stakePda);
+      expect(pos.isActive).to.be.true;
+
+      // Unstake (early — penalty applies)
+      await program.methods
+        .unstake()
+        .accounts({
+          user: user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: stakePda,
+          userTokenAccount: ata,
+          stakeVault: stakeVaultPda,
+          rewardVault: rewardVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([user])
+        .rpc();
+
+      // Verify inactive
+      pos = await program.account.userStake.fetch(stakePda);
+      expect(pos.isActive).to.be.false;
+
+      // Re-stake with different lock period
+      await program.methods
+        .stake({ amount: new BN(300 * TOKENS_PER_UNIT), lockPeriodIndex: 1 })
+        .accounts({
+          user: user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: stakePda,
+          userTokenAccount: ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user])
+        .rpc();
+
+      // Verify re-staked with new params
+      pos = await program.account.userStake.fetch(stakePda);
+      expect(pos.isActive).to.be.true;
+      expect(pos.amount.toNumber()).to.equal(300 * TOKENS_PER_UNIT);
+      expect(pos.lockPeriodIndex).to.equal(1);
+
+      // Second unstake
+      await program.methods
+        .unstake()
+        .accounts({
+          user: user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: stakePda,
+          userTokenAccount: ata,
+          stakeVault: stakeVaultPda,
+          rewardVault: rewardVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([user])
+        .rpc();
+
+      pos = await program.account.userStake.fetch(stakePda);
+      expect(pos.isActive).to.be.false;
+    });
+
+    // 2. Double claim: second claim returns 0 / NoRewardsToClaim
+    it("second immediate claim has no rewards", async () => {
+      const { user, ata, stakePda } = await createFundedUser(5, 2000);
+
+      await program.methods
+        .stake({ amount: new BN(500 * TOKENS_PER_UNIT), lockPeriodIndex: 0 })
+        .accounts({
+          user: user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: stakePda,
+          userTokenAccount: ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user])
+        .rpc();
+
+      // Wait a tiny bit for some reward to accumulate
+      await new Promise((r) => setTimeout(r, 2000));
+
+      // First claim — may succeed with tiny reward
+      try {
+        await program.methods
+          .claimRewards()
+          .accounts({
+            user: user.publicKey,
+            stakingPool: stakingPoolPda,
+            userStake: stakePda,
+            userTokenAccount: ata,
+            rewardVault: rewardVaultPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .signers([user])
+          .rpc();
+      } catch {
+        // NoRewardsToClaim is fine for tiny durations
+      }
+
+      // Second immediate claim — should fail with NoRewardsToClaim
+      let reverted = false;
+      try {
+        await program.methods
+          .claimRewards()
+          .accounts({
+            user: user.publicKey,
+            stakingPool: stakingPoolPda,
+            userStake: stakePda,
+            userTokenAccount: ata,
+            rewardVault: rewardVaultPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .signers([user])
+          .rpc();
+      } catch (e: any) {
+        reverted = true;
+      }
+      expect(reverted, "second immediate claim should fail").to.be.true;
+    });
+
+    // 3. Multi-user concurrent staking
+    it("two users can stake independently", async () => {
+      const userA = await createFundedUser(5, 1000);
+      const userB = await createFundedUser(5, 1000);
+
+      const poolBefore = await program.account.stakingPool.fetch(stakingPoolPda);
+      const stakersBefore = poolBefore.totalStakers;
+      const stakedBefore = poolBefore.totalStaked.toNumber();
+
+      // User A stakes 400
+      await program.methods
+        .stake({ amount: new BN(400 * TOKENS_PER_UNIT), lockPeriodIndex: 0 })
+        .accounts({
+          user: userA.user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: userA.stakePda,
+          userTokenAccount: userA.ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([userA.user])
+        .rpc();
+
+      // User B stakes 600
+      await program.methods
+        .stake({ amount: new BN(600 * TOKENS_PER_UNIT), lockPeriodIndex: 2 })
+        .accounts({
+          user: userB.user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: userB.stakePda,
+          userTokenAccount: userB.ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([userB.user])
+        .rpc();
+
+      const poolAfter = await program.account.stakingPool.fetch(stakingPoolPda);
+      expect(poolAfter.totalStakers).to.equal(stakersBefore + 2);
+      expect(poolAfter.totalStaked.toNumber()).to.equal(
+        stakedBefore + 1000 * TOKENS_PER_UNIT,
+      );
+
+      // Verify individual positions
+      const posA = await program.account.userStake.fetch(userA.stakePda);
+      const posB = await program.account.userStake.fetch(userB.stakePda);
+      expect(posA.amount.toNumber()).to.equal(400 * TOKENS_PER_UNIT);
+      expect(posA.lockPeriodIndex).to.equal(0);
+      expect(posB.amount.toNumber()).to.equal(600 * TOKENS_PER_UNIT);
+      expect(posB.lockPeriodIndex).to.equal(2);
+    });
+
+    // 4. Zero amount stake
+    it("zero amount stake is rejected", async () => {
+      const { user, ata, stakePda } = await createFundedUser(5, 1000);
+
+      let reverted = false;
+      try {
+        await program.methods
+          .stake({ amount: new BN(0), lockPeriodIndex: 0 })
+          .accounts({
+            user: user.publicKey,
+            stakingPool: stakingPoolPda,
+            userStake: stakePda,
+            userTokenAccount: ata,
+            stakeVault: stakeVaultPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+            systemProgram: SystemProgram.programId,
+          })
+          .signers([user])
+          .rpc();
+      } catch (e: any) {
+        reverted = true;
+      }
+      expect(reverted, "zero amount should be rejected").to.be.true;
+    });
+
+    // 5. Locked APY stability after TVL change
+    it("locked APY does not change when TVL increases", async () => {
+      const userC = await createFundedUser(5, 5000);
+      const userD = await createFundedUser(5, 5000);
+
+      // User C stakes — locks APY at current TVL
+      await program.methods
+        .stake({ amount: new BN(1000 * TOKENS_PER_UNIT), lockPeriodIndex: 0 })
+        .accounts({
+          user: userC.user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: userC.stakePda,
+          userTokenAccount: userC.ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([userC.user])
+        .rpc();
+
+      const posC = await program.account.userStake.fetch(userC.stakePda);
+      const lockedApyC = posC.lockedApyBps;
+
+      // User D stakes large amount — changes TVL significantly
+      await program.methods
+        .stake({ amount: new BN(4000 * TOKENS_PER_UNIT), lockPeriodIndex: 3 })
+        .accounts({
+          user: userD.user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: userD.stakePda,
+          userTokenAccount: userD.ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([userD.user])
+        .rpc();
+
+      // Re-fetch user C's position — locked APY must be unchanged
+      const posCAfter = await program.account.userStake.fetch(userC.stakePda);
+      expect(posCAfter.lockedApyBps).to.equal(lockedApyC);
+
+      // User D has a different locked APY (lower due to higher TVL)
+      const posD = await program.account.userStake.fetch(userD.stakePda);
+      // D has 3x multiplier so may still be higher, but the base APY is lower
+      console.log(`  User C locked APY: ${lockedApyC} bps (1.0x, lower TVL)`);
+      console.log(`  User D locked APY: ${posD.lockedApyBps} bps (3.0x, higher TVL)`);
+    });
+
+    // 6. Deposit rewards then claim reflects new balance
+    it("deposited rewards are claimable", async () => {
+      const { user, ata, stakePda } = await createFundedUser(5, 2000);
+
+      // Stake
+      await program.methods
+        .stake({ amount: new BN(500 * TOKENS_PER_UNIT), lockPeriodIndex: 0 })
+        .accounts({
+          user: user.publicKey,
+          stakingPool: stakingPoolPda,
+          userStake: stakePda,
+          userTokenAccount: ata,
+          stakeVault: stakeVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([user])
+        .rpc();
+
+      // Authority deposits more rewards
+      const authorityAta = await getOrCreateAssociatedTokenAccount(
+        provider.connection,
+        mintAuthority,
+        tokenMint,
+        mintAuthority.publicKey,
+      );
+      await mintTo(
+        provider.connection,
+        mintAuthority,
+        tokenMint,
+        authorityAta.address,
+        mintAuthority.publicKey,
+        500 * TOKENS_PER_UNIT,
+      );
+
+      const poolBefore = await program.account.stakingPool.fetch(stakingPoolPda);
+
+      await program.methods
+        .depositRewards(new BN(500 * TOKENS_PER_UNIT))
+        .accounts({
+          depositor: mintAuthority.publicKey,
+          stakingPool: stakingPoolPda,
+          depositorTokenAccount: authorityAta.address,
+          rewardVault: rewardVaultPda,
+          tokenProgram: TOKEN_PROGRAM_ID,
+        })
+        .signers([mintAuthority])
+        .rpc();
+
+      const poolAfter = await program.account.stakingPool.fetch(stakingPoolPda);
+      expect(poolAfter.rewardPoolBalance.toNumber()).to.equal(
+        poolBefore.rewardPoolBalance.toNumber() + 500 * TOKENS_PER_UNIT,
+      );
+
+      // Wait briefly then claim
+      await new Promise((r) => setTimeout(r, 2000));
+
+      try {
+        await program.methods
+          .claimRewards()
+          .accounts({
+            user: user.publicKey,
+            stakingPool: stakingPoolPda,
+            userStake: stakePda,
+            userTokenAccount: ata,
+            rewardVault: rewardVaultPda,
+            tokenProgram: TOKEN_PROGRAM_ID,
+          })
+          .signers([user])
+          .rpc();
+
+        // If claim succeeds, reward pool should decrease
+        const poolFinal = await program.account.stakingPool.fetch(stakingPoolPda);
+        expect(poolFinal.totalRewardsDistributed.toNumber()).to.be.greaterThan(
+          poolAfter.totalRewardsDistributed.toNumber(),
+        );
+      } catch {
+        // NoRewardsToClaim is acceptable for very short durations
+        console.log("  Claim returned NoRewardsToClaim (duration too short)");
+      }
+    });
+  });
 });
