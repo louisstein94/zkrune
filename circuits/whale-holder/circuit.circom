@@ -92,6 +92,7 @@ template WhaleHolderProof(depth) {
     cmp.in[0] <== balance;
     cmp.in[1] <== minimumBalance;
     hasMinimum <== cmp.out;
+    hasMinimum === 1;
 
     // ── Step 5: Nullifier = Poseidon(address, nullifierSecret) ────────
     // Public output → verifier stores it; resubmitting the same (or any)

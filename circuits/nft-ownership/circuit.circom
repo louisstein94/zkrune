@@ -63,6 +63,9 @@ template NFTOwnership() {
     signal validToken;
     validToken <== 1 - tokenCheck.out;
     validToken === 1;
+
+    // Proof is only valid when token is in range AND ownership matches.
+    isValid === 1;
 }
 
 component main {public [collectionRoot, minTokenId, maxTokenId]} = NFTOwnership();

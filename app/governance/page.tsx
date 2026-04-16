@@ -83,9 +83,17 @@ export default function GovernancePage() {
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-white mb-4">Governance</h1>
+          <h1 className="text-4xl font-bold text-white mb-4">
+            Governance
+            <span className="ml-3 text-sm font-medium text-amber-400 bg-amber-400/10 border border-amber-400/30 px-2 py-0.5 rounded-full align-middle">
+              Beta
+            </span>
+          </h1>
           <p className="text-gray-400 text-lg max-w-2xl mx-auto">
             Vote on community templates and protocol features. Your zkRUNE tokens give you voting power.
+            <span className="block text-sm text-amber-400/70 mt-1">
+              Governance is currently off-chain. On-chain voting via SPL Governance is planned.
+            </span>
           </p>
         </div>
 

@@ -44,8 +44,9 @@ template CredentialProof() {
     check1 <== hashMatch * notExpired;
     isValid <== check1;
     
-    // Constraint: output must be 0 or 1
     isValid * (isValid - 1) === 0;
+    // Proof is only valid when ALL checks pass.
+    isValid === 1;
 }
 
 component main {public [currentTime, expectedHash]} = CredentialProof();

@@ -126,6 +126,29 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Basic circuit code syntax check — reject obviously malformed code
+    // so the marketplace does not fill up with garbage templates that no
+    // one can compile. This is NOT a security boundary; executing
+    // circuit code requires circom which is offline.
+    if (typeof circuitCode !== 'string' || circuitCode.length < 20) {
+      return NextResponse.json(
+        { success: false, error: 'circuitCode is too short to be a valid Circom template' },
+        { status: 400 },
+      );
+    }
+    if (circuitCode.length > 50_000) {
+      return NextResponse.json(
+        { success: false, error: 'circuitCode exceeds 50KB limit' },
+        { status: 400 },
+      );
+    }
+    if (!circuitCode.includes('template') || !circuitCode.includes('signal')) {
+      return NextResponse.json(
+        { success: false, error: 'circuitCode must contain at least a "template" and a "signal" declaration' },
+        { status: 400 },
+      );
+    }
+
     // P3-06: validate price is a finite non-negative number before clamp.
     const numericPrice = Number(price);
     if (!Number.isFinite(numericPrice) || numericPrice < 0) {

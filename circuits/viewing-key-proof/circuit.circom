@@ -42,8 +42,8 @@ template ViewingKeyProof() {
 
     isAuthorized <== hashCheck.out;
 
-    // Constraint: output must be boolean
     isAuthorized * (isAuthorized - 1) === 0;
+    isAuthorized === 1;
 
     // --- Step 3: Derive a session nullifier ---
     // Poseidon(viewingKey, salt + 1) — unique per (key, salt) pair.

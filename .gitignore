@@ -112,10 +112,11 @@ ceremony/zkeys/*.zkey
 solana-groth16-verifier/Cargo.lock
 solana-staking-program/Cargo.lock
 
-# IDE
+# IDE / AI assistant
 .idea/
 .vscode/
 .cursor/
+.claude/
 
 # OS files
 Thumbs.db

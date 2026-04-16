@@ -87,6 +87,9 @@ template AnonymousReputation() {
     signal validUser;
     validUser <== 1 - userCheck.out;
     validUser === 1;
+
+    // Proof is only valid when score meets threshold.
+    meetsThreshold === 1;
 }
 
 component main {public [thresholdScore, platformId]} = AnonymousReputation();

@@ -50,17 +50,14 @@ describe('anonymous-reputation', () => {
     expect(publicSignals[1]).toBe('1');
   }, 30000);
 
-  it('score 30 < threshold 50 -> meetsThreshold=0 (no hard constraint)', async () => {
-    const { valid, publicSignals } = await proveAndVerify('anonymous-reputation', {
+  it('INVALID: score 30 < threshold 50 -> circuit unsatisfiable (meetsThreshold===1)', async () => {
+    await expectUnsatisfiable('anonymous-reputation', {
       userId: '42',
       reputationScore: '30',
       userNonce: '999',
       thresholdScore: '50',
       platformId: '1',
     });
-    expect(valid).toBe(true);
-    // BUG DOCUMENTED: meetsThreshold=0 but proof still valid
-    expect(publicSignals[1]).toBe('0');
   }, 30000);
 
   it('INVALID: score out of range (>1000) -> circuit unsatisfiable', async () => {
@@ -106,20 +103,17 @@ describe('credential-proof', () => {
     expect(publicSignals[0]).toBe('1');
   }, 30000);
 
-  it('expired credential -> isValid=0 (no hard constraint)', async () => {
+  it('INVALID: expired credential -> circuit unsatisfiable (isValid===1)', async () => {
     const credentialHash = BigInt(12345);
     const credentialSecret = BigInt(67890);
 
-    const { valid, publicSignals } = await proveAndVerify('credential-proof', {
+    await expectUnsatisfiable('credential-proof', {
       credentialHash: credentialHash.toString(),
       credentialSecret: credentialSecret.toString(),
       validUntil: '1000',
       currentTime: '2000',
       expectedHash: credentialHash.toString(),
     });
-    expect(valid).toBe(true);
-    // BUG DOCUMENTED: isValid=0 but proof valid
-    expect(publicSignals[0]).toBe('0');
   }, 30000);
 });
 
@@ -145,24 +139,19 @@ describe('nft-ownership', () => {
     expect(valid).toBe(true);
   }, 30000);
 
-  it('token out of range -> isValid=0 (no hard constraint on range)', async () => {
-    // NOTE: validToken===1 only checks nftTokenId != 0
-    // inRange feeds into isValid but isValid has no === 1 constraint
+  it('INVALID: token out of range -> circuit unsatisfiable (isValid===1)', async () => {
     const nftTokenId = BigInt(200);
     const ownerSecret = BigInt(777);
     const ownerHash = poseidon2([nftTokenId, ownerSecret]);
     const collectionRoot = poseidon1([ownerHash]);
 
-    const { valid, publicSignals } = await proveAndVerify('nft-ownership', {
+    await expectUnsatisfiable('nft-ownership', {
       nftTokenId: nftTokenId.toString(),
       ownerSecret: ownerSecret.toString(),
       collectionRoot: collectionRoot.toString(),
       minTokenId: '1',
       maxTokenId: '100',
     });
-    expect(valid).toBe(true);
-    // BUG DOCUMENTED: isValid=0 but proof valid
-    expect(publicSignals[1]).toBe('0');
   }, 30000);
 });
 
@@ -187,21 +176,18 @@ describe('patience-proof', () => {
     expect(publicSignals[0]).toBe('1');
   }, 30000);
 
-  it('waited too little -> isValid=0 (no hard constraint)', async () => {
+  it('INVALID: waited too little -> circuit unsatisfiable (isValid===1)', async () => {
     const startTime = BigInt(1000);
     const secret = BigInt(42);
     const commitmentHash = poseidon2([startTime, secret]);
 
-    const { valid, publicSignals } = await proveAndVerify('patience-proof', {
+    await expectUnsatisfiable('patience-proof', {
       startTime: startTime.toString(),
       endTime: '2000',
       secret: secret.toString(),
       minimumWaitTime: '3600',
       commitmentHash: commitmentHash.toString(),
     });
-    expect(valid).toBe(true);
-    // BUG DOCUMENTED: isValid=0 but proof valid
-    expect(publicSignals[0]).toBe('0');
   }, 30000);
 });
 
@@ -286,19 +272,16 @@ describe('viewing-key-proof', () => {
     expect(publicSignals[0]).toBe('1');
   }, 30000);
 
-  it('wrong viewing key -> isAuthorized=0 (no hard constraint)', async () => {
+  it('INVALID: wrong viewing key -> circuit unsatisfiable (isAuthorized===1)', async () => {
     const viewingKey = BigInt(111);
     const salt = BigInt(222);
     const viewingKeyHash = poseidon2([viewingKey, salt]);
 
-    const { valid, publicSignals } = await proveAndVerify('viewing-key-proof', {
+    await expectUnsatisfiable('viewing-key-proof', {
       viewingKey: '999',
       salt: salt.toString(),
       viewingKeyHash: viewingKeyHash.toString(),
     });
-    expect(valid).toBe(true);
-    // BUG DOCUMENTED: isAuthorized=0 but proof valid
-    expect(publicSignals[0]).toBe('0');
   }, 30000);
 });
 
@@ -455,12 +438,12 @@ describe('whale-holder', () => {
     expect(publicSignals[0]).toBe('1');
   }, 60000);
 
-  it('balance 5M < 10M minimum -> hasMinimum=0 (no hard constraint)', async () => {
+  it('INVALID: balance 5M < 10M minimum -> circuit unsatisfiable (hasMinimum===1)', async () => {
     const address = BigInt(123456789);
     const balance = BigInt(5000000);
     const { root, pathElements, pathIndices } = buildWhaleTree(address, balance);
 
-    const { valid, publicSignals } = await proveAndVerify('whale-holder', {
+    await expectUnsatisfiable('whale-holder', {
       address: address.toString(),
       balance: balance.toString(),
       pathElements,
@@ -469,9 +452,6 @@ describe('whale-holder', () => {
       root: root.toString(),
       minimumBalance: '10000000',
     });
-    expect(valid).toBe(true);
-    // BUG DOCUMENTED: hasMinimum=0 but proof valid
-    expect(publicSignals[0]).toBe('0');
   }, 60000);
 
   it('INVALID: wrong root -> circuit unsatisfiable', async () => {

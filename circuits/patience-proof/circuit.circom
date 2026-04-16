@@ -56,8 +56,8 @@ template PatienceProof() {
     proofHasher.inputs[2] <== secret;
     proofHash <== proofHasher.out;
     
-    // Constraint: output must be 0 or 1
     isValid * (isValid - 1) === 0;
+    isValid === 1;
 }
 
 component main {public [minimumWaitTime, commitmentHash]} = PatienceProof();
