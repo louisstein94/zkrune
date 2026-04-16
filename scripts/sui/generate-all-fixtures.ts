@@ -20,7 +20,7 @@ import {
   convertPublicInputsForSui,
   convertVKForSui,
   bytesToHex,
-} from '../../lib/sui/converter.ts';
+} from '../../lib/sui/converter';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
@@ -70,7 +70,7 @@ async function buildFixture(meta: CircuitMeta) {
 
   return {
     meta,
-    skipped: null as string | null,
+    skipped: null,
     vkHex: bytesToHex(vkBytes),
     proofHex: bytesToHex(proofPointsBytes),
     inputsHex: bytesToHex(publicInputsBytes),

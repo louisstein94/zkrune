@@ -27,7 +27,7 @@ import {
   convertProofForSui,
   convertPublicInputsForSui,
   bytesToHex,
-} from '../../lib/sui/converter.ts';
+} from '../../lib/sui/converter';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = join(__dirname, '..', '..');
