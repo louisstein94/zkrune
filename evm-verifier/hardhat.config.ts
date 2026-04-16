@@ -44,6 +44,11 @@ const config: HardhatUserConfig = {
       url: process.env.BASE_SEPOLIA_RPC_URL || "https://sepolia.base.org",
       accounts: REMOTE_ACCOUNTS,
     },
+    base: {
+      url: process.env.BASE_RPC_URL || "https://mainnet.base.org",
+      accounts: REMOTE_ACCOUNTS,
+      chainId: 8453,
+    },
   },
 };
 
