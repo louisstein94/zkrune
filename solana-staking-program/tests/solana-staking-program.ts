@@ -148,6 +148,8 @@ describe("zkrune-staking", () => {
 
   describe("initialize", () => {
     it("should initialize staking pool", async () => {
+      // Step 1: Initialize the pool (no vault accounts here — lib.rs
+      // Initialize struct only takes authority + tokenMint + stakingPool)
       const tx = await program.methods
         .initialize({
           minStakeAmount: new BN(MIN_STAKE),
@@ -161,7 +163,37 @@ describe("zkrune-staking", () => {
           authority: mintAuthority.publicKey,
           tokenMint: tokenMint,
           stakingPool: stakingPoolPda,
+          systemProgram: SystemProgram.programId,
+        })
+        .signers([mintAuthority])
+        .rpc();
+
+      console.log("Initialize tx:", tx);
+
+      // Step 2: Create stake vault (separate instruction)
+      const stakeVaultTx = await program.methods
+        .createStakeVault()
+        .accounts({
+          authority: mintAuthority.publicKey,
+          tokenMint: tokenMint,
+          stakingPool: stakingPoolPda,
           stakeVault: stakeVaultPda,
+          systemProgram: SystemProgram.programId,
+          tokenProgram: TOKEN_PROGRAM_ID,
+          rent: anchor.web3.SYSVAR_RENT_PUBKEY,
+        })
+        .signers([mintAuthority])
+        .rpc();
+
+      console.log("Create stake vault tx:", stakeVaultTx);
+
+      // Step 3: Create reward vault (separate instruction)
+      const rewardVaultTx = await program.methods
+        .createRewardVault()
+        .accounts({
+          authority: mintAuthority.publicKey,
+          tokenMint: tokenMint,
+          stakingPool: stakingPoolPda,
           rewardVault: rewardVaultPda,
           systemProgram: SystemProgram.programId,
           tokenProgram: TOKEN_PROGRAM_ID,
@@ -170,7 +202,7 @@ describe("zkrune-staking", () => {
         .signers([mintAuthority])
         .rpc();
 
-      console.log("Initialize tx:", tx);
+      console.log("Create reward vault tx:", rewardVaultTx);
 
       // Verify pool state
       const pool = await program.account.stakingPool.fetch(stakingPoolPda);
@@ -195,6 +227,10 @@ describe("zkrune-staking", () => {
         365 * 24 * 60 * 60
       );
       expect(pool.lockPeriods[3].multiplierBps).to.equal(30000); // 3.0x
+
+      // Verify vault addresses are set
+      expect(pool.stakeVault.toString()).to.equal(stakeVaultPda.toString());
+      expect(pool.rewardVault.toString()).to.equal(rewardVaultPda.toString());
     });
   });
 

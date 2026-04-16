@@ -10,13 +10,13 @@ skip-lint = false
 zkrune_staking = "44ToPJzWsnqJRhvFS5wXLsgWGWpbe3YwhU9t8LkQBRiX"
 
 [programs.localnet]
-zkrune_staking = "8EzHiZqRJN3FYpUBqRRWgXpycT6uzLnNpgBHfqm3qLyu"
+zkrune_staking = "44ToPJzWsnqJRhvFS5wXLsgWGWpbe3YwhU9t8LkQBRiX"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "devnet"
+cluster = "localnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
