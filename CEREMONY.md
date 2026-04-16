@@ -93,6 +93,24 @@ Hash: [your-contribution-hash]
 | signature-verification | Verify signatures privately | Privacy Tooling |
 | token-swap | Private token swaps | Private Payments |
 
+## API Endpoints & Admin Auth
+
+The ceremony REST API (`/api/ceremony/*`) is gated to prevent anonymous
+poisoning of the trusted setup:
+
+- `GET /api/ceremony` — public, returns contribution list.
+- `POST /api/ceremony` — **admin-only**. Requires
+  `Authorization: Bearer <CEREMONY_ADMIN_TOKEN>`.
+- `POST /api/ceremony/sync` — **admin-only**.
+- `POST /api/ceremony/zkey` — **admin-only**, file validation applied.
+
+`CEREMONY_ADMIN_TOKEN` must be ≥16 chars and set server-side. If missing
+or too short, all admin POSTs fail closed with `503 Ceremony admin auth
+not configured`.
+
+Community contributors participate via the CLI flow below — the API
+exists to sync CLI contributions into the public ceremony record.
+
 ## Ceremony Timeline
 
 | Phase | Status | Description |
