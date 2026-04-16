@@ -21,7 +21,6 @@ import { dirname, join } from 'path';
 import { config as loadEnv } from 'dotenv';
 import { SuiClient, getFullnodeUrl } from '@mysten/sui/client';
 import { Transaction } from '@mysten/sui/transactions';
-import { bcs } from '@mysten/sui/bcs';
 import * as snarkjs from 'snarkjs';
 
 import {
@@ -81,8 +80,8 @@ async function callVerifyStatic(client, proofBytes, inputsBytes) {
     arguments: [
       tx.object(REGISTRY_ID),
       tx.pure.u8(TEMPLATE_ID),
-      tx.pure(bcs.vector(bcs.U8).serialize(Array.from(proofBytes)).toBytes()),
-      tx.pure(bcs.vector(bcs.U8).serialize(Array.from(inputsBytes)).toBytes()),
+      tx.pure.vector('u8', Array.from(proofBytes)),
+      tx.pure.vector('u8', Array.from(inputsBytes)),
     ],
   });
 

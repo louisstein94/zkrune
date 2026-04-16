@@ -15,7 +15,8 @@
     "sui:move:build": "sui move build --path sui-groth16-verifier -e testnet",
     "sui:move:test": "sui move test --path sui-groth16-verifier -e testnet",
     "sui:deploy:devnet": "bash scripts/sui/deploy-devnet.sh",
-    "sui:register:devnet": "node scripts/sui/register-circuits.mjs"
+    "sui:register:devnet": "node scripts/sui/register-circuits.mjs",
+    "sui:update": "node scripts/sui/update-circuits.mjs"
   },
   "dependencies": {
     "@ai-sdk/anthropic": "^3.0.64",

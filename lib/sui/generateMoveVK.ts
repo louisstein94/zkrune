@@ -40,13 +40,16 @@ function generateAll(): CircuitVKData[] {
   console.log('Generating Sui VK data for all circuits...\n');
 
   for (const circuit of CIRCUITS) {
+    // public/circuits/<name>_vkey.json is the canonical artifact that the
+    // frontend + fixture tests consume — circuits/<name>/verification_key.json
+    // is an older intermediate and can drift out of sync after recompilation.
     const vkPath = path.join(
       __dirname,
-      `../../circuits/${circuit.name}/verification_key.json`,
+      `../../public/circuits/${circuit.name}_vkey.json`,
     );
 
     if (!fs.existsSync(vkPath)) {
-      console.log(`⚠️  Skipping ${circuit.name} - verification_key.json not found`);
+      console.log(`⚠️  Skipping ${circuit.name} - ${circuit.name}_vkey.json not found`);
       continue;
     }
 
