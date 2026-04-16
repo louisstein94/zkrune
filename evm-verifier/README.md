@@ -2,6 +2,14 @@
 
 Deploy and verify Groth16 proofs on Base Sepolia, Ethereum Sepolia, or Base/Ethereum mainnet.
 
+## Current mainnet deployment
+
+| Network | Chain ID | Contract |
+|---------|----------|----------|
+| Base mainnet | 8453 | [`0xa03A353d890033aC9b3044776440C2a4c9E849EA`](https://basescan.org/address/0xa03A353d890033aC9b3044776440C2a4c9E849EA) |
+
+14 circuits registered. `verifyProofStatic` is a `view` function — frontend reads it via viem without any wallet or gas.
+
 ## Base Sepolia deploy
 
 1. Get test ETH: [Coinbase CDP Faucet](https://portal.cdp.coinbase.com/products/faucet) or [Alchemy Base Sepolia](https://www.alchemy.com/faucets/base-sepolia).

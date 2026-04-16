@@ -3,10 +3,11 @@
 <div align="center">
   <img src="public/zkrune-log.png" alt="zkRune" width="120" />
   
-  ### Privacy Verification Infrastructure for Solana
-  
+  ### Multi-Chain Privacy Verification — Solana · Sui · Base
+
   Embeddable zero-knowledge verification for access, eligibility, and identity.
-  
+  Same proof, three chains.
+
   **100% client-side Groth16 proofs — secrets never leave the device.**
   
   [![Live](https://img.shields.io/badge/Live-zkrune.com-00FFA3?style=for-the-badge)](https://zkrune.com)
@@ -28,22 +29,64 @@ Verification today forces users to hand over raw data — birthdates for age gat
 
 ## At a Glance
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  13 Production Circuits  │  <1s Generation  │  0 Server Calls    │
-├──────────────────────────────────────────────────────────────────┤
-│  Real Groth16 zk-SNARKs  │  100% Client-Side  │  Solana Ready    │
-└──────────────────────────────────────────────────────────────────┘
-```
+<div align="center">
 
-| Metric | Value |
-|--------|-------|
-| Circuits | 13 production-ready |
-| Proof Generation | 0.4–5 seconds |
-| Proof Size | ~200 bytes |
-| Verification Time | <2ms |
-| Server Calls | **0** (100% browser) |
-| Privacy Level | **Complete** |
+<table>
+  <tr>
+    <td align="center"><b>13</b><br/><sub>Production Circuits</sub></td>
+    <td align="center"><b>&lt;1s</b><br/><sub>Proof Generation</sub></td>
+    <td align="center"><b>0</b><br/><sub>Server Calls</sub></td>
+  </tr>
+  <tr>
+    <td align="center">Real Groth16 zk-SNARKs</td>
+    <td align="center">100% Client-Side</td>
+    <td align="center">3 Chains Live</td>
+  </tr>
+</table>
+
+</div>
+
+<h3 align="center">On-chain verifiers (mainnet)</h3>
+
+<div align="center">
+
+<table>
+  <tr>
+    <th>Chain</th>
+    <th>Contract / Package</th>
+  </tr>
+  <tr>
+    <td align="center"><b>Solana</b></td>
+    <td><a href="https://solscan.io/account/9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad"><code>9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad</code></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Sui</b></td>
+    <td><a href="https://suiscan.xyz/mainnet/object/0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5"><code>0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5</code></a></td>
+  </tr>
+  <tr>
+    <td align="center"><b>Base</b></td>
+    <td><a href="https://basescan.org/address/0xa03A353d890033aC9b3044776440C2a4c9E849EA"><code>0xa03A353d890033aC9b3044776440C2a4c9E849EA</code></a></td>
+  </tr>
+</table>
+
+</div>
+
+<div align="center">
+
+<table>
+  <tr>
+    <th>Metric</th>
+    <th>Value</th>
+  </tr>
+  <tr><td>Circuits</td><td>13 production-ready (14th registered on Base as beta)</td></tr>
+  <tr><td>Proof Generation</td><td>0.4–5 seconds</td></tr>
+  <tr><td>Proof Size</td><td>~200 bytes</td></tr>
+  <tr><td>Verification Time</td><td>&lt;2ms</td></tr>
+  <tr><td>Server Calls</td><td><b>0</b> (100% browser)</td></tr>
+  <tr><td>Privacy Level</td><td><b>Complete</b></td></tr>
+</table>
+
+</div>
 
 ---
 
@@ -115,8 +158,9 @@ const { proof, publicSignals } = await zk.prove('age-verification', {
 | Layer | Technology |
 |-------|------------|
 | Frontend | Next.js 14, TypeScript, Tailwind CSS |
-| ZK System | Circom + snarkjs (Groth16) |
-| Blockchain | Solana (SPL Token) |
+| ZK System | Circom + snarkjs (Groth16, BN254) |
+| On-chain verifiers | Solana (altbn254 syscalls), Sui (native `sui::groth16`), Base (Solidity pairing precompile) |
+| Token / Staking | Solana (SPL + Anchor) |
 | Mobile | React Native + Expo |
 | Hosting | Vercel |
 
@@ -158,7 +202,7 @@ zkrune/
 │       ├── verify-proof/    # Proof verification endpoint
 │       └── token-stats/     # Live token data
 ├── components/              # React components
-├── circuits/                # 13 Circom ZK circuits
+├── circuits/                # Circom circuits (13 active, more in development)
 ├── lib/
 │   ├── clientZkProof.ts    # Client-side ZK library
 │   ├── hooks/              # React hooks
@@ -218,7 +262,7 @@ Contributions welcome. Priority areas:
 
 - Custom ZK circuit templates
 - SDK and widget improvements
-- Solana program integrations
+- On-chain program / contract work (Solana, Sui, Base)
 - Mobile app development
 
 ---
