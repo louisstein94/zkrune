@@ -2,6 +2,16 @@
 
 import { useState } from "react";
 import { SolanaVerifier } from "./SolanaVerifier";
+import { SuiVerifier } from "./SuiVerifier";
+import { BaseVerifier } from "./BaseVerifier";
+
+type ChainTab = "solana" | "sui" | "base";
+
+const CHAIN_LABELS: Record<ChainTab, string> = {
+  solana: "Solana",
+  sui: "Sui",
+  base: "Base",
+};
 
 interface ProofExportProps {
   proof: any;
@@ -11,6 +21,7 @@ interface ProofExportProps {
 export default function ProofExport({ proof, templateId }: ProofExportProps) {
   const [exportFormat, setExportFormat] = useState<"json" | "code">("json");
   const [copied, setCopied] = useState(false);
+  const [chain, setChain] = useState<ChainTab>("solana");
 
   const generateJSON = () => {
     return JSON.stringify(
@@ -184,13 +195,48 @@ if (isValid) {
         </div>
       </div>
       
-      {/* Solana On-Chain Verification */}
+      {/* Multi-chain On-Chain Verification */}
       {(proof.groth16Proof || proof.proof) && proof.publicSignals && (
-        <SolanaVerifier 
-            proof={proof.groth16Proof || proof.proof} 
-            publicSignals={proof.publicSignals} 
-            templateId={templateId}
-        />
+        <div className="mt-6">
+          <div className="flex items-center gap-2 mb-3">
+            <span className="text-xs text-zk-gray uppercase tracking-wide">Verify on-chain:</span>
+            {(Object.keys(CHAIN_LABELS) as ChainTab[]).map((id) => (
+              <button
+                key={id}
+                onClick={() => setChain(id)}
+                className={`px-3 py-1 rounded-full text-xs font-medium transition-all ${
+                  chain === id
+                    ? "bg-zk-primary text-white"
+                    : "bg-white/5 text-zk-gray hover:bg-white/10"
+                }`}
+              >
+                {CHAIN_LABELS[id]}
+              </button>
+            ))}
+          </div>
+
+          {chain === "solana" && (
+            <SolanaVerifier
+              proof={proof.groth16Proof || proof.proof}
+              publicSignals={proof.publicSignals}
+              templateId={templateId}
+            />
+          )}
+          {chain === "sui" && (
+            <SuiVerifier
+              proof={proof.groth16Proof || proof.proof}
+              publicSignals={proof.publicSignals}
+              templateId={templateId}
+            />
+          )}
+          {chain === "base" && (
+            <BaseVerifier
+              proof={proof.groth16Proof || proof.proof}
+              publicSignals={proof.publicSignals}
+              templateId={templateId}
+            />
+          )}
+        </div>
       )}
     </div>
   );

@@ -53,17 +53,12 @@ export default function Home() {
                 Groth16 ZK-SNARKs
               </span>
             </div>
-            <a
-              href="https://solscan.io/account/9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 border border-zk-secondary/40 bg-zk-secondary/10 rounded-full backdrop-blur-sm hover:bg-zk-secondary/20 transition-colors"
-            >
+            <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-secondary/40 bg-zk-secondary/10 rounded-full backdrop-blur-sm">
               <div className="w-2 h-2 rounded-full bg-zk-secondary" />
               <span className="text-xs font-bold text-zk-secondary uppercase tracking-wider">
-                Solana Mainnet Verified
+                Solana · Sui · Base mainnet
               </span>
-            </a>
+            </div>
           </div>
 
           {/* Hero Text */}
@@ -74,7 +69,7 @@ export default function Home() {
               <span className="text-zk-primary">Exposing</span>.
             </h2>
             <p className="text-lg md:text-xl text-zk-gray max-w-xl mx-auto lg:mx-0">
-              Embeddable zero-knowledge verification for access, eligibility, and identity on <span className="text-zk-accent font-semibold">Solana</span>. Secrets never leave the device.
+              Embeddable zero-knowledge verification for access, eligibility, and identity across <span className="text-zk-accent font-semibold">Solana, Sui, and Base</span>. Secrets never leave the device.
             </p>
             <p className="text-sm text-zk-primary/80 max-w-xl mx-auto lg:mx-0 flex items-center gap-2">
               <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
