@@ -1,9 +1,8 @@
 {
-  "voterId": "123456789",
+  "voterId": "7",
   "tokenBalance": "10000",
-  "voteChoice": "2",
+  "voteChoice": "1",
+  "sqrtVal": "100",
   "pollId": "42",
   "minTokens": "100"
 }
-
-
