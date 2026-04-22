@@ -36,6 +36,20 @@ const DEFAULT_STATS: TokenStats = {
   lastUpdated: new Date().toISOString()
 };
 
+// The API can return null for fields it could not resolve (e.g. circulatingSupply,
+// burned). The UI formatters call .toFixed() directly, so a null leaks through as
+// a render-time crash that breaks hydration for the whole tree.
+function mergeWithDefaults(data: Partial<TokenStats>): TokenStats {
+  const merged = { ...DEFAULT_STATS };
+  for (const key of Object.keys(DEFAULT_STATS) as (keyof TokenStats)[]) {
+    const v = data[key];
+    if (v !== null && v !== undefined) {
+      (merged as Record<string, unknown>)[key] = v;
+    }
+  }
+  return merged;
+}
+
 export function useTokenStats(): UseTokenStatsResult {
   const [stats, setStats] = useState<TokenStats | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -50,7 +64,7 @@ export function useTokenStats(): UseTokenStatsResult {
       const data = await response.json();
 
       if (data.success && data.data) {
-        setStats(data.data);
+        setStats(mergeWithDefaults(data.data));
       } else {
         setStats(DEFAULT_STATS);
       }
