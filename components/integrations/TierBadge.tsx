@@ -1,4 +1,4 @@
-import type { IntegrationTier } from "@/data/integrations";
+import type { IntegrationTier } from "@/lib/integrations";
 
 const STYLES: Record<IntegrationTier, string> = {
   Reference:

@@ -1,4 +1,4 @@
-import type { Integration } from "@/data/integrations";
+import type { Integration } from "@/lib/integrations";
 import { IntegrationCard } from "./IntegrationCard";
 
 export function IntegrationGrid({

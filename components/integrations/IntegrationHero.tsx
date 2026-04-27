@@ -1,4 +1,4 @@
-import type { Integration } from "@/data/integrations";
+import type { Integration } from "@/lib/integrations";
 import { TierBadge } from "./TierBadge";
 import { ChainBadge } from "./ChainBadge";
 

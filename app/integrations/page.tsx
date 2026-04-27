@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { integrations } from "@/data/integrations";
+import { integrations } from "@/lib/integrations";
 import { IntegrationGrid } from "@/components/integrations/IntegrationGrid";
 
 export const metadata: Metadata = {

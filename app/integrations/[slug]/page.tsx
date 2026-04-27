@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { getIntegration, integrations } from "@/data/integrations";
+import { getIntegration, integrations } from "@/lib/integrations";
 import { IntegrationHero } from "@/components/integrations/IntegrationHero";
 
 export function generateStaticParams() {

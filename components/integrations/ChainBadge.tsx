@@ -1,4 +1,4 @@
-import type { IntegrationChain } from "@/data/integrations";
+import type { IntegrationChain } from "@/lib/integrations";
 
 const STYLES: Record<IntegrationChain, string> = {
   Solana: "border-purple-400/40 bg-purple-500/10 text-purple-300",

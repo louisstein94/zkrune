@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { getIntegration } from "@/data/integrations";
+import { getIntegration } from "@/lib/integrations";
 import { IntegrationHero } from "@/components/integrations/IntegrationHero";
 import { ArchitectureDiagram } from "@/components/integrations/ArchitectureDiagram";
 import { XonaDemo } from "@/components/integrations/xona/XonaDemo";
