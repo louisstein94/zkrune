@@ -1,11 +1,16 @@
 import type { Metadata } from "next";
-import { integrations } from "@/lib/integrations";
+import {
+  integrations,
+  getIntegrationsByCategory,
+  CATEGORY_ORDER,
+  CATEGORY_BLURBS,
+} from "@/lib/integrations";
 import { IntegrationGrid } from "@/components/integrations/IntegrationGrid";
 
 export const metadata: Metadata = {
-  title: "zkRune for the Agent Economy — Integrations",
+  title: "zkRune across Agents and Browsers — Integrations",
   description:
-    "Privacy verification reference designs for x402 agents, AI marketplaces, and onchain creators. One ZK layer, multiple ecosystems.",
+    "Privacy verification reference designs across the agent economy and browser surfaces. One ZK layer, two markets.",
   alternates: { canonical: "https://zkrune.com/integrations" },
 };
 
@@ -13,6 +18,8 @@ const referenceCount = integrations.filter((i) => i.tier === "Reference").length
 const conceptCount = integrations.filter((i) => i.tier === "Concept").length;
 
 export default function IntegrationsIndex() {
+  const grouped = getIntegrationsByCategory();
+
   return (
     <>
       <section className="px-6 md:px-12 lg:px-16 pt-32 pb-12">
@@ -25,14 +32,15 @@ export default function IntegrationsIndex() {
           </div>
 
           <h1 className="font-hatton text-4xl md:text-5xl lg:text-6xl text-white leading-tight mb-5">
-            zkRune for the
+            zkRune across
             <br />
-            <span className="text-zk-primary">agent economy</span>.
+            <span className="text-zk-primary">agents and browsers</span>.
           </h1>
           <p className="text-lg md:text-xl text-zk-gray max-w-3xl leading-relaxed">
-            Privacy verification reference designs for x402 agents, AI
-            marketplaces, and onchain creators. One ZK layer — Solana, Sui, and
-            Base — wired into the projects already shipping.
+            One ZK layer, two surfaces. Embedded as a primitive in the agent
+            economy — x402 endpoints, AI marketplaces, onchain creators.
+            Surfaced as a browser-native proof in the consumer web — wallets,
+            extensions, every place a site asks for personal data.
           </p>
 
           <div className="mt-8 flex flex-wrap gap-6 text-sm text-zk-gray">
@@ -62,8 +70,28 @@ export default function IntegrationsIndex() {
       </section>
 
       <section className="px-6 md:px-12 lg:px-16 pb-20">
-        <div className="max-w-7xl mx-auto">
-          <IntegrationGrid integrations={integrations} />
+        <div className="max-w-7xl mx-auto space-y-16">
+          {CATEGORY_ORDER.map((category) => {
+            const items = grouped[category];
+            if (items.length === 0) return null;
+            return (
+              <div key={category}>
+                <div className="flex items-baseline justify-between mb-2">
+                  <h2 className="font-hatton text-2xl md:text-3xl text-white">
+                    {category}
+                  </h2>
+                  <span className="text-xs uppercase tracking-[0.18em] text-zk-gray/70">
+                    {items.length}{" "}
+                    integration{items.length !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <p className="text-sm text-zk-gray max-w-3xl mb-6 leading-relaxed">
+                  {CATEGORY_BLURBS[category]}
+                </p>
+                <IntegrationGrid integrations={items} />
+              </div>
+            );
+          })}
         </div>
       </section>
 
