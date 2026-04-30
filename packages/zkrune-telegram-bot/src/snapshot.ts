@@ -17,10 +17,14 @@ import {
   TREE_DEPTH,
 } from "./merkle";
 
-const MINT_ADDRESS = "51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump";
-const DECIMALS = 6;
+const MINT_ADDRESS =
+  process.env.TOKEN_MINT || "51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump";
+const DECIMALS = Number(process.env.TOKEN_DECIMALS || 6);
 const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
-const DATA_DIR = path.resolve(__dirname, "../data");
+const DATA_DIR = path.resolve(
+  __dirname,
+  process.env.DATA_DIR || "../data",
+);
 
 let currentSnapshot: Snapshot | null = null;
 let refreshTimer: ReturnType<typeof setInterval> | null = null;

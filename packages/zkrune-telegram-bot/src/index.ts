@@ -1,5 +1,5 @@
 import "dotenv/config";
-import { Bot } from "grammy";
+import { Bot, Context } from "grammy";
 import * as fs from "fs";
 import * as path from "path";
 import { startSnapshotCron } from "./snapshot";
@@ -11,8 +11,17 @@ const snarkjs = require("snarkjs");
 // ── Config ───────────────────────────────────────────────────────────────────
 
 const BOT_TOKEN = process.env.BOT_TOKEN;
-const WHALE_GROUP_ID = process.env.WHALE_GROUP_ID;
-const PROOF_URL = process.env.PROOF_URL || "https://zkrune.com/whale-chat";
+const WHALE_INVITE_URL = process.env.WHALE_INVITE_URL || "";
+const MINI_APP_URL = process.env.MINI_APP_URL || "";
+const PROOF_URL = process.env.PROOF_URL || MINI_APP_URL || "https://zkrune.com/whale-chat";
+const TOKEN_SYMBOL = process.env.TOKEN_SYMBOL || "zkRUNE";
+const TOKEN_NAME = process.env.TOKEN_NAME || "zkRune";
+const EXPECTED_MIN_BALANCE = process.env.EXPECTED_MIN_BALANCE
+  ? BigInt(process.env.EXPECTED_MIN_BALANCE)
+  : null;
+const INVITE_TTL_SECONDS = Number(process.env.INVITE_TTL_SECONDS || 30);
+const STORE_DIR = path.resolve(__dirname, process.env.STORE_DIR || "..");
+
 const VKEY_PATH =
   process.env.VKEY_PATH ||
   path.resolve(__dirname, "../keys/whale-holder_vkey.json");
@@ -33,25 +42,39 @@ try {
   process.exit(1);
 }
 
-// ── Nullifier store (flat file, survives restarts) ──────────────────────────
+// ── Persistent stores (flat files, survive restarts) ────────────────────────
 
-const NULLIFIER_FILE = path.resolve(__dirname, "../nullifiers.json");
+if (!fs.existsSync(STORE_DIR)) fs.mkdirSync(STORE_DIR, { recursive: true });
 
-function loadNullifiers(): Set<string> {
+const NULLIFIER_FILE = path.resolve(STORE_DIR, "nullifiers.json");
+const VERIFIED_USERS_FILE = path.resolve(STORE_DIR, "verified-users.json");
+
+function loadJsonSet(file: string): Set<string> {
   try {
-    const data = JSON.parse(fs.readFileSync(NULLIFIER_FILE, "utf-8"));
-    return new Set(data);
+    return new Set(JSON.parse(fs.readFileSync(file, "utf-8")));
   } catch {
     return new Set();
   }
 }
 
-function saveNullifier(nullifier: string): boolean {
-  const set = loadNullifiers();
-  if (set.has(nullifier)) return false;
-  set.add(nullifier);
-  fs.writeFileSync(NULLIFIER_FILE, JSON.stringify([...set], null, 2));
+function saveJsonSet(file: string, set: Set<string>): void {
+  fs.writeFileSync(file, JSON.stringify([...set], null, 2));
+}
+
+function tryAddToSet(file: string, value: string): boolean {
+  const set = loadJsonSet(file);
+  if (set.has(value)) return false;
+  set.add(value);
+  saveJsonSet(file, set);
   return true;
+}
+
+function isUserVerified(userId: number): boolean {
+  return loadJsonSet(VERIFIED_USERS_FILE).has(String(userId));
+}
+
+function markUserVerified(userId: number): void {
+  tryAddToSet(VERIFIED_USERS_FILE, String(userId));
 }
 
 // ── Proof verification ──────────────────────────────────────────────────────
@@ -80,9 +103,26 @@ async function verifyProof(
     return { valid: false, reason: "Balance threshold not met (hasMinimum=0)." };
   }
 
+  // Sanity-check that the proof was generated for our expected threshold,
+  // not some lower value — the circuit would otherwise accept any holder.
+  if (EXPECTED_MIN_BALANCE !== null) {
+    let provedMin: bigint;
+    try {
+      provedMin = BigInt(payload.publicSignals[3]);
+    } catch {
+      return { valid: false, reason: "minimumBalance public signal invalid." };
+    }
+    if (provedMin < EXPECTED_MIN_BALANCE) {
+      return {
+        valid: false,
+        reason: `Proof was generated for a lower threshold (${provedMin}) than required (${EXPECTED_MIN_BALANCE}).`,
+      };
+    }
+  }
+
   // Check nullifier replay
   const nullifier = payload.publicSignals[1];
-  if (!saveNullifier(nullifier)) {
+  if (!tryAddToSet(NULLIFIER_FILE, nullifier)) {
     return { valid: false, reason: "This proof has already been used (nullifier replay)." };
   }
 
@@ -107,46 +147,138 @@ async function verifyProof(
 
 const bot = new Bot(BOT_TOKEN);
 
-bot.command("start", async (ctx) => {
-  await ctx.reply(
-    `🔐 *zkRune Whale Verification Bot*\n\n` +
-      `This bot lets zkRUNE token holders access the whale group ` +
-      `without revealing their identity.\n\n` +
-      `*How it works:*\n` +
-      `1️⃣  Start with /verify\n` +
-      `2️⃣  Generate your ZK proof on the web\n` +
-      `3️⃣  Send the proof JSON file here\n` +
-      `4️⃣  Bot verifies and sends an invite link\n\n` +
-      `Your address and balance are never exposed.`,
-    { parse_mode: "Markdown" }
-  );
-});
+function startVerificationKeyboard() {
+  // Custom reply keyboard with a Mini App button. When the user opens the
+  // app and calls Telegram.WebApp.sendData(...), the bot receives a
+  // message:web_app_data event — no HTTP server hop, no admin rights.
+  if (!MINI_APP_URL) return undefined;
+  return {
+    keyboard: [[{ text: `🐋 Verify ${TOKEN_SYMBOL} Whale`, web_app: { url: MINI_APP_URL } }]],
+    resize_keyboard: true,
+    one_time_keyboard: true,
+  };
+}
 
-bot.command("verify", async (ctx) => {
-  await ctx.reply(
-    `🐋 *Whale Verification*\n\n` +
-      `Follow these steps:\n\n` +
-      `1. [Click this link](${PROOF_URL}) and generate your ZK proof\n` +
-      `2. Click "Export Proof JSON"\n` +
-      `3. Send the downloaded \`zkrune-whale-proof.json\` file here\n\n` +
-      `Your proof will be verified against the snapshot Merkle root. ` +
-      `Your address and balance never appear in the proof — only "does this holder meet the threshold?" is verified.`,
-    { parse_mode: "Markdown" }
+function startVerificationMessage(): string {
+  if (MINI_APP_URL) {
+    return (
+      `🐋 *${TOKEN_NAME} Whale Verification*\n\n` +
+      `Tap the button below to open the proof generator inside Telegram. ` +
+      `Connect your wallet, generate the proof in ~10–40 seconds, and the result ` +
+      `comes straight back to me.\n\n` +
+      `Your address and exact balance never leave your browser.`
+    );
+  }
+  // Fallback: legacy text instructions when no Mini App is configured
+  return (
+    `🐋 *${TOKEN_NAME} Whale Verification*\n\n` +
+    `Prove you are a whale holder without revealing your address or balance.\n\n` +
+    `*How it works:*\n` +
+    `1️⃣  [Open the proof page](${PROOF_URL}) and connect your wallet\n` +
+    `2️⃣  Generate the ZK proof (10–40 seconds in your browser)\n` +
+    `3️⃣  Send the exported proof JSON to me here`
   );
-});
+}
+
+async function sendStart(ctx: Context) {
+  const userId = ctx.from?.id;
+  if (userId && isUserVerified(userId)) {
+    await ctx.reply(
+      `✅ You are already verified.\n\n` +
+        `If you lost the invite link, contact a group admin.`,
+    );
+    return;
+  }
+  await ctx.reply(startVerificationMessage(), {
+    parse_mode: "Markdown",
+    link_preview_options: { is_disabled: true },
+    reply_markup: startVerificationKeyboard(),
+  });
+}
+
+bot.command("start", sendStart);
+bot.command("verify", sendStart);
 
 bot.command("help", async (ctx) => {
   await ctx.reply(
     `*Commands:*\n` +
-      `/start — About this bot\n` +
-      `/verify — Verification steps\n` +
+      `/start — Begin verification\n` +
       `/help — This message\n\n` +
-      `Send your proof file (JSON) directly to this chat.`,
-    { parse_mode: "Markdown" }
+      (MINI_APP_URL
+        ? `Tap the keyboard button after /start to open the verifier.`
+        : `Send your proof file (JSON) directly to this chat.`),
+    { parse_mode: "Markdown" },
   );
 });
 
-// Handle document (proof JSON)
+// ── Shared verification handler — used by both Mini App and JSON upload paths
+async function handleProof(ctx: Context, payload: ProofPayload): Promise<void> {
+  const userId = ctx.from?.id;
+  if (userId && isUserVerified(userId)) {
+    await ctx.reply(`✅ You are already verified — no need to submit again.`);
+    return;
+  }
+
+  await ctx.reply("⏳ Verifying proof...");
+
+  const result = await verifyProof(payload);
+
+  if (!result.valid) {
+    await ctx.reply(`❌ *Verification failed*\n\n${result.reason}`, {
+      parse_mode: "Markdown",
+    });
+    return;
+  }
+
+  if (userId) markUserVerified(userId);
+
+  let inviteText =
+    `✅ *Proof verified!*\n\n` +
+    `Groth16 ZK-SNARK verification successful.\n` +
+    `Your address and balance remained private — only the threshold claim was proven.`;
+
+  if (WHALE_INVITE_URL) {
+    inviteText +=
+      `\n\n🐋 [Join Whale Chat](${WHALE_INVITE_URL})\n` +
+      `_This link will disappear in ${INVITE_TTL_SECONDS}s — open it now._`;
+  } else {
+    inviteText += `\n\n(No whale group invite configured.)`;
+  }
+
+  const inviteMessage = await ctx.reply(inviteText, {
+    parse_mode: "Markdown",
+    link_preview_options: { is_disabled: true },
+    reply_markup: { remove_keyboard: true },
+  });
+
+  if (WHALE_INVITE_URL) {
+    setTimeout(async () => {
+      try {
+        await bot.api.deleteMessage(
+          inviteMessage.chat.id,
+          inviteMessage.message_id,
+        );
+      } catch (err: any) {
+        console.warn(`[bot] Could not auto-delete invite message: ${err.message}`);
+      }
+    }, INVITE_TTL_SECONDS * 1000);
+  }
+}
+
+// ── Mini App proof receipt ─────────────────────────────────────────────────
+// Triggered when the Mini App calls Telegram.WebApp.sendData(JSON.stringify(payload)).
+bot.on("message:web_app_data", async (ctx) => {
+  let payload: ProofPayload;
+  try {
+    payload = JSON.parse(ctx.message.web_app_data.data) as ProofPayload;
+  } catch (err: any) {
+    await ctx.reply(`❌ Could not parse Mini App payload: ${err.message}`);
+    return;
+  }
+  await handleProof(ctx, payload);
+});
+
+// ── Manual JSON upload (fallback for power users) ──────────────────────────
 bot.on("message:document", async (ctx) => {
   const doc = ctx.message.document;
 
@@ -157,51 +289,20 @@ bot.on("message:document", async (ctx) => {
     return;
   }
 
-  await ctx.reply("⏳ Verifying proof...");
-
+  let payload: ProofPayload;
   try {
     const file = await ctx.getFile();
     const url = `https://api.telegram.org/file/bot${BOT_TOKEN}/${file.file_path}`;
     const res = await fetch(url);
-    const payload = (await res.json()) as ProofPayload;
-
-    const result = await verifyProof(payload);
-
-    if (result.valid) {
-      let inviteMsg =
-        `✅ *Proof verified!*\n\n` +
-        `Groth16 ZK-SNARK verification successful.\n` +
-        `Your address and balance remained private — only the threshold claim was proven.`;
-
-      if (WHALE_GROUP_ID) {
-        try {
-          const invite = await bot.api.createChatInviteLink(WHALE_GROUP_ID, {
-            member_limit: 1,
-            name: `zkproof-${Date.now()}`,
-          });
-          inviteMsg +=
-            `\n\n🐋 [Join Whale Chat](${invite.invite_link})\n` +
-            `_This link is single-use._`;
-        } catch {
-          inviteMsg += `\n\n⚠️ Could not generate invite link. Contact the group admin.`;
-        }
-      }
-
-      await ctx.reply(inviteMsg, { parse_mode: "Markdown" });
-    } else {
-      await ctx.reply(`❌ *Verification failed*\n\n${result.reason}`, {
-        parse_mode: "Markdown",
-      });
-    }
+    payload = (await res.json()) as ProofPayload;
   } catch (err: any) {
     await ctx.reply(
-      `❌ Could not read proof file or invalid format.\n\n` +
-        `Please send the file exported via "Export Proof JSON" ` +
-        `from zkrune.com/whale-chat.\n\n` +
-        `Error: \`${err.message}\``,
-      { parse_mode: "Markdown" }
+      `❌ Could not read proof file.\n\nError: \`${err.message}\``,
+      { parse_mode: "Markdown" },
     );
+    return;
   }
+  await handleProof(ctx, payload);
 });
 
 // ── Launch ───────────────────────────────────────────────────────────────────
@@ -217,9 +318,13 @@ async function launchBot(retries = 5): Promise<void> {
       await bot.api.deleteWebhook({ drop_pending_updates: true });
       await bot.start({
         onStart: () => {
-          console.log("[zkrune-bot] Whale verification bot is running");
-          console.log("[zkrune-bot] Proof URL:", PROOF_URL);
-          console.log("[zkrune-bot] Group ID:", WHALE_GROUP_ID || "(not set)");
+          console.log(`[${TOKEN_SYMBOL}-bot] Whale verification bot is running`);
+          console.log(`[${TOKEN_SYMBOL}-bot] Token:       ${TOKEN_NAME} (${TOKEN_SYMBOL})`);
+          console.log(`[${TOKEN_SYMBOL}-bot] Mini App:    ${MINI_APP_URL || "(not set)"}`);
+          console.log(`[${TOKEN_SYMBOL}-bot] Proof URL:   ${PROOF_URL}`);
+          console.log(`[${TOKEN_SYMBOL}-bot] Invite URL:  ${WHALE_INVITE_URL ? "(set)" : "(not set)"}`);
+          console.log(`[${TOKEN_SYMBOL}-bot] Invite TTL:  ${INVITE_TTL_SECONDS}s`);
+          console.log(`[${TOKEN_SYMBOL}-bot] Store dir:   ${STORE_DIR}`);
         },
       });
       return;
@@ -227,7 +332,7 @@ async function launchBot(retries = 5): Promise<void> {
       if (err?.error_code === 409 && attempt < retries) {
         const delay = attempt * 3000;
         console.warn(
-          `[zkrune-bot] Conflict (attempt ${attempt}/${retries}), retrying in ${delay / 1000}s...`
+          `[${TOKEN_SYMBOL}-bot] Conflict (attempt ${attempt}/${retries}), retrying in ${delay / 1000}s...`,
         );
         await new Promise((r) => setTimeout(r, delay));
       } else {
@@ -238,5 +343,5 @@ async function launchBot(retries = 5): Promise<void> {
 }
 
 launchBot().catch((err) => {
-  console.error("[zkrune-bot] Fatal:", err.message);
+  console.error(`[${TOKEN_SYMBOL}-bot] Fatal:`, err.message);
 });

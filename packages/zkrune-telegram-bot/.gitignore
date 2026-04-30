@@ -1,0 +1,18 @@
+# Secrets — never commit
+.env
+.env.*
+!.env.example
+!.env.*.example
+
+# Runtime stores (per-deployment)
+nullifiers.json
+verified-users.json
+data/
+data-*/
+store/
+store-*/
+
+# Build output
+dist/
+*.log
+node_modules/

@@ -1,16 +1,24 @@
 /**
  * scripts/snapshot-holders.ts
  *
- * Fetches all zkRUNE token holders from Solana, builds a Poseidon sparse
- * Merkle tree (depth=20), and writes the full snapshot to public/snapshot.json
+ * Fetches all token holders for a given SPL mint, builds a Poseidon sparse
+ * Merkle tree (depth=20), and writes the full snapshot to public/<out>.json
  * so it can be served as a static file on Vercel (no API route needed).
  *
- * Run:
+ * Run (defaults — zkRUNE):
  *   npx ts-node --project tsconfig.scripts.json scripts/snapshot-holders.ts
  *
- * Output:
- *   public/snapshot.json      (full tree with Merkle paths — committed to git)
- *   public/snapshot-meta.json (root + metadata only — committed to git)
+ * Run for another token (e.g. RPD):
+ *   TOKEN_MINT=BeSKJL54... TOKEN_SYMBOL=rpd \
+ *     npx ts-node --project tsconfig.scripts.json scripts/snapshot-holders.ts
+ *
+ * Env:
+ *   TOKEN_MINT      mint address (default zkRUNE mainnet)
+ *   TOKEN_DECIMALS  decimals     (default 6)
+ *   TOKEN_SYMBOL    output file suffix (default '' → snapshot.json;
+ *                   'rpd' → snapshot-rpd.json + snapshot-rpd-meta.json)
+ *   OUT_DIR         output directory, relative to repo root
+ *                   (default 'public' → main zkrune Vercel app)
  *
  * Note: holder addresses and balances are on-chain public data.
  */
@@ -30,8 +38,12 @@ import {
   SnapshotMeta,
 } from '../lib/merkle';
 
-// Always mainnet — independent of NEXT_PUBLIC_ZKRUNE_MINT (which may point to devnet)
-const MINT_ADDRESS = '51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump';
+// Token to snapshot — env-driven, defaults to zkRUNE mainnet for backwards compat.
+const MINT_ADDRESS =
+  process.env.TOKEN_MINT || '51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump';
+const DECIMALS = Number(process.env.TOKEN_DECIMALS || 6);
+const TOKEN_SYMBOL = (process.env.TOKEN_SYMBOL || '').trim().toLowerCase();
+const OUT_SUFFIX = TOKEN_SYMBOL ? `-${TOKEN_SYMBOL}` : '';
 
 const RPC_URL =
   process.env.HELIUS_API_KEY
@@ -40,7 +52,6 @@ const RPC_URL =
 
 const HELIUS_API_KEY = process.env.HELIUS_API_KEY || '';
 
-const DECIMALS = 6;
 const TREE_DEPTH = 20;
 
 // ── Helius DAS API (preferred — no getProgramAccounts restrictions) ────────────
@@ -153,7 +164,7 @@ async function fetchHolders(connection: Connection): Promise<HolderEntry[]> {
     .sort(([a], [b]) => a.localeCompare(b))
     .map(([address, balance]) => ({ address, balance }));
 
-  console.log(`Valid holders (balance ≥ 1 zkRUNE): ${deduped.length}`);
+  console.log(`Valid holders (balance ≥ 1 token): ${deduped.length}`);
   return deduped;
 }
 
@@ -206,22 +217,29 @@ async function main() {
 
   const snapshot: Snapshot = { meta, entries };
 
-  // Write full snapshot to public/ — served as static file, no API route needed
-  const publicDir = path.join(process.cwd(), 'public');
+  // Write full snapshot to OUT_DIR — served as static file, no API route needed
+  const outDir = process.env.OUT_DIR || 'public';
+  const publicDir = path.isAbsolute(outDir)
+    ? outDir
+    : path.join(process.cwd(), outDir);
+  if (!fs.existsSync(publicDir)) fs.mkdirSync(publicDir, { recursive: true });
+  const snapshotFile = `snapshot${OUT_SUFFIX}.json`;
+  const metaFile = `snapshot${OUT_SUFFIX}-meta.json`;
+
   fs.writeFileSync(
-    path.join(publicDir, 'snapshot.json'),
+    path.join(publicDir, snapshotFile),
     JSON.stringify(snapshot, null, 2),
   );
-  console.log(`Snapshot written to public/snapshot.json (${holders.length} holders)`);
+  console.log(`Snapshot written to public/${snapshotFile} (${holders.length} holders)`);
 
-  // Also write metadata separately for quick root checks
   fs.writeFileSync(
-    path.join(publicDir, 'snapshot-meta.json'),
+    path.join(publicDir, metaFile),
     JSON.stringify(meta, null, 2),
   );
-  console.log('Metadata written to public/snapshot-meta.json');
+  console.log(`Metadata written to public/${metaFile}`);
 
   console.log('\nDone! Summary:');
+  console.log(`  Mint    : ${MINT_ADDRESS}`);
   console.log(`  Holders : ${holders.length}`);
   console.log(`  Root    : ${root}`);
   console.log(`  Slot    : ${slot}`);
