@@ -312,7 +312,8 @@ const HTTP_PORT = parseInt(process.env.PORT || "3000", 10);
 startSnapshotCron();
 startHttpServer(HTTP_PORT);
 
-async function launchBot(retries = 5): Promise<void> {
+async function launchBot(retries = 8): Promise<void> {
+  let lastErr: any;
   for (let attempt = 1; attempt <= retries; attempt++) {
     try {
       await bot.api.deleteWebhook({ drop_pending_updates: true });
@@ -329,17 +330,19 @@ async function launchBot(retries = 5): Promise<void> {
       });
       return;
     } catch (err: any) {
-      if (err?.error_code === 409 && attempt < retries) {
-        const delay = attempt * 3000;
-        console.warn(
-          `[${TOKEN_SYMBOL}-bot] Conflict (attempt ${attempt}/${retries}), retrying in ${delay / 1000}s...`,
-        );
-        await new Promise((r) => setTimeout(r, delay));
-      } else {
-        throw err;
-      }
+      lastErr = err;
+      if (attempt >= retries) break;
+      // Retry on any error — covers 409 Conflict, transient DNS/TCP failures
+      // ("Network request for 'X' failed!"), and slow Telegram cold starts.
+      const kind = err?.error_code === 409 ? "Conflict" : "Network/launch error";
+      const delay = Math.min(attempt * 3000, 30000);
+      console.warn(
+        `[${TOKEN_SYMBOL}-bot] ${kind} (attempt ${attempt}/${retries}): ${err?.message ?? err}. Retrying in ${delay / 1000}s...`,
+      );
+      await new Promise((r) => setTimeout(r, delay));
     }
   }
+  throw lastErr;
 }
 
 launchBot().catch((err) => {
