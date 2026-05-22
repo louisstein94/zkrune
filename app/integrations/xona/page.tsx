@@ -40,31 +40,29 @@ const STEPS = [
   },
 ];
 
-const CODE_SAMPLE = `// 1. Generate the age proof in the browser (zkRune SDK)
-const proof = await zkRune.generateClientProof("age-verification", {
-  birthYear: "2000",
-  currentYear: "${new Date().getFullYear()}",
-  minimumAge: "18",
-});
+const CODE_SAMPLE = `// Xona's x402 image endpoint — add the zkRune gate in three lines.
+// @zkrune/x402-verify · reads headers only, never the request body.
+import { Hono } from "hono";
+import { zkRuneHonoMiddleware } from "@zkrune/x402-verify";
 
-// 2. Verify on Base mainnet (read-only, no gas)
-const ok = await baseVerifier.verifyProofStatic(
-  /* templateId */ 0,
-  proof.groth16Proof,
-  proof.publicSignals
-);
+app.post(
+  "/image/flux-2-flex",
 
-// 3. Call the x402 endpoint with payment + zkRune proof header
-const res = await fetch("https://api.xona-agent.com/v1/x402/image/generate", {
-  method: "POST",
-  headers: {
-    "X-Payment": x402Payment, // standard x402 header
-    "X-zkRune-Proof": proof.proofHash,
-    "X-zkRune-Circuit": "age-verification",
-    "X-zkRune-Verifier": "base:0xa03A353d…9E849EA",
-  },
-  body: JSON.stringify({ prompt, model: "xona-image-v1" }),
-});`;
+  // zkRune eligibility gate — rejects callers who have not proven 18+.
+  // A missing or invalid proof gets a 403 challenge that mirrors x402's 402.
+  zkRuneHonoMiddleware({
+    requiredCircuit: "age-verification",
+    validatePublicSignals: (s) => {
+      const [isValid, year, minAge] = s.map(Number);
+      return isValid === 1 &&
+             year >= new Date().getUTCFullYear() - 1 &&
+             minAge >= 18;
+    },
+  }),
+
+  x402(),        // existing payment middleware — unchanged
+  fluxHandler,   // existing handler — unchanged
+);`;
 
 export default function XonaIntegrationPage() {
   return (
@@ -188,13 +186,33 @@ export default function XonaIntegrationPage() {
 
       <section className="px-6 md:px-12 lg:px-16 pb-16">
         <div className="max-w-7xl mx-auto">
-          <h2 className="font-hatton text-3xl text-white mb-6">
-            Integration sketch
+          <h2 className="font-hatton text-3xl text-white mb-3">
+            Endpoint integration
           </h2>
+          <p className="text-sm md:text-base text-zk-gray mb-6 max-w-3xl leading-relaxed">
+            The gate ships as a real package —{" "}
+            <code className="text-zk-primary">@zkrune/x402-verify</code>. It
+            reads HTTP headers only, never the request body, so it drops in
+            front of any x402 endpoint regardless of stack. Xona&apos;s handler
+            adds three lines; the payment middleware and the handler stay
+            unchanged.
+          </p>
           <div className="bg-zk-dark/60 border border-zk-gray/15 rounded-2xl p-6 md:p-8">
             <pre className="text-xs md:text-sm leading-relaxed text-zk-gray font-mono overflow-x-auto">
               <code>{CODE_SAMPLE}</code>
             </pre>
+          </div>
+          <div className="mt-4 flex items-start gap-2.5 p-4 bg-zk-secondary/10 border border-zk-secondary/30 rounded-xl">
+            <span className="flex-shrink-0 mt-0.5 w-4 h-4 rounded-full border border-zk-secondary/40 bg-zk-secondary/10 text-zk-secondary flex items-center justify-center text-[10px] font-bold">
+              ✓
+            </span>
+            <p className="text-xs text-zk-gray leading-relaxed">
+              <span className="text-white font-semibold">Verified live.</span>{" "}
+              The package runs a real Groth16 proof through the Base mainnet
+              verifier — every check passes, including on-chain rejection of a
+              tampered proof. The verification path is not simulated; only the
+              x402 image call in the demo above is.
+            </p>
           </div>
         </div>
       </section>

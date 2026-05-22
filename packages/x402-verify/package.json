@@ -1,0 +1,36 @@
+{
+  "name": "@zkrune/x402-verify",
+  "version": "0.1.0",
+  "description": "Endpoint-level zero-knowledge eligibility gate for x402 services. Verify a zkRune Groth16 proof on-chain before serving a paid response.",
+  "license": "MIT",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": ["dist", "README.md"],
+  "scripts": {
+    "build": "tsc -p tsconfig.json"
+  },
+  "keywords": [
+    "x402",
+    "zk",
+    "zero-knowledge",
+    "groth16",
+    "zkrune",
+    "eligibility",
+    "age-verification"
+  ],
+  "peerDependencies": {
+    "viem": "^2.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "typescript": "^5.4.0",
+    "viem": "^2.0.0"
+  }
+}
