@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import { DM_Sans, Playfair_Display } from "next/font/google";
 import "./globals.css";
 // Removed pop-ups for cleaner UX
@@ -120,6 +121,16 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Read the per-request nonce middleware set on `x-nonce`. Reading any
+  // request header here forces dynamic rendering of every page under this
+  // layout, which is what makes Next.js attach the nonce to its bootstrap
+  // <script> tags. Without this, pages get statically pre-rendered at
+  // build time and the script tags ship with no `nonce=` attribute; the
+  // CSP `'strict-dynamic'` directive then blocks every chunk, leaving the
+  // site with no client-side JS at all (no hydration, no event handlers,
+  // every interactive element dead).
+  headers();
+
   return (
     <html lang="en" className={`${dmSans.variable} ${playfairDisplay.variable}`}>
       <body className="font-dm-sans antialiased">
