@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 interface NavSubItem {
@@ -15,26 +15,79 @@ interface NavItem {
 }
 
 export default function Navigation() {
-  const [isOpen, setIsOpen] = useState(false);
-  const [tokenMenuOpen, setTokenMenuOpen] = useState(false);
+  // Mobile drawer and the two submenu disclosures are tracked separately:
+  // the desktop dropdown is a popover that responds to clicks AND hover,
+  // while the mobile submenu lives inside the drawer and is purely click-
+  // driven. Sharing one state caused the mobile chevron to flip whenever
+  // the desktop hover fired (and vice-versa on resize).
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopMenuOpen, setDesktopMenuOpen] = useState<string | null>(null);
+  const [mobileSubmenuOpen, setMobileSubmenuOpen] = useState<string | null>(null);
+
+  const desktopMenuRef = useRef<HTMLDivElement | null>(null);
 
   const navItems: NavItem[] = [
     { name: "Home", href: "/" },
     { name: "Templates", href: "/templates" },
     { name: "zkBlink", href: "/zkblink" },
-    { 
-      name: "Token", 
+    {
+      name: "Token",
       href: "#",
       submenu: [
         { name: "Governance", href: "/governance" },
         { name: "Premium", href: "/premium" },
         { name: "Marketplace", href: "/marketplace" },
         { name: "Staking", href: "/staking" },
-      ]
+      ],
     },
     { name: "Roadmap", href: "/roadmap" },
     { name: "Docs", href: "/docs" },
   ];
+
+  // Close the desktop dropdown when the user clicks anywhere outside it OR
+  // hits Escape. Without this it only closed on mouseleave, which made it
+  // unusable on touch laptops/tablets where hover never fires.
+  useEffect(() => {
+    if (!desktopMenuOpen) return;
+    const onPointerDown = (e: PointerEvent) => {
+      if (
+        desktopMenuRef.current &&
+        !desktopMenuRef.current.contains(e.target as Node)
+      ) {
+        setDesktopMenuOpen(null);
+      }
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setDesktopMenuOpen(null);
+    };
+    document.addEventListener("pointerdown", onPointerDown);
+    document.addEventListener("keydown", onKey);
+    return () => {
+      document.removeEventListener("pointerdown", onPointerDown);
+      document.removeEventListener("keydown", onKey);
+    };
+  }, [desktopMenuOpen]);
+
+  // If the viewport grows past the mobile breakpoint, force-close the
+  // mobile drawer so it doesn't reappear as a stray section under the
+  // desktop nav.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const mq = window.matchMedia("(min-width: 768px)");
+    const onChange = (e: MediaQueryListEvent) => {
+      if (e.matches) {
+        setMobileOpen(false);
+        setMobileSubmenuOpen(null);
+      }
+    };
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+
+  const closeMobile = () => {
+    setMobileOpen(false);
+    setMobileSubmenuOpen(null);
+  };
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-zk-darker/80 backdrop-blur-lg border-b border-white/5">
@@ -42,9 +95,9 @@ export default function Navigation() {
         <div className="flex items-center justify-between">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-3 group">
-            <img 
-              src="/zkrune-log.png" 
-              alt="zkRune Logo" 
+            <img
+              src="/zkrune-log.png"
+              alt="zkRune Logo"
               className="h-10 w-auto"
             />
             <h1 className="text-2xl font-hatton text-white">zkRune</h1>
@@ -52,26 +105,52 @@ export default function Navigation() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-8">
-            {navItems.map((item) => (
+            {navItems.map((item) =>
               item.submenu ? (
-                <div 
+                <div
                   key={item.name}
+                  ref={(el) => {
+                    if (item.name === "Token") desktopMenuRef.current = el;
+                  }}
                   className="relative"
-                  onMouseEnter={() => setTokenMenuOpen(true)}
-                  onMouseLeave={() => setTokenMenuOpen(false)}
+                  onMouseEnter={() => setDesktopMenuOpen(item.name)}
+                  onMouseLeave={() => setDesktopMenuOpen(null)}
                 >
-                  <button className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider flex items-center gap-1 py-4">
+                  <button
+                    type="button"
+                    aria-haspopup="menu"
+                    aria-expanded={desktopMenuOpen === item.name}
+                    onClick={() =>
+                      setDesktopMenuOpen(
+                        desktopMenuOpen === item.name ? null : item.name,
+                      )
+                    }
+                    className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider flex items-center gap-1 py-4"
+                  >
                     {item.name}
-                    <svg className={`w-4 h-4 transition-transform duration-200 ${tokenMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        desktopMenuOpen === item.name ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
                   {/* Dropdown Menu */}
-                  <div 
+                  <div
+                    role="menu"
                     className={`absolute top-full left-1/2 -translate-x-1/2 w-52 pt-1 transition-all duration-200 ${
-                      tokenMenuOpen 
-                        ? 'opacity-100 visible translate-y-0' 
-                        : 'opacity-0 invisible -translate-y-2'
+                      desktopMenuOpen === item.name
+                        ? "opacity-100 visible translate-y-0"
+                        : "opacity-0 invisible -translate-y-2 pointer-events-none"
                     }`}
                   >
                     <div className="bg-zk-dark/95 backdrop-blur-xl border border-zk-primary/20 rounded-xl shadow-2xl overflow-hidden">
@@ -79,30 +158,58 @@ export default function Navigation() {
                         <a
                           key={subitem.name}
                           href={subitem.href}
+                          onClick={() => setDesktopMenuOpen(null)}
                           className="flex items-center gap-3 px-4 py-3 text-sm text-zk-gray hover:text-zk-primary hover:bg-zk-primary/10 transition-all border-b border-white/5 last:border-b-0"
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <span className="text-zk-primary/60 w-4 h-4">
-                            {subitem.name === 'Governance' && (
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+                            {subitem.name === "Governance" && (
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
                               </svg>
                             )}
-                            {subitem.name === 'Premium' && (
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+                            {subitem.name === "Premium" && (
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
                               </svg>
                             )}
-                            {subitem.name === 'Marketplace' && (
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/>
-                                <polyline points="9 22 9 12 15 12 15 22"/>
+                            {subitem.name === "Marketplace" && (
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                                <polyline points="9 22 9 12 15 12 15 22" />
                               </svg>
                             )}
-                            {subitem.name === 'Staking' && (
-                              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
-                                <path d="M7 11V7a5 5 0 0110 0v4"/>
+                            {subitem.name === "Staking" && (
+                              <svg
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                              >
+                                <rect
+                                  x="3"
+                                  y="11"
+                                  width="18"
+                                  height="11"
+                                  rx="2"
+                                  ry="2"
+                                />
+                                <path d="M7 11V7a5 5 0 0110 0v4" />
                               </svg>
                             )}
                           </span>
@@ -120,9 +227,8 @@ export default function Navigation() {
                 >
                   {item.name}
                 </a>
-              )
-            ))}
-            
+              ),
+            )}
           </nav>
 
           {/* Right Side - Icons + CTA */}
@@ -137,7 +243,7 @@ export default function Navigation() {
                 title="GitHub"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
+                  <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z" />
                 </svg>
               </a>
               <a
@@ -148,11 +254,11 @@ export default function Navigation() {
                 title="zkRune on X"
               >
                 <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
-                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
+                  <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
                 </svg>
               </a>
             </div>
-            
+
             {/* CTA Button */}
             <Link
               href="/templates"
@@ -164,23 +270,27 @@ export default function Navigation() {
 
           {/* Mobile Menu Button */}
           <button
-            onClick={() => setIsOpen(!isOpen)}
+            type="button"
+            aria-label={mobileOpen ? "Close menu" : "Open menu"}
+            aria-expanded={mobileOpen}
+            aria-controls="primary-mobile-nav"
+            onClick={() => setMobileOpen((v) => !v)}
             className="md:hidden p-2 text-white"
           >
             <div className="w-6 h-5 flex flex-col justify-between">
               <span
                 className={`block h-0.5 w-full bg-current transition-transform ${
-                  isOpen ? "rotate-45 translate-y-2" : ""
+                  mobileOpen ? "rotate-45 translate-y-2" : ""
                 }`}
               />
               <span
                 className={`block h-0.5 w-full bg-current transition-opacity ${
-                  isOpen ? "opacity-0" : ""
+                  mobileOpen ? "opacity-0" : ""
                 }`}
               />
               <span
                 className={`block h-0.5 w-full bg-current transition-transform ${
-                  isOpen ? "-rotate-45 -translate-y-2" : ""
+                  mobileOpen ? "-rotate-45 -translate-y-2" : ""
                 }`}
               />
             </div>
@@ -188,30 +298,48 @@ export default function Navigation() {
         </div>
 
         {/* Mobile Menu */}
-        {isOpen && (
-          <nav className="md:hidden pt-4 pb-2 flex flex-col gap-3">
-            {navItems.map((item) => (
+        {mobileOpen && (
+          <nav
+            id="primary-mobile-nav"
+            className="md:hidden pt-4 pb-2 flex flex-col gap-3"
+          >
+            {navItems.map((item) =>
               item.submenu ? (
                 <div key={item.name}>
                   <button
-                    onClick={() => setTokenMenuOpen(!tokenMenuOpen)}
+                    type="button"
+                    aria-expanded={mobileSubmenuOpen === item.name}
+                    onClick={() =>
+                      setMobileSubmenuOpen(
+                        mobileSubmenuOpen === item.name ? null : item.name,
+                      )
+                    }
                     className="w-full text-left text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider py-2 flex items-center justify-between"
                   >
                     {item.name}
-                    <svg className={`w-4 h-4 transition-transform ${tokenMenuOpen ? 'rotate-180' : ''}`} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    <svg
+                      className={`w-4 h-4 transition-transform ${
+                        mobileSubmenuOpen === item.name ? "rotate-180" : ""
+                      }`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
                     </svg>
                   </button>
-                  {tokenMenuOpen && (
+                  {mobileSubmenuOpen === item.name && (
                     <div className="pl-4 space-y-2 mt-2">
                       {item.submenu.map((subitem) => (
                         <a
                           key={subitem.name}
                           href={subitem.href}
-                          onClick={() => {
-                            setIsOpen(false);
-                            setTokenMenuOpen(false);
-                          }}
+                          onClick={closeMobile}
                           className="block text-sm text-zk-gray hover:text-zk-primary transition-colors py-2"
                         >
                           {subitem.name}
@@ -224,13 +352,13 @@ export default function Navigation() {
                 <a
                   key={item.name}
                   href={item.href}
-                  onClick={() => setIsOpen(false)}
+                  onClick={closeMobile}
                   className="text-sm font-medium text-zk-gray hover:text-zk-primary transition-colors uppercase tracking-wider py-2"
                 >
                   {item.name}
                 </a>
-              )
-            ))}
+              ),
+            )}
             <a
               href="https://github.com/louisstein94/zkrune"
               target="_blank"
@@ -241,7 +369,7 @@ export default function Navigation() {
             </a>
             <Link
               href="/templates"
-              onClick={() => setIsOpen(false)}
+              onClick={closeMobile}
               className="mt-2 px-6 py-2 bg-zk-primary text-white font-medium rounded-full text-center"
             >
               Try Templates
@@ -252,4 +380,3 @@ export default function Navigation() {
     </header>
   );
 }
-

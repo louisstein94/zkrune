@@ -3,12 +3,29 @@
 import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useWallet } from '@solana/wallet-adapter-react';
+import bs58 from 'bs58';
 import { addressToField, type Snapshot } from '@/lib/merkle';
 
 const WalletMultiButton = dynamic(
   () => import('@solana/wallet-adapter-react-ui').then((m) => m.WalletMultiButton),
   { ssr: false },
 );
+
+// Canonical message format — kept in sync with the bot
+// (packages/zkrune-telegram-bot/src/ownership.ts). Fields are sorted
+// alphabetically; the timestamp is in milliseconds.
+function buildCanonicalMessage(
+  action: string,
+  wallet: string,
+  fields: Record<string, string | number>,
+  timestamp: number,
+): string {
+  const sorted = Object.entries(fields)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([k, v]) => `${k}=${v}`)
+    .join('&');
+  return `zkrune:${action}:${wallet}:${sorted}:${timestamp}`;
+}
 
 const TOKEN = {
   symbol: 'RPD',
@@ -24,6 +41,7 @@ type Phase =
   | 'fetching'
   | 'ready'
   | 'proving'
+  | 'signing'
   | 'verified'
   | 'submitted'
   | 'not_found'
@@ -52,6 +70,13 @@ interface ProofResult {
   timing: number;
 }
 
+interface OwnershipSig {
+  wallet: string;
+  signature: string;       // base58 Ed25519
+  signedMessage: string;
+  tgInitData: string;
+}
+
 let snapshotCache: Snapshot | null = null;
 
 async function loadSnapshot(): Promise<Snapshot> {
@@ -63,17 +88,18 @@ async function loadSnapshot(): Promise<Snapshot> {
 }
 
 export default function RpdVerifier() {
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, signMessage } = useWallet();
 
   const [phase, setPhase] = useState<Phase>('input');
-  const [addressInput, setAddressInput] = useState('');
   const [pathData, setPathData] = useState<PathData | null>(null);
   const [proofResult, setProofResult] = useState<ProofResult | null>(null);
+  const [ownership, setOwnership] = useState<OwnershipSig | null>(null);
   const [proofLines, setProofLines] = useState<string[]>([]);
   const [errorMsg, setErrorMsg] = useState('');
   const [snapshotTimestamp, setSnapshotTimestamp] = useState<string | null>(null);
   const [nullifierSecret, setNullifierSecret] = useState<string>('');
   const [tgUser, setTgUser] = useState<{ id: number; name: string } | null>(null);
+  const [tgInitData, setTgInitData] = useState('');
   const [inTelegram, setInTelegram] = useState(false);
 
   // Boot Telegram WebApp + capture user
@@ -81,6 +107,7 @@ export default function RpdVerifier() {
     const tg = window.Telegram?.WebApp;
     if (!tg) return;
     setInTelegram(true);
+    setTgInitData(tg.initData || '');
     try {
       tg.ready();
       tg.expand();
@@ -98,11 +125,6 @@ export default function RpdVerifier() {
     );
     setNullifierSecret(secret.toString());
   }, []);
-
-  // Auto-fill from connected wallet
-  useEffect(() => {
-    if (connected && publicKey) setAddressInput(publicKey.toBase58());
-  }, [connected, publicKey]);
 
   const addLine = (line: string) => setProofLines((prev) => [...prev, line]);
 
@@ -202,7 +224,7 @@ export default function RpdVerifier() {
     }
   };
 
-  const buildPayload = () => {
+  const buildPayload = (sig: OwnershipSig) => {
     if (!proofResult) return null;
     return {
       circuit: 'whale-holder',
@@ -219,18 +241,79 @@ export default function RpdVerifier() {
       proof: proofResult.rawProof,
       publicSignals: proofResult.publicSignals,
       generatedAt: new Date().toISOString(),
+      // Ownership binding — checked server-side by the bot.
+      wallet: sig.wallet,
+      signature: sig.signature,
+      signedMessage: sig.signedMessage,
+      tgInitData: sig.tgInitData,
     };
   };
 
-  const submitToBot = () => {
-    const payload = buildPayload();
-    if (!payload) return;
+  /**
+   * Ask the connected wallet to sign a canonical message that binds the
+   * proof's nullifier AND the submitter's Telegram user_id. Without this
+   * binding, anyone who knew the address could submit a proof for it.
+   */
+  const signOwnership = async (): Promise<OwnershipSig | null> => {
+    if (!proofResult || !publicKey || !connected) {
+      setErrorMsg('Wallet disconnected — please reconnect and try again.');
+      setPhase('error');
+      return null;
+    }
+    if (!signMessage) {
+      setErrorMsg(
+        'Your wallet does not support message signing. Use Phantom, ' +
+          'Solflare, Backpack, or another adapter that exposes signMessage.',
+      );
+      setPhase('error');
+      return null;
+    }
+    if (!tgUser) {
+      setErrorMsg('No Telegram user — open this page from inside the bot.');
+      setPhase('error');
+      return null;
+    }
+
+    const wallet = publicKey.toBase58();
+    const ts = Date.now();
+    const signedMessage = buildCanonicalMessage(
+      'whale-chat',
+      wallet,
+      { nullifier: proofResult.nullifier, tg_user_id: tgUser.id },
+      ts,
+    );
+
+    try {
+      const sigBytes = await signMessage(new TextEncoder().encode(signedMessage));
+      return {
+        wallet,
+        signature: bs58.encode(sigBytes),
+        signedMessage,
+        tgInitData,
+      };
+    } catch (err: any) {
+      setErrorMsg(err.message ?? 'Signature rejected.');
+      setPhase('error');
+      return null;
+    }
+  };
+
+  const submitToBot = async () => {
     const tg = window.Telegram?.WebApp;
     if (!tg) {
       setErrorMsg('Telegram WebApp not available — open this page from inside the bot.');
       setPhase('error');
       return;
     }
+
+    setPhase('signing');
+    const sig = await signOwnership();
+    if (!sig) return;
+    setOwnership(sig);
+
+    const payload = buildPayload(sig);
+    if (!payload) return;
+
     try {
       tg.sendData(JSON.stringify(payload));
       setPhase('submitted');
@@ -242,22 +325,11 @@ export default function RpdVerifier() {
     }
   };
 
-  const downloadJson = () => {
-    const payload = buildPayload();
-    if (!payload) return;
-    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'rpd-whale-proof.json';
-    a.click();
-    URL.revokeObjectURL(url);
-  };
-
   const reset = () => {
     setPhase('input');
     setPathData(null);
     setProofResult(null);
+    setOwnership(null);
     setProofLines([]);
     setErrorMsg('');
   };
@@ -318,10 +390,20 @@ export default function RpdVerifier() {
             {phase === 'input' && (
               <div className="space-y-4">
                 <p className="text-rpd-gray text-xs leading-relaxed">
-                  Your address is used only to look up your Merkle path locally.
-                  It enters the circuit as a <span className="text-white">private witness</span> —
-                  never sent anywhere.
+                  Connect the wallet that holds your tokens. Your address is
+                  used to look up your Merkle path locally and enters the
+                  circuit as a <span className="text-white">private witness</span>.
+                  Before submitting you'll sign a one-time message that binds
+                  the proof to your wallet and Telegram account — this is what
+                  stops anyone else from reusing your address.
                 </p>
+
+                {!inTelegram && (
+                  <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-yellow-300 text-xs">
+                    Open this page from inside the bot — verification requires
+                    your Telegram identity.
+                  </div>
+                )}
 
                 <div>
                   <p className="text-rpd-gray/60 text-xs font-mono uppercase mb-2">
@@ -335,27 +417,20 @@ export default function RpdVerifier() {
                   )}
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <div className="flex-1 h-px bg-white/5" />
-                  <span className="text-rpd-gray/40 text-xs">or</span>
-                  <div className="flex-1 h-px bg-white/5" />
-                </div>
-
-                <input
-                  type="text"
-                  value={addressInput}
-                  onChange={(e) => setAddressInput(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && addressInput && fetchPath(addressInput)}
-                  placeholder="Paste Solana address"
-                  className="w-full px-3 py-2.5 rounded-lg bg-black/30 border border-white/10 text-white font-mono text-sm placeholder:text-rpd-gray/30 focus:outline-none focus:border-rpd-primary/40"
-                />
-
                 <button
-                  onClick={() => addressInput && fetchPath(addressInput)}
-                  disabled={!addressInput}
+                  onClick={() =>
+                    connected && publicKey && fetchPath(publicKey.toBase58())
+                  }
+                  disabled={!connected || !publicKey || !inTelegram || !tgUser}
                   className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold disabled:opacity-40"
                 >
-                  Look Up in Snapshot
+                  {!inTelegram
+                    ? 'Open inside Telegram bot'
+                    : !connected
+                      ? 'Connect a wallet first'
+                      : !tgUser
+                        ? 'Waiting for Telegram user…'
+                        : 'Look Up in Snapshot'}
                 </button>
               </div>
             )}
@@ -455,26 +530,33 @@ export default function RpdVerifier() {
                 </div>
 
                 {inTelegram ? (
-                  <button
-                    onClick={submitToBot}
-                    className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
-                  >
-                    Submit to Bot
-                  </button>
-                ) : (
                   <>
-                    <p className="text-rpd-gray text-xs text-center">
-                      Open this page from inside the Telegram bot to auto-submit.
-                      Or download the proof and forward it manually.
+                    <p className="text-rpd-gray text-xs leading-relaxed">
+                      Next your wallet will pop up to sign a short ownership
+                      message — this binds the proof to your wallet and
+                      Telegram account so nobody else can submit it.
                     </p>
                     <button
-                      onClick={downloadJson}
-                      className="w-full py-3 rounded-xl border border-white/15 text-white"
+                      onClick={submitToBot}
+                      className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
                     >
-                      Download Proof JSON
+                      Sign &amp; Submit to Bot
                     </button>
                   </>
+                ) : (
+                  <p className="text-rpd-gray text-xs text-center">
+                    Open this page from inside the Telegram bot to submit.
+                  </p>
                 )}
+              </div>
+            )}
+
+            {phase === 'signing' && (
+              <div className="text-center py-8 space-y-3">
+                <div className="w-10 h-10 mx-auto rounded-full border-2 border-rpd-primary/30 border-t-rpd-primary animate-spin" />
+                <p className="text-rpd-gray text-sm">
+                  Check your wallet — sign the ownership message.
+                </p>
               </div>
             )}
 

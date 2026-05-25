@@ -4,6 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { startSnapshotCron } from "./snapshot";
 import { startHttpServer } from "./server";
+import { verifyOwnership, verifyTelegramInitData } from "./ownership";
 
 // @ts-ignore — snarkjs has no proper type exports
 const snarkjs = require("snarkjs");
@@ -21,6 +22,24 @@ const EXPECTED_MIN_BALANCE = process.env.EXPECTED_MIN_BALANCE
   : null;
 const INVITE_TTL_SECONDS = Number(process.env.INVITE_TTL_SECONDS || 30);
 const STORE_DIR = path.resolve(__dirname, process.env.STORE_DIR || "..");
+
+// Defense-in-depth: require the submitter to sign a canonical message with
+// their wallet AND bind it to their Telegram user_id. Without this, anyone
+// who knows a holder's public address can paste it into the verifier and
+// pass the gate (the snapshot Merkle path is public, the ZK proof only
+// asserts inclusion — it does not prove possession of the key).
+//
+// Leave `true` unless you explicitly need to accept legacy clients during
+// a migration window.
+const REQUIRE_OWNERSHIP =
+  (process.env.REQUIRE_OWNERSHIP_SIGNATURE || "true").toLowerCase() !== "false";
+
+// Optional: when set, also HMAC-verify Telegram WebApp initData to confirm
+// the payload originated inside the Mini App. The `web_app_data` event
+// itself is already a signed Telegram update, so this is belt-and-braces;
+// turn it on if you also accept payloads over other transports.
+const REQUIRE_INIT_DATA =
+  (process.env.REQUIRE_INIT_DATA || "false").toLowerCase() === "true";
 
 const VKEY_PATH =
   process.env.VKEY_PATH ||
@@ -47,6 +66,7 @@ try {
 if (!fs.existsSync(STORE_DIR)) fs.mkdirSync(STORE_DIR, { recursive: true });
 
 const NULLIFIER_FILE = path.resolve(STORE_DIR, "nullifiers.json");
+const NULLIFIER_OWNERS_FILE = path.resolve(STORE_DIR, "nullifier-owners.json");
 const VERIFIED_USERS_FILE = path.resolve(STORE_DIR, "verified-users.json");
 
 function loadJsonSet(file: string): Set<string> {
@@ -69,6 +89,44 @@ function tryAddToSet(file: string, value: string): boolean {
   return true;
 }
 
+function loadJsonMap(file: string): Record<string, string> {
+  try {
+    return JSON.parse(fs.readFileSync(file, "utf-8"));
+  } catch {
+    return {};
+  }
+}
+
+function saveJsonMap(file: string, map: Record<string, string>): void {
+  fs.writeFileSync(file, JSON.stringify(map, null, 2));
+}
+
+/**
+ * Bind a nullifier to a Telegram user. Returns:
+ *   { ok: true }                  — newly bound (or already bound to same user)
+ *   { ok: false, owner: string }  — already bound to a different user
+ *
+ * Nullifiers are deterministic from (address + nullifierSecret). Because the
+ * frontend now uses a fresh secret per session, the nullifier changes per
+ * session, so this map's main job is to detect "the same wallet's snapshot
+ * entry being used from a second Telegram account" (which would happen if a
+ * holder both verifies themselves AND lets a friend reuse the entry).
+ */
+function bindNullifierToUser(
+  nullifier: string,
+  userId: number,
+): { ok: true } | { ok: false; owner: string } {
+  const map = loadJsonMap(NULLIFIER_OWNERS_FILE);
+  const existing = map[nullifier];
+  const id = String(userId);
+  if (existing && existing !== id) return { ok: false, owner: existing };
+  if (!existing) {
+    map[nullifier] = id;
+    saveJsonMap(NULLIFIER_OWNERS_FILE, map);
+  }
+  return { ok: true };
+}
+
 function isUserVerified(userId: number): boolean {
   return loadJsonSet(VERIFIED_USERS_FILE).has(String(userId));
 }
@@ -85,6 +143,14 @@ interface ProofPayload {
   proof: any;
   publicSignals: string[];
   nullifier: string;
+
+  // Wallet-ownership binding (required when REQUIRE_OWNERSHIP_SIGNATURE=true).
+  // The signature is over a canonical message that includes the wallet,
+  // the proof's nullifier, and the submitter's Telegram user_id.
+  wallet?: string;
+  signature?: string;       // base58 Ed25519
+  signedMessage?: string;
+  tgInitData?: string;      // optional, for REQUIRE_INIT_DATA defense-in-depth
 }
 
 async function verifyProof(
@@ -219,7 +285,74 @@ async function handleProof(ctx: Context, payload: ProofPayload): Promise<void> {
     return;
   }
 
-  await ctx.reply("⏳ Verifying proof...");
+  await ctx.reply("⏳ Verifying proof and wallet ownership...");
+
+  // ── Ownership gate (D: hybrid) ───────────────────────────────────────────
+  // The ZK proof on its own only asserts "some address in the snapshot has
+  // enough balance"; without binding the proof to the submitter's wallet
+  // AND Telegram account, anyone who knows a holder's address can pass.
+  if (REQUIRE_OWNERSHIP) {
+    if (!userId) {
+      await ctx.reply(`❌ Could not identify Telegram user.`);
+      return;
+    }
+    if (!payload.wallet || !payload.signature || !payload.signedMessage) {
+      await ctx.reply(
+        `❌ *Ownership signature missing.*\n\n` +
+          `Open the verifier inside the bot, connect your wallet, and ` +
+          `generate a fresh proof.`,
+        { parse_mode: "Markdown" },
+      );
+      return;
+    }
+
+    const nullifier = payload.publicSignals[1];
+    const owner = verifyOwnership(
+      {
+        wallet: payload.wallet,
+        signature: payload.signature,
+        signedMessage: payload.signedMessage,
+      },
+      "whale-chat",
+      { nullifier, tg_user_id: userId },
+    );
+    if (!owner.valid) {
+      await ctx.reply(
+        `❌ *Ownership check failed*\n\n${owner.reason}\n\n` +
+          `The proof must be signed by the wallet that holds the tokens, ` +
+          `from your own Telegram account.`,
+        { parse_mode: "Markdown" },
+      );
+      return;
+    }
+
+    if (REQUIRE_INIT_DATA) {
+      if (!payload.tgInitData) {
+        await ctx.reply(`❌ Missing Telegram initData.`);
+        return;
+      }
+      const tgCheck = verifyTelegramInitData(payload.tgInitData, BOT_TOKEN!);
+      if (!tgCheck || tgCheck.userId !== userId) {
+        await ctx.reply(
+          `❌ Telegram initData did not validate against this bot/user.`,
+        );
+        return;
+      }
+    }
+
+    // Bind nullifier ↔ tg user so the same snapshot entry can't be
+    // re-submitted from a different Telegram account in the future.
+    const bind = bindNullifierToUser(nullifier, userId);
+    if (!bind.ok) {
+      await ctx.reply(
+        `❌ *This wallet's snapshot entry is already bound to a different ` +
+          `Telegram account.*\n\nContact a group admin if you believe this ` +
+          `is in error.`,
+        { parse_mode: "Markdown" },
+      );
+      return;
+    }
+  }
 
   const result = await verifyProof(payload);
 
