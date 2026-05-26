@@ -89,6 +89,11 @@ sui-groth16-verifier/build/
 # Business / strategy docs (local only — pitch decks, grant apps, internal notes)
 /business/
 
+# AI-assistant internal files (local only — positioning rules, gotchas,
+# personal playbook on directing Claude). Not for the public repo.
+/CLAUDE.md
+/skills.md
+
 # Legacy patterns kept for submissions not yet created
 HACKATHON_SUBMISSION.md
 DEMO_SCRIPT.md

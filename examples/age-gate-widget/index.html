@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>zkRune age-gate example</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 4rem 1.5rem;
+      color: #111;
+      line-height: 1.5;
+    }
+    h1 { font-size: 2rem; margin: 0 0 0.5rem; }
+    p.lede { color: #555; margin: 0 0 2rem; }
+    .gate {
+      padding: 2rem;
+      background: #fafafa;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      margin: 2rem 0;
+    }
+    .content {
+      display: none;
+      padding: 2rem;
+      background: #ecfdf5;
+      border: 1px solid #34d399;
+      border-radius: 12px;
+    }
+    .content.unlocked { display: block; }
+    code {
+      background: #f1f5f9;
+      padding: 0.125rem 0.375rem;
+      border-radius: 4px;
+      font-family: ui-monospace, monospace;
+      font-size: 0.875em;
+    }
+    footer { color: #888; font-size: 0.875rem; margin-top: 3rem; }
+    footer a { color: #6366F1; }
+  </style>
+</head>
+<body>
+  <h1>Premium reading list</h1>
+  <p class="lede">
+    This sample page demonstrates a privacy-preserving age gate. Verify
+    you are 18+ to reveal the content. The widget never sends your
+    birth year — it generates a zero-knowledge proof in your browser
+    that the server can verify cryptographically.
+  </p>
+
+  <!-- The widget renders here as a "Verify with zkRune" button +
+       modal. On a successful proof the onResult callback below
+       reveals the gated content. -->
+  <div id="zk-gate" class="gate"></div>
+
+  <div id="content" class="content">
+    <h2>🔓 Welcome.</h2>
+    <p>You are now reading the gated content. Notice that this site
+    never asked for, received, or stored your birth year.</p>
+    <p>The proof object that unlocked this page is logged in the
+    browser console.</p>
+  </div>
+
+  <footer>
+    Powered by <a href="https://zkrune.com" target="_blank" rel="noopener noreferrer">zkRune</a> ·
+    <a href="https://zkrune.com/docs/widget" target="_blank" rel="noopener noreferrer">Widget docs</a> ·
+    Replace <code>theme</code>, <code>circuit</code>, or <code>verifierUrl</code> in the script below to customise.
+  </footer>
+
+  <!-- snarkjs is the WASM proving runtime the widget depends on.
+       Load it before the widget script. -->
+  <script src="https://cdn.jsdelivr.net/npm/snarkjs@latest/build/snarkjs.min.js"></script>
+
+  <!-- The widget itself. ~50 KB minified. No npm install needed. -->
+  <script src="https://cdn.jsdelivr.net/npm/zkrune-widget@latest/dist/zkrune-widget.global.js"></script>
+
+  <script>
+    // Initialise the widget. The only required field is `container`;
+    // everything else has sensible defaults. See full config reference
+    // at https://zkrune.com/docs/widget.
+    ZkRuneWidget.init({
+      container: '#zk-gate',
+      circuit: 'age-verification',
+      theme: 'light',
+      buttonLabel: 'Verify I am 18+',
+      onResult: function (result) {
+        if (result.verified) {
+          document.getElementById('content').classList.add('unlocked');
+          console.log('Proof verified:', result);
+          console.log('Proof hash:', result.proofHash);
+        }
+      },
+      onError: function (err) {
+        console.error('zkRune error:', err.code, err.message);
+      },
+    });
+  </script>
+</body>
+</html>

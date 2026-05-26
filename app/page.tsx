@@ -412,6 +412,8 @@ const { isValid } = await zk.verifyRemote({
               <a href="/docs/api" className="text-zk-gray hover:text-zk-primary transition-colors">API Reference</a>
               <a href="/verify-proof" className="text-zk-gray hover:text-zk-primary transition-colors">Verify Proof</a>
               <a href="/trust" className="text-zk-gray hover:text-zk-primary transition-colors">Trust &amp; Security</a>
+              <a href="/regulations" className="text-zk-gray hover:text-zk-primary transition-colors">Regulations</a>
+              <a href="/changelog" className="text-zk-gray hover:text-zk-primary transition-colors">Changelog</a>
               <a href="/roadmap" className="text-zk-gray hover:text-zk-primary transition-colors">Roadmap</a>
             </div>
             

@@ -215,6 +215,16 @@ export default function EnterprisePage() {
               See the Article 12 mapping
             </a>
           </div>
+          <p className="text-sm text-zk-gray pt-2">
+            Outside the AI Act scope? See the{" "}
+            <a
+              href="/regulations"
+              className="text-zk-secondary hover:text-zk-secondary/80 transition-colors underline underline-offset-2"
+            >
+              full regulations matrix
+            </a>{" "}
+            — DSA, MiCA, eIDAS 2.0, DORA, NIS2, GDPR, UK OSA.
+          </p>
         </div>
       </section>
 
