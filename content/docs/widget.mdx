@@ -1,0 +1,101 @@
+---
+title: Widget
+description: Drop-in script tag with built-in modal UI. No bundler required.
+---
+
+## Script Tag Integration
+
+Drop a single script tag to add a "Verify with zkRune" button with built-in modal UI. No bundler needed, no dependencies.
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/zkrune-widget@latest/dist/zkrune-widget.global.js"></script>
+<div id="zkrune-verify"></div>
+<script>
+  ZkRuneWidget.init({
+    container: '#zkrune-verify',
+    circuit: 'age-verification',     // optional — omit to show circuit picker
+    theme: 'dark',                    // 'dark' | 'light'
+    verifierUrl: 'https://zkrune.com/api/verify-proof',
+    onResult: function(result) {
+      console.log(result.verified);   // true or false
+      console.log(result.proofHash);  // SHA-256 of proof
+    },
+    onError: function(err) {
+      console.error(err.code, err.message);
+    }
+  });
+</script>
+```
+
+## Config Options
+
+| Option           | Type                  | Default                       | Description                              |
+| ---------------- | --------------------- | ----------------------------- | ---------------------------------------- |
+| `container`      | `string \| HTMLElement` | —                           | CSS selector or DOM element (required)   |
+| `circuit`        | `CircuitId`           | —                             | Pre-select a circuit; omit to show picker |
+| `theme`          | `'dark' \| 'light'`   | `'dark'`                      | Color theme                              |
+| `circuitBaseUrl` | `string`              | `zkrune.com/circuits`         | Where to fetch WASM + zkey               |
+| `verifierUrl`    | `string`              | `zkrune.com/api/verify-proof` | Verification endpoint                    |
+| `buttonLabel`    | `string`              | `'Verify with zkRune'`        | Button text                              |
+| `onResult`       | `function`            | —                             | Called with `VerifyResult` on success    |
+| `onError`        | `function`            | —                             | Called with `WidgetError` on failure     |
+
+## ESM Import
+
+```ts
+import { init, verify } from 'zkrune-widget';
+
+// Option A: Render button + modal
+const widget = init({
+  container: '#my-div',
+  theme: 'light',
+  onResult: (r) => console.log(r),
+});
+widget.destroy(); // cleanup
+
+// Option B: Headless — no UI, programmatic
+const result = await verify('age-verification', {
+  birthYear: '1990',
+  currentYear: '2026',
+  minimumAge: '18',
+});
+console.log(result.verified);
+```
+
+## Result Object
+
+```ts
+{
+  verified: boolean,
+  circuitName: string,
+  proof: { pi_a, pi_b, pi_c, protocol, curve },
+  publicSignals: string[],
+  proofHash: string,       // SHA-256 of proof
+  timestamp: number        // Date.now()
+}
+```
+
+## iframe Embed
+
+For sites that prefer full iframe isolation:
+
+```html
+<iframe
+  src="https://zkrune.com/widget/embed?circuit=age-verification&theme=dark"
+  width="400" height="500" frameborder="0"
+></iframe>
+
+<script>
+  window.addEventListener('message', function(e) {
+    if (e.data.type === 'zkrune-result') {
+      console.log('Verified:', e.data.verified);
+      console.log('Proof hash:', e.data.proofHash);
+    }
+    if (e.data.type === 'zkrune-error') {
+      console.error(e.data.code, e.data.message);
+    }
+  });
+</script>
+```
+
+URL parameters: `circuit` (optional), `theme` (`dark` / `light`).

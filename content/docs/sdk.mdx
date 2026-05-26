@@ -1,0 +1,159 @@
+---
+title: SDK
+description: TypeScript SDK for client-side Groth16 proof generation and verification.
+---
+
+## Installation
+
+```bash
+npm install zkrune-sdk snarkjs
+```
+
+## Quick Start
+
+```ts
+import { generateProof, verifyProofRemote, templates } from 'zkrune-sdk';
+
+// 1. Generate proof (client-side, secrets stay in browser)
+const result = await generateProof({
+  templateId: templates.AGE_VERIFICATION,
+  inputs: {
+    birthYear: '1990',
+    currentYear: '2026',
+    minimumAge: '18',
+  },
+});
+
+if (!result.success) throw new Error(result.error);
+
+// 2. Verify against hosted verifier (trusted vKey on server)
+const { isValid } = await verifyProofRemote({
+  circuitName: templates.AGE_VERIFICATION,
+  proof: result.proof!.groth16Proof,
+  publicSignals: result.proof!.publicSignals,
+});
+
+// 3. Act on result
+if (isValid) grantAccess();
+```
+
+## Core Functions
+
+### `generateProof(options)`
+
+Generate a Groth16 proof client-side. Circuit WASM and zkey are fetched automatically.
+
+| Param         | Type                     | Description                                    |
+| ------------- | ------------------------ | ---------------------------------------------- |
+| `templateId`  | `TemplateId`             | Circuit identifier (e.g. `'age-verification'`) |
+| `inputs`      | `Record<string, string>` | Circuit inputs as string key-value pairs       |
+| `circuitPath` | `string?`                | Custom base URL for circuit artifacts          |
+
+Returns `ZKProofResult` with `success`, `proof`, `error`, `timing`.
+
+### `verifyProofRemote(options)`
+
+Verify a proof against the hosted verifier. The server loads its own trusted verification key.
+
+| Param           | Type            | Description                                |
+| --------------- | --------------- | ------------------------------------------ |
+| `circuitName`   | `string`        | Circuit identifier                         |
+| `proof`         | `Groth16Proof`  | The generated proof object                 |
+| `publicSignals` | `string[]`      | Public signals from proof generation       |
+| `verifierUrl`   | `string?`       | Custom verifier URL (default: zkrune.com)  |
+
+### `verifyProof(options)` — Local
+
+Verify a proof locally using snarkjs. Requires the verification key.
+
+| Param             | Type                | Description                          |
+| ----------------- | ------------------- | ------------------------------------ |
+| `proof`           | `Groth16Proof`      | The generated proof object           |
+| `publicSignals`   | `string[]`          | Public signals                       |
+| `verificationKey` | `VerificationKey`   | Circuit verification key (JSON)      |
+
+## ZkRune Class
+
+```ts
+import { ZkRune } from 'zkrune-sdk';
+
+const zk = new ZkRune({
+  circuitBaseUrl: '/circuits',  // custom artifact location
+  verifierUrl: 'https://zkrune.com/api/verify-proof',
+  logLevel: 'info',
+});
+
+const proof = await zk.prove('balance-proof', {
+  balance: '50000',
+  minimumBalance: '10000',
+});
+
+const local = await zk.verifyLocal(proof);
+const remote = await zk.verifyRemote(proof);
+```
+
+## MembershipRegistry
+
+Build a group, publish the Merkle root, and let members prove inclusion with a ZK proof.
+
+```ts
+import { MembershipRegistry, generateProof } from 'zkrune-sdk';
+
+// 1. Integrator: build the group
+const registry = MembershipRegistry.fromMembers(['alice', 'bob', 'charlie']);
+const root = registry.getRoot(); // publish this root
+
+// 2. Member: generate a Merkle inclusion proof
+const inputs = registry.getCircuitInputs('alice');
+// inputs = { memberId, pathElements, pathIndices, root }
+
+// 3. Generate the ZK proof (client-side)
+const result = await generateProof({
+  templateId: 'membership-proof',
+  inputs,
+});
+
+// The verifier checks: publicSignals[1] === published root
+// The member's identity is never revealed.
+```
+
+## Utilities
+
+```ts
+import {
+  CircuitLoader,     // fetch & cache WASM/zkey/vkey
+  validateInputs,    // validate inputs against schema
+  CIRCUIT_SCHEMAS,   // field metadata for all 14 circuits
+  templates,         // template ID constants
+} from 'zkrune-sdk';
+
+// Validate before proving
+const { valid, errors } = validateInputs('age-verification', {
+  birthYear: '1990',
+  currentYear: '2026',
+  minimumAge: '18',
+});
+```
+
+## Script Tag (No Bundler)
+
+```html
+<script src="https://cdn.jsdelivr.net/npm/snarkjs@latest/build/snarkjs.min.js"></script>
+<script type="module">
+  import { generateProof, verifyProofRemote } from 'https://esm.sh/zkrune-sdk';
+
+  const result = await generateProof({
+    templateId: 'age-verification',
+    inputs: { birthYear: '1990', currentYear: '2026', minimumAge: '18' },
+  });
+
+  if (result.success) {
+    const { isValid } = await verifyProofRemote({
+      circuitName: 'age-verification',
+      proof: result.proof.groth16Proof,
+      publicSignals: result.proof.publicSignals,
+    });
+    console.log('Verified:', isValid);
+  }
+</script>
+```

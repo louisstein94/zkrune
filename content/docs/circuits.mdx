@@ -1,0 +1,170 @@
+---
+title: Circuits
+description: 14 production Groth16 zk-SNARK circuits (BN128 curve). Artifacts served from zkrune.com/circuits/.
+---
+
+All circuits use Groth16 zk-SNARKs (BN128 curve). Artifacts (WASM + zkey + vkey) are served from `zkrune.com/circuits/`. Each entry below shows the public/private inputs.
+
+## Identity
+
+### `age-verification` — self-asserted
+
+Prove minimum age without revealing birth year.
+
+| Field          | Type      | Label           |
+| -------------- | --------- | --------------- |
+| `birthYear`    | `integer` | Birth Year      |
+| `currentYear`  | `integer` | Current Year    |
+| `minimumAge`   | `integer` | Minimum Age     |
+
+Artifacts: `age-verification.wasm` · `age-verification.zkey` · `age-verification_vkey.json`
+
+### `membership-proof` — production
+
+Prove group membership via Merkle inclusion (depth=16, Poseidon).
+
+| Field          | Type    | Label                |
+| -------------- | ------- | -------------------- |
+| `memberId`     | `hash`  | Member ID            |
+| `pathElements` | `hash`  | Path Elements [16]   |
+| `pathIndices`  | `hash`  | Path Indices [16]    |
+| `root`         | `hash`  | Merkle Root          |
+
+### `credential-proof` — self-asserted
+
+Prove valid credential without exposing it.
+
+| Field               | Type        | Label              |
+| ------------------- | ----------- | ------------------ |
+| `credentialHash`    | `hash`      | Credential Hash    |
+| `credentialSecret`  | `hash`      | Credential Secret  |
+| `validUntil`        | `timestamp` | Valid Until        |
+| `currentTime`       | `timestamp` | Current Time       |
+| `expectedHash`      | `hash`      | Expected Hash      |
+
+### `anonymous-reputation` — self-asserted
+
+Prove reputation score exceeds threshold anonymously.
+
+| Field              | Type      | Label             |
+| ------------------ | --------- | ----------------- |
+| `userId`           | `hash`    | User ID           |
+| `reputationScore`  | `integer` | Reputation Score  |
+| `userNonce`        | `hash`    | User Nonce        |
+| `thresholdScore`   | `integer` | Threshold         |
+| `platformId`       | `hash`    | Platform ID       |
+
+## Financial
+
+### `balance-proof` — production
+
+Prove balance exceeds threshold (attested when wallet connected).
+
+| Field             | Type      | Label             |
+| ----------------- | --------- | ----------------- |
+| `balance`         | `integer` | Balance           |
+| `minimumBalance`  | `integer` | Minimum Balance   |
+
+### `range-proof` — self-asserted
+
+Prove a value is within a range.
+
+| Field      | Type      | Label    |
+| ---------- | --------- | -------- |
+| `value`    | `integer` | Value    |
+| `minRange` | `integer` | Minimum  |
+| `maxRange` | `integer` | Maximum  |
+
+### `token-swap` — self-asserted
+
+Prove swap eligibility without revealing balance.
+
+| Field            | Type      | Label             |
+| ---------------- | --------- | ----------------- |
+| `tokenABalance`  | `integer` | Token A Balance   |
+| `swapSecret`     | `hash`    | Swap Secret       |
+| `requiredTokenA` | `integer` | Required Token A  |
+| `swapRate`       | `integer` | Swap Rate         |
+| `minReceive`     | `integer` | Min Receive       |
+
+### `nft-ownership` — self-asserted
+
+Prove NFT ownership without revealing which one.
+
+| Field             | Type      | Label              |
+| ----------------- | --------- | ------------------ |
+| `nftTokenId`      | `integer` | NFT Token ID       |
+| `ownerSecret`     | `hash`    | Owner Secret       |
+| `collectionRoot`  | `hash`    | Collection Root    |
+| `minTokenId`      | `integer` | Min Token ID       |
+| `maxTokenId`      | `integer` | Max Token ID       |
+
+### `whale-holder` — self-asserted
+
+Prove whale-level holdings without revealing amount.
+
+| Field             | Type      | Label             |
+| ----------------- | --------- | ----------------- |
+| `balance`         | `integer` | Balance           |
+| `minimumBalance`  | `integer` | Whale Threshold   |
+
+## Governance
+
+### `private-voting` — production
+
+Cast verifiable vote without revealing identity.
+
+| Field         | Type      | Label         |
+| ------------- | --------- | ------------- |
+| `voterId`     | `hash`    | Voter ID      |
+| `voteChoice`  | `integer` | Vote Choice   |
+| `pollId`      | `hash`    | Poll ID       |
+
+### `quadratic-voting` — self-asserted
+
+Quadratic vote weighted by token balance.
+
+| Field          | Type      | Label         |
+| -------------- | --------- | ------------- |
+| `voterId`      | `hash`    | Voter ID      |
+| `tokenBalance` | `integer` | Token Balance |
+| `voteChoice`   | `integer` | Vote Choice   |
+| `pollId`       | `hash`    | Poll ID       |
+| `minTokens`    | `integer` | Min Tokens    |
+
+## Cryptographic
+
+### `hash-preimage` — production
+
+Prove knowledge of a hash preimage.
+
+| Field           | Type    | Label           |
+| --------------- | ------- | --------------- |
+| `preimage`      | `hash`  | Preimage        |
+| `salt`          | `hash`  | Salt            |
+| `expectedHash`  | `hash`  | Expected Hash   |
+
+### `signature-verification` — production
+
+Verify EdDSA signature inside a ZK circuit.
+
+| Field   | Type    | Label          |
+| ------- | ------- | -------------- |
+| `R8x`   | `hash`  | R8 X           |
+| `R8y`   | `hash`  | R8 Y           |
+| `S`     | `hash`  | S              |
+| `Ax`    | `hash`  | Public Key X   |
+| `Ay`    | `hash`  | Public Key Y   |
+| `M`     | `hash`  | Message        |
+
+### `patience-proof` — production
+
+Prove minimum wait period elapsed.
+
+| Field              | Type        | Label              |
+| ------------------ | ----------- | ------------------ |
+| `startTime`        | `timestamp` | Start Time         |
+| `endTime`          | `timestamp` | End Time           |
+| `secret`           | `hash`      | Secret             |
+| `minimumWaitTime`  | `integer`   | Min Wait           |
+| `commitmentHash`   | `hash`      | Commitment Hash    |

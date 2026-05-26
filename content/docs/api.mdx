@@ -1,0 +1,70 @@
+---
+title: Verify API
+description: HTTP endpoint for server-side Groth16 proof verification.
+---
+
+## `POST /api/verify-proof`
+
+Verify a Groth16 proof against a trusted verification key stored on the server. The client never sends the vKey — the server loads it from its own filesystem based on `circuitName`.
+
+### Endpoint
+
+```http
+POST https://zkrune.com/api/verify-proof
+```
+
+### Request Body
+
+```json
+{
+  "circuitName": "age-verification",
+  "proof": {
+    "pi_a": ["123...", "456...", "1"],
+    "pi_b": [["789...", "012..."], ["345...", "678..."], ["1", "0"]],
+    "pi_c": ["901...", "234...", "1"],
+    "protocol": "groth16",
+    "curve": "bn128"
+  },
+  "publicSignals": ["1"]
+}
+```
+
+| Field           | Type             | Description                                          |
+| --------------- | ---------------- | ---------------------------------------------------- |
+| `circuitName`   | `string`         | One of the supported circuit IDs                     |
+| `proof`         | `Groth16Proof`   | The proof object from `snarkjs.groth16.fullProve()`  |
+| `publicSignals` | `string[]`       | Public output signals                                |
+
+### Response — Success
+
+```json
+{
+  "success": true,
+  "isValid": true,
+  "circuitName": "age-verification",
+  "message": "Proof cryptographically verified!",
+  "timing": 2
+}
+```
+
+### Response — Errors
+
+| Status | Reason                                                  |
+| ------ | ------------------------------------------------------- |
+| 400    | Missing `proof`, `publicSignals`, or `circuitName`      |
+| 400    | Unknown circuit: `circuitName` not in supported list    |
+| 503    | Circuit under maintenance                               |
+| 500    | Internal server error                                   |
+
+## Supported Circuits
+
+`age-verification` · `balance-proof` · `membership-proof` · `range-proof` · `private-voting` · `hash-preimage` · `credential-proof` · `token-swap` · `signature-verification` · `patience-proof` · `quadratic-voting` · `nft-ownership` · `anonymous-reputation` · `whale-holder`
+
+## Self-Hosting
+
+To run the verifier on your own infrastructure:
+
+1. Clone the repo and deploy to Vercel / Node.js.
+2. Circuit artifacts (WASM + vKey) are in `public/circuits/`.
+3. The endpoint at `app/api/verify-proof/route.ts` loads vKeys from the server.
+4. Point `verifierUrl` in your SDK/widget config to your deployment.

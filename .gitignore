@@ -95,7 +95,9 @@ DEMO_SCRIPT.md
 SOCIAL_POSTS.md
 MOBILE_UX_GUIDE.md
 public/og-image-template.md
-docs/
+# Root-anchored: bare `docs/` would also exclude app/docs/ (Fumadocs
+# route) and content/docs/ (MDX content), breaking the documentation.
+/docs/
 
 # Ceremony files (too large for git)
 ceremony/*.ptau

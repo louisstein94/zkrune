@@ -1,0 +1,59 @@
+---
+title: Trust Model
+description: Production, self-asserted, and experimental — what each ZK proof actually guarantees.
+---
+
+Every circuit is classified by the trust level of its inputs. Use this to understand what each proof actually guarantees.
+
+## Trust Levels
+
+### Production
+
+Proof inputs are self-contained cryptographic primitives. Safe for access decisions.
+
+### Self-Asserted
+
+User supplies the private input. Math is valid, but the claim is only as trustworthy as the user's honesty.
+
+### Experimental
+
+Demo fallback or simplified logic. **Do not use for production access decisions.**
+
+## Circuit Classification
+
+### Production
+
+- **Hash Preimage** — User knows `x` such that `hash(x) = y`. Cryptographically sound.
+- **Signature Verification** — User holds a valid EdDSA signature for a message.
+- **Patience Proof** — User waited at least N seconds. Verifiable against block time.
+- **Private Voting** — Vote is valid and nullifier prevents double-voting.
+- **Balance Proof** — With wallet connected, balance is independently verified on-chain via Solana RPC. Attested by server. Self-asserted fallback without wallet.
+- **Membership Proof** — Merkle tree inclusion via Poseidon (depth=16). Production-safe when the Merkle root is published by a trusted issuer. Use `MembershipRegistry` from the SDK.
+
+### Self-Asserted
+
+- **Age Verification** — No external attestation. Equivalent to an "I am 18+" checkbox with cryptographic binding.
+- **Range Proof** — Value is self-reported. Combine with attested data source.
+- **Credential Proof** — Requires external issuer attestation for production trust.
+- **Anonymous Reputation** — Requires on-chain or oracle-backed reputation feed.
+- **NFT Ownership** — Combine with on-chain ownership check (Metaplex, etc.).
+- **Quadratic Voting** — Combine with on-chain token balance for real governance.
+- **Token Swap** — Combine with on-chain balance verification.
+- **Whale Holder** — Balance is self-reported. Combine with on-chain lookup.
+
+## Guidelines for Integrators
+
+1. **Access gates:** Use Production circuits, or Self-Asserted where the trust boundary is acceptable.
+2. **Compliance:** Do not rely on Self-Asserted inputs without external attestation. The proof guarantees math, not truthfulness.
+3. **Prototyping:** Experimental features are fine for demos. Do not use in production flows.
+4. **Disclose:** When embedding zkRune, tell users what the proof proves and what it does not.
+
+## Upgrading Trust Level
+
+Self-Asserted circuits can be upgraded to Production by:
+
+- **Balance Proof** — upgraded to on-chain attested via Solana RPC when wallet is connected.
+- **Membership Proof** — upgraded to Merkle tree verification (Poseidon, depth=16). Integrators build groups with `MembershipRegistry` from the SDK.
+- Integrating an issuer/attestation layer (e.g. signed credential for Age Verification).
+
+Further upgrades are planned for future releases. See the [roadmap](/roadmap).
