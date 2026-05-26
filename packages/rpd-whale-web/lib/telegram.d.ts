@@ -12,6 +12,11 @@ interface TelegramWebApp {
   close: () => void;
   sendData: (data: string) => void;
   showAlert: (msg: string, cb?: () => void) => void;
+  showScanQrPopup?: (
+    params: { text?: string },
+    callback: (data: string) => void,
+  ) => void;
+  closeScanQrPopup?: () => void;
   HapticFeedback?: { notificationOccurred: (t: 'error' | 'success' | 'warning') => void };
   colorScheme: 'light' | 'dark';
   themeParams: Record<string, string>;

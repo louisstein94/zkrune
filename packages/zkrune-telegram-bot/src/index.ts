@@ -4,7 +4,7 @@ import * as fs from "fs";
 import * as path from "path";
 import { startSnapshotCron } from "./snapshot";
 import { startHttpServer } from "./server";
-import { verifyOwnership, verifyTelegramInitData } from "./ownership";
+import { verifyTelegramInitData } from "./ownership";
 
 // @ts-ignore — snarkjs has no proper type exports
 const snarkjs = require("snarkjs");
@@ -23,17 +23,6 @@ const EXPECTED_MIN_BALANCE = process.env.EXPECTED_MIN_BALANCE
 const INVITE_TTL_SECONDS = Number(process.env.INVITE_TTL_SECONDS || 30);
 const STORE_DIR = path.resolve(__dirname, process.env.STORE_DIR || "..");
 
-// Defense-in-depth: require the submitter to sign a canonical message with
-// their wallet AND bind it to their Telegram user_id. Without this, anyone
-// who knows a holder's public address can paste it into the verifier and
-// pass the gate (the snapshot Merkle path is public, the ZK proof only
-// asserts inclusion — it does not prove possession of the key).
-//
-// Leave `true` unless you explicitly need to accept legacy clients during
-// a migration window.
-const REQUIRE_OWNERSHIP =
-  (process.env.REQUIRE_OWNERSHIP_SIGNATURE || "true").toLowerCase() !== "false";
-
 // Optional: when set, also HMAC-verify Telegram WebApp initData to confirm
 // the payload originated inside the Mini App. The `web_app_data` event
 // itself is already a signed Telegram update, so this is belt-and-braces;
@@ -43,7 +32,9 @@ const REQUIRE_INIT_DATA =
 
 const VKEY_PATH =
   process.env.VKEY_PATH ||
-  path.resolve(__dirname, "../keys/whale-holder_vkey.json");
+  path.resolve(__dirname, "../keys/whale-holder-v2_vkey.json");
+
+const EXPECTED_CIRCUIT = "whale-holder-v2";
 
 if (!BOT_TOKEN) {
   console.error("BOT_TOKEN is required. Set it in .env");
@@ -144,20 +135,18 @@ interface ProofPayload {
   publicSignals: string[];
   nullifier: string;
 
-  // Wallet-ownership binding (required when REQUIRE_OWNERSHIP_SIGNATURE=true).
-  // The signature is over a canonical message that includes the wallet,
-  // the proof's nullifier, and the submitter's Telegram user_id.
-  wallet?: string;
-  signature?: string;       // base58 Ed25519
-  signedMessage?: string;
-  tgInitData?: string;      // optional, for REQUIRE_INIT_DATA defense-in-depth
+  // Optional Telegram defense-in-depth: binds the submission to the current
+  // Mini App initData when REQUIRE_INIT_DATA=true. Ownership of the BJJ key
+  // is enforced inside the v2 circuit itself, so no separate wallet signature
+  // is needed — the bot never sees the Solana address.
+  tgInitData?: string;
 }
 
 async function verifyProof(
   payload: ProofPayload
 ): Promise<{ valid: boolean; reason?: string }> {
-  if (payload.circuit !== "whale-holder") {
-    return { valid: false, reason: "Wrong circuit. Expected whale-holder." };
+  if (payload.circuit !== EXPECTED_CIRCUIT) {
+    return { valid: false, reason: `Wrong circuit. Expected ${EXPECTED_CIRCUIT}, got ${payload.circuit}.` };
   }
   if (payload.protocol !== "groth16") {
     return { valid: false, reason: "Wrong protocol. Expected groth16." };
@@ -226,23 +215,26 @@ function startVerificationKeyboard() {
 }
 
 function startVerificationMessage(): string {
+  const registerUrl = PROOF_URL.replace(/\/$/, "") + "/register";
   if (MINI_APP_URL) {
     return (
       `🐋 *${TOKEN_NAME} Whale Verification*\n\n` +
-      `Tap the button below to open the proof generator inside Telegram. ` +
-      `Connect your wallet, generate the proof in ~10–40 seconds, and the result ` +
-      `comes straight back to me.\n\n` +
-      `Your address and exact balance never leave your browser.`
+      `Two steps, one-time setup, then permanent gate access:\n\n` +
+      `1️⃣  *Register* once at [${registerUrl}](${registerUrl}) — connect your ` +
+      `Solana wallet, sign one message. This binds a private BabyJubjub ` +
+      `identity to your address so I never see the address itself.\n\n` +
+      `2️⃣  *Verify here* — tap the Mini App button below, scan the ` +
+      `registration QR from step 1, and a proof is generated in ~1–3 seconds. ` +
+      `Only the proof (no address, no balance) comes back to me.`
     );
   }
-  // Fallback: legacy text instructions when no Mini App is configured
   return (
     `🐋 *${TOKEN_NAME} Whale Verification*\n\n` +
-    `Prove you are a whale holder without revealing your address or balance.\n\n` +
+    `Prove you are a whale holder without revealing your address.\n\n` +
     `*How it works:*\n` +
-    `1️⃣  [Open the proof page](${PROOF_URL}) and connect your wallet\n` +
-    `2️⃣  Generate the ZK proof (10–40 seconds in your browser)\n` +
-    `3️⃣  Send the exported proof JSON to me here`
+    `1️⃣  [Register your BJJ identity](${registerUrl}) (sign once with your wallet)\n` +
+    `2️⃣  [Generate the proof](${PROOF_URL}) in your browser (~1–3 s)\n` +
+    `3️⃣  Send the exported proof JSON here`
   );
 }
 
@@ -285,73 +277,40 @@ async function handleProof(ctx: Context, payload: ProofPayload): Promise<void> {
     return;
   }
 
-  await ctx.reply("⏳ Verifying proof and wallet ownership...");
+  await ctx.reply("⏳ Verifying proof...");
 
-  // ── Ownership gate (D: hybrid) ───────────────────────────────────────────
-  // The ZK proof on its own only asserts "some address in the snapshot has
-  // enough balance"; without binding the proof to the submitter's wallet
-  // AND Telegram account, anyone who knows a holder's address can pass.
-  if (REQUIRE_OWNERSHIP) {
-    if (!userId) {
-      await ctx.reply(`❌ Could not identify Telegram user.`);
+  if (!userId) {
+    await ctx.reply(`❌ Could not identify Telegram user.`);
+    return;
+  }
+
+  // Optional defense-in-depth: confirm payload came from the Mini App session.
+  if (REQUIRE_INIT_DATA) {
+    if (!payload.tgInitData) {
+      await ctx.reply(`❌ Missing Telegram initData.`);
       return;
     }
-    if (!payload.wallet || !payload.signature || !payload.signedMessage) {
+    const tgCheck = verifyTelegramInitData(payload.tgInitData, BOT_TOKEN!);
+    if (!tgCheck || tgCheck.userId !== userId) {
       await ctx.reply(
-        `❌ *Ownership signature missing.*\n\n` +
-          `Open the verifier inside the bot, connect your wallet, and ` +
-          `generate a fresh proof.`,
-        { parse_mode: "Markdown" },
+        `❌ Telegram initData did not validate against this bot/user.`,
       );
       return;
     }
+  }
 
-    const nullifier = payload.publicSignals[1];
-    const owner = verifyOwnership(
-      {
-        wallet: payload.wallet,
-        signature: payload.signature,
-        signedMessage: payload.signedMessage,
-      },
-      "whale-chat",
-      { nullifier, tg_user_id: userId },
+  // Bind nullifier ↔ tg user. The v2 nullifier is deterministic per
+  // (bjj_sk, snapshot root), so this prevents the same registered identity
+  // from being claimed by a second Telegram account on the same snapshot.
+  const nullifier = payload.publicSignals[1];
+  const bind = bindNullifierToUser(nullifier, userId);
+  if (!bind.ok) {
+    await ctx.reply(
+      `❌ *This identity is already bound to a different Telegram account.*\n\n` +
+        `Contact a group admin if you believe this is in error.`,
+      { parse_mode: "Markdown" },
     );
-    if (!owner.valid) {
-      await ctx.reply(
-        `❌ *Ownership check failed*\n\n${owner.reason}\n\n` +
-          `The proof must be signed by the wallet that holds the tokens, ` +
-          `from your own Telegram account.`,
-        { parse_mode: "Markdown" },
-      );
-      return;
-    }
-
-    if (REQUIRE_INIT_DATA) {
-      if (!payload.tgInitData) {
-        await ctx.reply(`❌ Missing Telegram initData.`);
-        return;
-      }
-      const tgCheck = verifyTelegramInitData(payload.tgInitData, BOT_TOKEN!);
-      if (!tgCheck || tgCheck.userId !== userId) {
-        await ctx.reply(
-          `❌ Telegram initData did not validate against this bot/user.`,
-        );
-        return;
-      }
-    }
-
-    // Bind nullifier ↔ tg user so the same snapshot entry can't be
-    // re-submitted from a different Telegram account in the future.
-    const bind = bindNullifierToUser(nullifier, userId);
-    if (!bind.ok) {
-      await ctx.reply(
-        `❌ *This wallet's snapshot entry is already bound to a different ` +
-          `Telegram account.*\n\nContact a group admin if you believe this ` +
-          `is in error.`,
-        { parse_mode: "Markdown" },
-      );
-      return;
-    }
+    return;
   }
 
   const result = await verifyProof(payload);
@@ -443,7 +402,7 @@ bot.on("message:document", async (ctx) => {
 const HTTP_PORT = parseInt(process.env.PORT || "3000", 10);
 
 startSnapshotCron();
-startHttpServer(HTTP_PORT);
+startHttpServer(HTTP_PORT, STORE_DIR, TOKEN_SYMBOL);
 
 async function launchBot(retries = 8): Promise<void> {
   let lastErr: any;

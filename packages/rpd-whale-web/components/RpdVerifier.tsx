@@ -1,356 +1,306 @@
-'use client';
+"use client";
 
-import { useState, useEffect, useCallback } from 'react';
-import dynamic from 'next/dynamic';
-import { useWallet } from '@solana/wallet-adapter-react';
-import bs58 from 'bs58';
-import { addressToField, type Snapshot } from '@/lib/merkle';
+import { useCallback, useEffect, useState } from "react";
 
-const WalletMultiButton = dynamic(
-  () => import('@solana/wallet-adapter-react-ui').then((m) => m.WalletMultiButton),
-  { ssr: false },
-);
-
-// Canonical message format — kept in sync with the bot
-// (packages/zkrune-telegram-bot/src/ownership.ts). Fields are sorted
-// alphabetically; the timestamp is in milliseconds.
-function buildCanonicalMessage(
-  action: string,
-  wallet: string,
-  fields: Record<string, string | number>,
-  timestamp: number,
-): string {
-  const sorted = Object.entries(fields)
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([k, v]) => `${k}=${v}`)
-    .join('&');
-  return `zkrune:${action}:${wallet}:${sorted}:${timestamp}`;
-}
+import {
+  bjjSecretFromHex,
+  clearBjjSecretLocal,
+  decodeBjjSecretQr,
+  deriveBjjPubkey,
+  loadBjjSecretLocal,
+  saveBjjSecretLocal,
+} from "@/lib/bjj";
 
 const TOKEN = {
-  symbol: 'RPD',
-  name: 'Red Panda',
-  mint: 'BeSKJL54vJ8VeqhPBXeHMgFMJnbHxfDN3pARDmvApump',
+  symbol: "RPD",
+  name: "Red Panda",
+  mint: "BeSKJL54vJ8VeqhPBXeHMgFMJnbHxfDN3pARDmvApump",
   threshold: 10_000_000,
-  thresholdPercent: 1,
-  snapshotUrl: '/snapshot.json',
 };
 
-type Phase =
-  | 'input'
-  | 'fetching'
-  | 'ready'
-  | 'proving'
-  | 'signing'
-  | 'verified'
-  | 'submitted'
-  | 'not_found'
-  | 'insufficient'
-  | 'error';
+const REGISTER_URL =
+  process.env.NEXT_PUBLIC_REGISTER_URL || "https://rpd-whale-web.vercel.app/register";
+const BOT_API =
+  (process.env.NEXT_PUBLIC_BOT_API_URL || "https://zkrune-production.up.railway.app").replace(/\/$/, "");
 
-interface PathData {
-  address: string;
+type Phase =
+  | "loading-key"
+  | "no-key"
+  | "fetching-snapshot"
+  | "not-in-snapshot"
+  | "ready"
+  | "proving"
+  | "verified"
+  | "submitted"
+  | "error";
+
+interface TreeEntry {
   balance: string;
   index: number;
   pathElements: string[];
   pathIndices: number[];
-  root: string;
-  snapshotTimestamp: string;
-  snapshotBlock: number;
-  totalHolders: number;
+  bjjPubkeyY: string;
 }
 
-interface ProofResult {
-  publicSignals: string[];
-  rawProof: any;
-  snapshotRoot: string;
-  snapshotBlock: number;
-  nullifier: string;
-  nullifierSecret: string;
-  timing: number;
-}
-
-interface OwnershipSig {
-  wallet: string;
-  signature: string;       // base58 Ed25519
-  signedMessage: string;
-  tgInitData: string;
-}
-
-let snapshotCache: Snapshot | null = null;
-
-async function loadSnapshot(): Promise<Snapshot> {
-  if (snapshotCache) return snapshotCache;
-  const res = await fetch(TOKEN.snapshotUrl);
-  if (!res.ok) throw new Error('Failed to load snapshot.');
-  snapshotCache = (await res.json()) as Snapshot;
-  return snapshotCache;
+interface SnapshotV2 {
+  meta: {
+    circuit: "whale-holder-v2";
+    root: string;
+    depth: number;
+    blockHeight: number;
+    timestamp: string;
+    totalWhales: number;
+    totalRegistered: number;
+    totalPending: number;
+  };
+  tree: Record<string, TreeEntry>;
+  pending: Record<string, { balance: string }>;
 }
 
 export default function RpdVerifier() {
-  const { publicKey, connected, signMessage } = useWallet();
-
-  const [phase, setPhase] = useState<Phase>('input');
-  const [pathData, setPathData] = useState<PathData | null>(null);
-  const [proofResult, setProofResult] = useState<ProofResult | null>(null);
-  const [ownership, setOwnership] = useState<OwnershipSig | null>(null);
+  const [phase, setPhase] = useState<Phase>("loading-key");
+  const [bjjSk, setBjjSk] = useState<bigint | null>(null);
+  const [pasteInput, setPasteInput] = useState("");
+  const [entry, setEntry] = useState<(TreeEntry & { pkX: string }) | null>(null);
+  const [snapshotRoot, setSnapshotRoot] = useState<string | null>(null);
+  const [snapshotTs, setSnapshotTs] = useState<string | null>(null);
   const [proofLines, setProofLines] = useState<string[]>([]);
-  const [errorMsg, setErrorMsg] = useState('');
-  const [snapshotTimestamp, setSnapshotTimestamp] = useState<string | null>(null);
-  const [nullifierSecret, setNullifierSecret] = useState<string>('');
-  const [tgUser, setTgUser] = useState<{ id: number; name: string } | null>(null);
-  const [tgInitData, setTgInitData] = useState('');
+  const [nullifier, setNullifier] = useState<string | null>(null);
+  const [errorMsg, setErrorMsg] = useState("");
   const [inTelegram, setInTelegram] = useState(false);
-
-  // Boot Telegram WebApp + capture user
-  useEffect(() => {
-    const tg = window.Telegram?.WebApp;
-    if (!tg) return;
-    setInTelegram(true);
-    setTgInitData(tg.initData || '');
-    try {
-      tg.ready();
-      tg.expand();
-    } catch {}
-    const u = tg.initDataUnsafe.user;
-    if (u) setTgUser({ id: u.id, name: u.first_name || u.username || `tg-${u.id}` });
-  }, []);
-
-  // Fresh nullifierSecret on mount (BN254 field element)
-  useEffect(() => {
-    const bytes = new Uint8Array(31);
-    crypto.getRandomValues(bytes);
-    const secret = BigInt(
-      '0x' + Array.from(bytes).map((b) => b.toString(16).padStart(2, '0')).join(''),
-    );
-    setNullifierSecret(secret.toString());
-  }, []);
+  const [tgUser, setTgUser] = useState<{ id: number; name: string } | null>(null);
 
   const addLine = (line: string) => setProofLines((prev) => [...prev, line]);
 
-  const fetchPath = useCallback(async (address: string) => {
-    setPhase('fetching');
-    setErrorMsg('');
-    try {
-      const snap = await loadSnapshot();
-      const entry = snap.entries[address];
-      if (!entry) {
-        setSnapshotTimestamp(snap.meta.timestamp);
-        setPhase('not_found');
-        return;
-      }
-      setPathData({
-        address,
-        balance: entry.balance,
-        index: entry.index,
-        pathElements: entry.pathElements,
-        pathIndices: entry.pathIndices,
-        root: snap.meta.root,
-        snapshotTimestamp: snap.meta.timestamp,
-        snapshotBlock: snap.meta.blockHeight,
-        totalHolders: snap.meta.totalHolders,
-      });
-      setPhase(BigInt(entry.balance) >= BigInt(TOKEN.threshold) ? 'ready' : 'insufficient');
-    } catch (err: any) {
-      setErrorMsg(err.message ?? 'Network error');
-      setPhase('error');
+  // ── Boot: detect Telegram + load locally-stored BJJ secret ──────────────
+  useEffect(() => {
+    const tg = window.Telegram?.WebApp;
+    if (tg) {
+      setInTelegram(true);
+      try { tg.ready(); tg.expand(); } catch {}
+      const u = tg.initDataUnsafe.user;
+      if (u) setTgUser({ id: u.id, name: u.first_name || u.username || `tg-${u.id}` });
+    }
+
+    const sk = loadBjjSecretLocal();
+    if (sk) {
+      setBjjSk(sk);
+      setPhase("fetching-snapshot");
+    } else {
+      setPhase("no-key");
     }
   }, []);
 
+  // ── Look the user up in the live snapshot ────────────────────────────────
+  const lookup = useCallback(async (sk: bigint) => {
+    setPhase("fetching-snapshot");
+    setErrorMsg("");
+    try {
+      const pk = await deriveBjjPubkey(sk);
+      const pkX = pk.x.toString();
+
+      const res = await fetch(`${BOT_API}/snapshot.json`, { cache: "no-store" });
+      if (!res.ok) throw new Error("Snapshot not available from bot");
+      const snap = (await res.json()) as SnapshotV2;
+
+      setSnapshotRoot(snap.meta.root);
+      setSnapshotTs(snap.meta.timestamp);
+
+      const treeEntry = snap.tree[pkX];
+      if (!treeEntry) {
+        setPhase("not-in-snapshot");
+        return;
+      }
+
+      setEntry({ ...treeEntry, pkX });
+      setPhase("ready");
+    } catch (e: any) {
+      setErrorMsg(e.message || "Snapshot lookup failed");
+      setPhase("error");
+    }
+  }, []);
+
+  useEffect(() => {
+    if (bjjSk && phase === "fetching-snapshot") lookup(bjjSk);
+  }, [bjjSk, phase, lookup]);
+
+  // ── QR scan handler ──────────────────────────────────────────────────────
+  const handleScanQr = () => {
+    const tg = window.Telegram?.WebApp;
+    if (!tg || !tg.showScanQrPopup) {
+      setErrorMsg(
+        "QR scanning is not supported here — paste the hex backup below instead.",
+      );
+      return;
+    }
+    tg.showScanQrPopup({ text: "Scan the BJJ registration QR" }, (raw: string) => {
+      try {
+        tg.closeScanQrPopup?.();
+      } catch {}
+      const sk = decodeBjjSecretQr(raw);
+      if (!sk) {
+        setErrorMsg("That QR does not look like a zkRune BJJ registration code.");
+        return;
+      }
+      saveBjjSecretLocal(sk);
+      setBjjSk(sk);
+      setPasteInput("");
+      setErrorMsg("");
+      setPhase("fetching-snapshot");
+    });
+  };
+
+  const handlePasteImport = () => {
+    try {
+      const sk = bjjSecretFromHex(pasteInput);
+      saveBjjSecretLocal(sk);
+      setBjjSk(sk);
+      setPasteInput("");
+      setErrorMsg("");
+      setPhase("fetching-snapshot");
+    } catch (e: any) {
+      setErrorMsg(`Invalid hex: ${e.message}`);
+    }
+  };
+
+  const handleForgetKey = () => {
+    clearBjjSecretLocal();
+    setBjjSk(null);
+    setEntry(null);
+    setSnapshotRoot(null);
+    setPhase("no-key");
+  };
+
+  // ── Proof generation ─────────────────────────────────────────────────────
   const generateProof = async () => {
-    if (!pathData) return;
-    setPhase('proving');
+    if (!entry || !bjjSk || !snapshotRoot) return;
+    setPhase("proving");
     setProofLines([]);
+    setNullifier(null);
+    setErrorMsg("");
 
     try {
-      addLine('> Initializing snarkjs (Groth16)...');
-      const snarkjs = (await import('snarkjs')) as any;
+      addLine("> Initializing snarkjs (Groth16)…");
+      const snarkjs = (await import("snarkjs")) as any;
 
-      addLine(`> Circuit: WhaleHolderProof(depth=20)`);
-      addLine(`> Public:  root=${pathData.root.slice(0, 18)}... · min=${TOKEN.threshold.toLocaleString('en-US')}`);
-      addLine('> Loading WASM + zkey...');
+      addLine("> Circuit: WhaleHolderProofV2(depth=20)");
+      addLine(`> Public:  root=${snapshotRoot.slice(0, 18)}…`);
+      addLine("> Loading WASM + zkey…");
 
-      const inputs = {
-        address: addressToField(pathData.address).toString(),
-        balance: pathData.balance,
-        pathElements: pathData.pathElements,
-        pathIndices: pathData.pathIndices.map(String),
-        nullifierSecret,
-        root: pathData.root,
+      const cv = process.env.NEXT_PUBLIC_CIRCUIT_V || "";
+      const qs = cv ? `?v=${cv}` : "";
+
+      const input = {
+        bjjSk: bjjSk.toString(),
+        balance: entry.balance,
+        pathElements: entry.pathElements,
+        pathIndices: entry.pathIndices.map(String),
+        root: snapshotRoot,
         minimumBalance: TOKEN.threshold.toString(),
       };
 
-      const cv = process.env.NEXT_PUBLIC_CIRCUIT_V || '';
-      const qs = cv ? `?v=${cv}` : '';
-
+      addLine("> Proving in browser (~1–3s)…");
       const t0 = Date.now();
-      addLine('> Proving in browser (10–40s)...');
-      const { proof: rawProof, publicSignals } = await snarkjs.groth16.fullProve(
-        inputs,
-        `/circuits/whale-holder.wasm${qs}`,
-        `/circuits/whale-holder.zkey${qs}`,
+      const { proof, publicSignals } = await snarkjs.groth16.fullProve(
+        input,
+        `/circuits-v2/whale-holder-v2.wasm${qs}`,
+        `/circuits-v2/whale-holder-v2.zkey${qs}`,
       );
+      const ms = Date.now() - t0;
 
-      addLine('> Verifying...');
-      const vKey = await (await fetch(`/circuits/whale-holder_vkey.json${qs}`)).json();
-      const ok = await snarkjs.groth16.verify(vKey, publicSignals, rawProof);
-      const timing = Date.now() - t0;
+      addLine("> Self-verifying…");
+      const vKey = await (
+        await fetch(`/circuits-v2/whale-holder-v2_vkey.json${qs}`)
+      ).json();
+      const ok = await snarkjs.groth16.verify(vKey, publicSignals, proof);
 
-      if (ok && publicSignals[0] === '1') {
-        const nullifier = publicSignals[1];
+      if (ok && publicSignals[0] === "1") {
         addLine(`> ✓ Merkle inclusion verified`);
-        addLine(`> ✓ hasMinimum = 1`);
-        addLine(`> ✓ Generated in ${(timing / 1000).toFixed(2)}s`);
-        setProofResult({
+        addLine(`> ✓ Ownership proof verified (BJJ scalar mult)`);
+        addLine(`> ✓ Generated in ${(ms / 1000).toFixed(2)}s`);
+        setNullifier(publicSignals[1]);
+        setPhase("verified");
+        try {
+          window.Telegram?.WebApp.HapticFeedback?.notificationOccurred("success");
+        } catch {}
+
+        // Stash payload on window so submitToBot can pick it up. Address is
+        // NOT included anywhere — the bot only sees BJJ-bound public signals.
+        (window as any).__rpdProofPayload = {
+          circuit: "whale-holder-v2",
+          protocol: "groth16",
+          curve: "bn254",
+          depth: 20,
+          token: TOKEN.symbol,
+          mint: TOKEN.mint,
+          minimumBalance: TOKEN.threshold,
+          snapshotRoot,
+          hasMinimum: publicSignals[0],
+          nullifier: publicSignals[1],
+          proof,
           publicSignals,
-          rawProof,
-          snapshotRoot: pathData.root,
-          snapshotBlock: pathData.snapshotBlock,
-          nullifier,
-          nullifierSecret,
-          timing,
-        });
-        setPhase('verified');
-        try { window.Telegram?.WebApp.HapticFeedback?.notificationOccurred('success'); } catch {}
+          tgInitData: window.Telegram?.WebApp?.initData || undefined,
+          generatedAt: new Date().toISOString(),
+        };
       } else {
-        addLine('> ✗ Proof invalid.');
-        setErrorMsg('Proof verification failed.');
-        setPhase('error');
+        addLine("> ✗ Proof invalid.");
+        setErrorMsg("Proof self-verification failed.");
+        setPhase("error");
       }
-    } catch (err: any) {
-      addLine(`> ✗ ${err.message}`);
-      setErrorMsg(err.message ?? 'Proof generation failed.');
-      setPhase('error');
+    } catch (e: any) {
+      addLine(`> ✗ ${e.message}`);
+      setErrorMsg(e.message || "Proof generation failed.");
+      setPhase("error");
     }
   };
 
-  const buildPayload = (sig: OwnershipSig) => {
-    if (!proofResult) return null;
-    return {
-      circuit: 'whale-holder',
-      protocol: 'groth16',
-      curve: 'bn254',
-      depth: 20,
-      token: TOKEN.symbol,
-      mint: TOKEN.mint,
-      minimumBalance: TOKEN.threshold,
-      snapshotRoot: proofResult.snapshotRoot,
-      snapshotBlock: proofResult.snapshotBlock,
-      hasMinimum: proofResult.publicSignals[0],
-      nullifier: proofResult.nullifier,
-      proof: proofResult.rawProof,
-      publicSignals: proofResult.publicSignals,
-      generatedAt: new Date().toISOString(),
-      // Ownership binding — checked server-side by the bot.
-      wallet: sig.wallet,
-      signature: sig.signature,
-      signedMessage: sig.signedMessage,
-      tgInitData: sig.tgInitData,
-    };
-  };
-
-  /**
-   * Ask the connected wallet to sign a canonical message that binds the
-   * proof's nullifier AND the submitter's Telegram user_id. Without this
-   * binding, anyone who knew the address could submit a proof for it.
-   */
-  const signOwnership = async (): Promise<OwnershipSig | null> => {
-    if (!proofResult || !publicKey || !connected) {
-      setErrorMsg('Wallet disconnected — please reconnect and try again.');
-      setPhase('error');
-      return null;
-    }
-    if (!signMessage) {
-      setErrorMsg(
-        'Your wallet does not support message signing. Use Phantom, ' +
-          'Solflare, Backpack, or another adapter that exposes signMessage.',
-      );
-      setPhase('error');
-      return null;
-    }
-    if (!tgUser) {
-      setErrorMsg('No Telegram user — open this page from inside the bot.');
-      setPhase('error');
-      return null;
-    }
-
-    const wallet = publicKey.toBase58();
-    const ts = Date.now();
-    const signedMessage = buildCanonicalMessage(
-      'whale-chat',
-      wallet,
-      { nullifier: proofResult.nullifier, tg_user_id: tgUser.id },
-      ts,
-    );
-
-    try {
-      const sigBytes = await signMessage(new TextEncoder().encode(signedMessage));
-      return {
-        wallet,
-        signature: bs58.encode(sigBytes),
-        signedMessage,
-        tgInitData,
-      };
-    } catch (err: any) {
-      setErrorMsg(err.message ?? 'Signature rejected.');
-      setPhase('error');
-      return null;
-    }
-  };
-
-  const submitToBot = async () => {
+  const submitToBot = () => {
+    const payload = (window as any).__rpdProofPayload;
     const tg = window.Telegram?.WebApp;
     if (!tg) {
-      setErrorMsg('Telegram WebApp not available — open this page from inside the bot.');
-      setPhase('error');
+      setErrorMsg("Telegram WebApp not available — open this page from inside the bot.");
+      setPhase("error");
       return;
     }
-
-    setPhase('signing');
-    const sig = await signOwnership();
-    if (!sig) return;
-    setOwnership(sig);
-
-    const payload = buildPayload(sig);
-    if (!payload) return;
-
+    if (!payload) {
+      setErrorMsg("No proof payload — please regenerate.");
+      setPhase("error");
+      return;
+    }
     try {
       tg.sendData(JSON.stringify(payload));
-      setPhase('submitted');
-      // sendData triggers the bot to receive the proof; close after a beat
+      setPhase("submitted");
       setTimeout(() => { try { tg.close(); } catch {} }, 800);
-    } catch (err: any) {
-      setErrorMsg(`Could not send proof to bot: ${err.message}`);
-      setPhase('error');
+    } catch (e: any) {
+      setErrorMsg(`Could not send proof to bot: ${e.message}`);
+      setPhase("error");
     }
   };
 
   const reset = () => {
-    setPhase('input');
-    setPathData(null);
-    setProofResult(null);
-    setOwnership(null);
     setProofLines([]);
-    setErrorMsg('');
+    setNullifier(null);
+    setErrorMsg("");
+    if (bjjSk) setPhase("fetching-snapshot");
+    else setPhase("no-key");
   };
 
+  // ── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen bg-rpd-darker text-white">
       <main className="px-4 sm:px-6 py-6 max-w-2xl mx-auto">
-
-        {/* Hero */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full border border-rpd-primary/30 bg-rpd-primary/10 text-rpd-primary text-xs font-mono mb-3">
             <span className="w-1.5 h-1.5 rounded-full bg-rpd-primary animate-pulse" />
-            Snapshot Merkle Proof
+            BabyJubjub-bound proof · v2
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold mb-2">
             🐼 {TOKEN.name} <span className="text-rpd-primary">Whale</span>
           </h1>
           <p className="text-rpd-gray text-sm max-w-md mx-auto">
-            Prove you hold {TOKEN.thresholdPercent}%+
-            ({TOKEN.threshold.toLocaleString('en-US')} {TOKEN.symbol})
-            without revealing your address or balance.
+            Prove ownership of a registered {TOKEN.symbol} whale identity. Your
+            Solana address never enters the proof or the bot — only the BJJ
+            identity you bound at registration.
           </p>
           {tgUser && (
             <p className="text-rpd-gray/60 text-xs mt-2 font-mono">
@@ -359,12 +309,10 @@ export default function RpdVerifier() {
           )}
         </div>
 
-        {/* Card */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.02] overflow-hidden">
-
           <div className="px-5 py-3 border-b border-white/5 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              {phase !== 'input' && phase !== 'submitted' && (
+              {phase !== "no-key" && phase !== "submitted" && phase !== "loading-key" && (
                 <button
                   onClick={reset}
                   className="w-7 h-7 rounded-md border border-white/10 flex items-center justify-center text-rpd-gray hover:text-white hover:border-white/30"
@@ -374,193 +322,180 @@ export default function RpdVerifier() {
               )}
               <h2 className="text-sm text-white">Access Gate</h2>
             </div>
-            {pathData && (
-              <span className={`px-2 py-0.5 rounded-full text-xs font-mono border ${
-                BigInt(pathData.balance) >= BigInt(TOKEN.threshold)
-                  ? 'bg-rpd-primary/10 border-rpd-primary/30 text-rpd-primary'
-                  : 'bg-red-500/10 border-red-500/30 text-red-400'
-              }`}>
-                {BigInt(pathData.balance) >= BigInt(TOKEN.threshold) ? '🐋 Whale' : '✗ Below'}
-              </span>
+            {bjjSk && entry && (
+              <button
+                onClick={handleForgetKey}
+                className="text-rpd-gray/60 hover:text-red-400 text-[10px] font-mono uppercase"
+              >
+                Forget key
+              </button>
             )}
           </div>
 
           <div className="p-5">
-
-            {phase === 'input' && (
-              <div className="space-y-4">
-                <p className="text-rpd-gray text-xs leading-relaxed">
-                  Connect the wallet that holds your tokens. Your address is
-                  used to look up your Merkle path locally and enters the
-                  circuit as a <span className="text-white">private witness</span>.
-                  Before submitting you'll sign a one-time message that binds
-                  the proof to your wallet and Telegram account — this is what
-                  stops anyone else from reusing your address.
+            {(phase === "loading-key" || phase === "fetching-snapshot") && (
+              <div className="text-center py-8">
+                <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-rpd-primary/30 border-t-rpd-primary animate-spin" />
+                <p className="text-rpd-gray text-sm">
+                  {phase === "loading-key" ? "Loading…" : "Querying snapshot…"}
                 </p>
+              </div>
+            )}
 
-                {!inTelegram && (
-                  <div className="rounded-lg border border-yellow-500/30 bg-yellow-500/5 p-3 text-yellow-300 text-xs">
-                    Open this page from inside the bot — verification requires
-                    your Telegram identity.
-                  </div>
-                )}
-
-                <div>
-                  <p className="text-rpd-gray/60 text-xs font-mono uppercase mb-2">
-                    Connect wallet
+            {phase === "no-key" && (
+              <div className="space-y-5">
+                <div className="rounded-xl border border-yellow-500/30 bg-yellow-500/5 p-4">
+                  <p className="text-yellow-400 font-semibold text-sm mb-1">No identity stored</p>
+                  <p className="text-rpd-gray text-xs leading-relaxed">
+                    You need to bind a BabyJubjub identity to your Solana wallet
+                    first. This is a one-time browser flow — open it on the
+                    public web, sign once, then come back and scan the QR.
                   </p>
-                  <WalletMultiButton />
-                  {connected && publicKey && (
-                    <p className="text-rpd-primary text-xs font-mono mt-2">
-                      ✓ {publicKey.toBase58().slice(0, 8)}…{publicKey.toBase58().slice(-6)}
-                    </p>
-                  )}
+                </div>
+
+                <a
+                  href={REGISTER_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block w-full text-center py-3 rounded-xl border border-rpd-primary/40 text-rpd-primary font-bold"
+                >
+                  Open registration page ↗
+                </a>
+
+                <div className="flex items-center gap-3">
+                  <div className="flex-1 h-px bg-white/5" />
+                  <span className="text-rpd-gray/40 text-xs">already registered?</span>
+                  <div className="flex-1 h-px bg-white/5" />
                 </div>
 
                 <button
-                  onClick={() =>
-                    connected && publicKey && fetchPath(publicKey.toBase58())
-                  }
-                  disabled={!connected || !publicKey || !inTelegram || !tgUser}
-                  className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold disabled:opacity-40"
+                  onClick={handleScanQr}
+                  className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
                 >
-                  {!inTelegram
-                    ? 'Open inside Telegram bot'
-                    : !connected
-                      ? 'Connect a wallet first'
-                      : !tgUser
-                        ? 'Waiting for Telegram user…'
-                        : 'Look Up in Snapshot'}
+                  📷 Scan registration QR
                 </button>
-              </div>
-            )}
 
-            {phase === 'fetching' && (
-              <div className="text-center py-8">
-                <div className="w-10 h-10 mx-auto mb-3 rounded-full border-2 border-rpd-primary/30 border-t-rpd-primary animate-spin" />
-                <p className="text-rpd-gray text-sm">Querying snapshot...</p>
-              </div>
-            )}
-
-            {phase === 'not_found' && (
-              <div className="text-center py-6 space-y-3">
-                <p className="text-yellow-400 font-semibold">Address not in snapshot</p>
-                <p className="text-rpd-gray text-sm">
-                  Snapshot was taken on{' '}
-                  {snapshotTimestamp ? new Date(snapshotTimestamp).toLocaleDateString() : 'unknown date'}.
-                  You may have acquired tokens after that block.
-                </p>
-                <button onClick={reset} className="px-4 py-2 rounded-lg border border-white/10 text-sm">
-                  Try Another Address
-                </button>
-              </div>
-            )}
-
-            {(phase === 'ready' || phase === 'insufficient') && pathData && (
-              <div className="space-y-4">
-                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                  <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
-                    <div>
-                      <p className="text-rpd-gray/50 text-xs font-mono">Balance</p>
-                      <p className={`font-semibold ${BigInt(pathData.balance) >= BigInt(TOKEN.threshold) ? 'text-rpd-primary' : 'text-white'}`}>
-                        {Number(pathData.balance).toLocaleString('en-US')} {TOKEN.symbol}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-rpd-gray/50 text-xs font-mono">Holders</p>
-                      <p className="text-white font-semibold">{pathData.totalHolders.toLocaleString('en-US')}</p>
-                    </div>
-                  </div>
-                  <div className="h-1 rounded-full bg-white/10 overflow-hidden">
-                    <div
-                      className={`h-full ${BigInt(pathData.balance) >= BigInt(TOKEN.threshold) ? 'bg-rpd-primary' : 'bg-red-500/60'}`}
-                      style={{ width: `${Math.min((Number(pathData.balance) / TOKEN.threshold) * 100, 100)}%` }}
-                    />
-                  </div>
+                <div>
+                  <p className="text-rpd-gray/60 text-xs font-mono uppercase mb-2">
+                    Or paste hex backup
+                  </p>
+                  <input
+                    type="text"
+                    value={pasteInput}
+                    onChange={(e) => setPasteInput(e.target.value)}
+                    placeholder="62-character hex secret"
+                    className="w-full px-3 py-2.5 rounded-lg bg-black/30 border border-white/10 text-white font-mono text-xs placeholder:text-rpd-gray/30 focus:outline-none focus:border-rpd-primary/40"
+                  />
+                  <button
+                    onClick={handlePasteImport}
+                    disabled={!pasteInput}
+                    className="mt-2 w-full py-2.5 rounded-lg border border-white/15 text-white text-sm disabled:opacity-40"
+                  >
+                    Import secret
+                  </button>
                 </div>
 
-                {BigInt(pathData.balance) >= BigInt(TOKEN.threshold) ? (
-                  <button
-                    onClick={generateProof}
-                    className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
-                  >
-                    Generate ZK Proof
-                  </button>
-                ) : (
-                  <div className="rounded-xl border border-red-500/20 bg-red-500/5 p-4 text-center">
-                    <p className="text-red-400 font-semibold">Below Threshold</p>
-                    <p className="text-rpd-gray text-sm mt-1">
-                      Need {TOKEN.threshold.toLocaleString('en-US')} {TOKEN.symbol}.
-                      Short by {(TOKEN.threshold - Number(pathData.balance)).toLocaleString('en-US')}.
-                    </p>
-                  </div>
+                {errorMsg && (
+                  <p className="text-red-400 text-xs">{errorMsg}</p>
                 )}
               </div>
             )}
 
-            {phase === 'proving' && (
+            {phase === "not-in-snapshot" && (
+              <div className="text-center py-6 space-y-3">
+                <p className="text-yellow-400 font-semibold">Not in current snapshot</p>
+                <p className="text-rpd-gray text-sm">
+                  Your registered identity is not in the current snapshot tree.
+                  This usually means the snapshot has not refreshed since your
+                  registration — wait for the next cycle (every 6 h) or check
+                  the registration page again.
+                </p>
+                <p className="text-rpd-gray/60 text-xs">
+                  Snapshot taken {snapshotTs ? new Date(snapshotTs).toLocaleString() : "?"}
+                </p>
+              </div>
+            )}
+
+            {phase === "ready" && entry && (
+              <div className="space-y-4">
+                <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                  <div className="grid grid-cols-2 gap-3 text-sm">
+                    <div>
+                      <p className="text-rpd-gray/50 text-xs font-mono">Balance</p>
+                      <p className="font-semibold text-rpd-primary">
+                        {Number(entry.balance).toLocaleString("en-US")} {TOKEN.symbol}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-rpd-gray/50 text-xs font-mono">Snapshot</p>
+                      <p className="text-white text-xs">
+                        {snapshotTs ? new Date(snapshotTs).toLocaleDateString() : "?"}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={generateProof}
+                  className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
+                >
+                  Generate ZK Proof
+                </button>
+              </div>
+            )}
+
+            {phase === "proving" && (
               <div className="rounded-xl border border-rpd-primary/20 bg-black/50 p-4 font-mono text-xs space-y-1 min-h-[180px]">
                 {proofLines.map((line, i) => (
                   <p
                     key={i}
                     className={
-                      line.includes('✓') ? 'text-rpd-primary' :
-                      line.includes('✗') ? 'text-red-400' :
-                      'text-rpd-gray/80'
+                      line.includes("✓")
+                        ? "text-rpd-primary"
+                        : line.includes("✗")
+                          ? "text-red-400"
+                          : "text-rpd-gray/80"
                     }
-                  >{line}</p>
+                  >
+                    {line}
+                  </p>
                 ))}
                 <span className="inline-block w-1.5 h-3 bg-rpd-primary animate-pulse" />
               </div>
             )}
 
-            {phase === 'verified' && proofResult && (
+            {phase === "verified" && nullifier && (
               <div className="space-y-4">
                 <div className="rounded-xl border border-rpd-primary/30 bg-rpd-primary/5 p-4">
                   <p className="text-rpd-primary font-semibold mb-1">✓ Proof generated</p>
                   <p className="text-rpd-gray text-xs">
-                    Address and balance never appeared in the proof. Only hasMinimum=1
-                    and the snapshot root are public.
+                    Ownership of your BJJ identity is proven inside the circuit.
+                    Neither your address nor your balance appears in the proof —
+                    only the snapshot root and the threshold claim are public.
                   </p>
                 </div>
 
                 <div className="rounded-lg border border-yellow-500/20 bg-yellow-500/5 p-3">
                   <p className="text-yellow-400 text-xs font-semibold mb-1">Nullifier</p>
-                  <p className="text-white font-mono text-xs break-all">{proofResult.nullifier}</p>
+                  <p className="text-white font-mono text-xs break-all">{nullifier}</p>
                 </div>
 
                 {inTelegram ? (
-                  <>
-                    <p className="text-rpd-gray text-xs leading-relaxed">
-                      Next your wallet will pop up to sign a short ownership
-                      message — this binds the proof to your wallet and
-                      Telegram account so nobody else can submit it.
-                    </p>
-                    <button
-                      onClick={submitToBot}
-                      className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
-                    >
-                      Sign &amp; Submit to Bot
-                    </button>
-                  </>
+                  <button
+                    onClick={submitToBot}
+                    className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
+                  >
+                    Submit to Bot
+                  </button>
                 ) : (
                   <p className="text-rpd-gray text-xs text-center">
-                    Open this page from inside the Telegram bot to submit.
+                    Open this page from inside the Telegram bot to auto-submit.
                   </p>
                 )}
               </div>
             )}
 
-            {phase === 'signing' && (
-              <div className="text-center py-8 space-y-3">
-                <div className="w-10 h-10 mx-auto rounded-full border-2 border-rpd-primary/30 border-t-rpd-primary animate-spin" />
-                <p className="text-rpd-gray text-sm">
-                  Check your wallet — sign the ownership message.
-                </p>
-              </div>
-            )}
-
-            {phase === 'submitted' && (
+            {phase === "submitted" && (
               <div className="text-center py-8">
                 <div className="text-5xl mb-3">🐼</div>
                 <p className="text-rpd-primary font-semibold mb-1">Proof sent to bot</p>
@@ -570,15 +505,15 @@ export default function RpdVerifier() {
               </div>
             )}
 
-            {phase === 'error' && (
+            {phase === "error" && (
               <div className="text-center py-6">
                 <p className="text-red-400 font-semibold mb-2">Error</p>
-                <p className="text-rpd-gray text-sm mb-4">{errorMsg}</p>
+                <p className="text-rpd-gray text-sm mb-4 break-words">{errorMsg}</p>
                 <button
                   onClick={reset}
                   className="px-4 py-2 rounded-lg border border-white/10 text-sm"
                 >
-                  Try Again
+                  Try again
                 </button>
               </div>
             )}
@@ -586,7 +521,7 @@ export default function RpdVerifier() {
         </div>
 
         <p className="text-rpd-gray/40 text-xs text-center mt-4">
-          whale-holder.circom · Groth16 · Poseidon · depth=20
+          whale-holder-v2.circom · Groth16 · BabyJubjub + Poseidon · depth=20
         </p>
       </main>
     </div>

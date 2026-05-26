@@ -1,7 +1,23 @@
 /**
- * Snapshot service — fetches zkRUNE holders from Solana (via Helius DAS API
- * or standard RPC), builds a Poseidon Merkle tree, and keeps the result
- * in memory + on disk for the HTTP server and proof verification.
+ * Snapshot service for whale-holder-v2.
+ *
+ *   Helius DAS  ──►  raw Solana holders (addr, balance)
+ *                          │
+ *                          ▼
+ *      filter to whales (balance >= threshold)
+ *                          │
+ *           ┌──────────────┴──────────────┐
+ *           │                             │
+ *      registered                    unregistered
+ *  (in registry.json)             ("pending" list)
+ *           │
+ *           ▼
+ *  Poseidon3(pkX, pkY, balance)  →  Merkle tree leaves
+ *
+ * Pending whales are surfaced through snapshot.json so the registration page
+ * can tell a user "you're a whale, register your BJJ key to claim access."
+ *
+ * The tree itself never contains Solana addresses — only registered BJJ pubkeys.
  */
 
 import { Connection, PublicKey } from "@solana/web3.js";
@@ -11,19 +27,27 @@ import * as path from "path";
 import {
   buildTree,
   getMerklePath,
-  HolderEntry,
+  RegisteredHolder,
   Snapshot,
   SnapshotMeta,
   TREE_DEPTH,
 } from "./merkle";
+import { RegistryStore } from "./registry";
 
 const MINT_ADDRESS =
   process.env.TOKEN_MINT || "51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump";
 const DECIMALS = Number(process.env.TOKEN_DECIMALS || 6);
-const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000; // 6 hours
+const THRESHOLD = process.env.EXPECTED_MIN_BALANCE
+  ? BigInt(process.env.EXPECTED_MIN_BALANCE)
+  : BigInt(10_000_000);
+const REFRESH_INTERVAL_MS = 6 * 60 * 60 * 1000;
 const DATA_DIR = path.resolve(
   __dirname,
   process.env.DATA_DIR || "../data",
+);
+const STORE_DIR = path.resolve(
+  __dirname,
+  process.env.STORE_DIR || "..",
 );
 
 let currentSnapshot: Snapshot | null = null;
@@ -37,11 +61,16 @@ export function getSnapshotMeta(): SnapshotMeta | null {
   return currentSnapshot?.meta ?? null;
 }
 
-// ── Helius DAS API ──────────────────────────────────────────────────────────
+// Raw holder record before registry lookup.
+interface RawHolder {
+  address: string;
+  balance: bigint;
+}
 
-async function fetchHoldersHelius(apiKey: string): Promise<HolderEntry[]> {
+// ── Helius DAS API ──────────────────────────────────────────────────────────
+async function fetchHoldersHelius(apiKey: string): Promise<RawHolder[]> {
   console.log("[snapshot] Fetching holders via Helius DAS API...");
-  const holders: HolderEntry[] = [];
+  const holders: RawHolder[] = [];
   let page = 1;
 
   while (true) {
@@ -56,7 +85,7 @@ async function fetchHoldersHelius(apiKey: string): Promise<HolderEntry[]> {
           method: "getTokenAccounts",
           params: { mint: MINT_ADDRESS, limit: 1000, page },
         }),
-      }
+      },
     );
 
     const json = (await res.json()) as any;
@@ -72,7 +101,7 @@ async function fetchHoldersHelius(apiKey: string): Promise<HolderEntry[]> {
     }
 
     console.log(
-      `[snapshot]   Page ${page}: ${accounts.length} accounts (cumulative: ${holders.length})`
+      `[snapshot]   Page ${page}: ${accounts.length} accounts (cumulative: ${holders.length})`,
     );
     if (accounts.length < 1000) break;
     page++;
@@ -82,10 +111,9 @@ async function fetchHoldersHelius(apiKey: string): Promise<HolderEntry[]> {
 }
 
 // ── Standard RPC fallback ───────────────────────────────────────────────────
-
 async function fetchHoldersRPC(
-  connection: Connection
-): Promise<HolderEntry[]> {
+  connection: Connection,
+): Promise<RawHolder[]> {
   console.log("[snapshot] Fetching holders via getProgramAccounts...");
   const mintPubkey = new PublicKey(MINT_ADDRESS);
 
@@ -96,7 +124,7 @@ async function fetchHoldersRPC(
     ],
   });
 
-  const holders: HolderEntry[] = [];
+  const holders: RawHolder[] = [];
   for (const { account } of accounts) {
     const data = account.data;
     if (data[108] !== 1) continue;
@@ -111,8 +139,7 @@ async function fetchHoldersRPC(
 }
 
 // ── Dedup + sort ────────────────────────────────────────────────────────────
-
-function dedup(holders: HolderEntry[]): HolderEntry[] {
+function dedup(holders: RawHolder[]): RawHolder[] {
   const map = new Map<string, bigint>();
   for (const h of holders) {
     const existing = map.get(h.address);
@@ -124,7 +151,6 @@ function dedup(holders: HolderEntry[]): HolderEntry[] {
 }
 
 // ── Build and persist ───────────────────────────────────────────────────────
-
 export async function refreshSnapshot(): Promise<Snapshot> {
   const heliusKey = process.env.HELIUS_API_KEY || "";
   const rpcUrl = heliusKey
@@ -135,73 +161,102 @@ export async function refreshSnapshot(): Promise<Snapshot> {
   const slot = await connection.getSlot();
   console.log(`[snapshot] Current slot: ${slot}`);
 
-  let holders: HolderEntry[];
+  // 1. Fetch all token holders.
+  let rawHolders: RawHolder[];
   if (heliusKey) {
-    holders = await fetchHoldersHelius(heliusKey);
+    rawHolders = await fetchHoldersHelius(heliusKey);
   } else {
-    console.warn(
-      "[snapshot] HELIUS_API_KEY not set — falling back to getProgramAccounts"
-    );
-    holders = await fetchHoldersRPC(connection);
+    console.warn("[snapshot] HELIUS_API_KEY not set — falling back to getProgramAccounts");
+    rawHolders = await fetchHoldersRPC(connection);
+  }
+  rawHolders = dedup(rawHolders);
+  if (rawHolders.length === 0) throw new Error("No holders found");
+
+  // 2. Filter to whales (balance >= threshold).
+  const whales = rawHolders.filter((h) => h.balance >= THRESHOLD);
+  console.log(
+    `[snapshot] ${rawHolders.length} holders total, ${whales.length} whales (>= ${THRESHOLD})`,
+  );
+
+  // 3. Cross-reference registry: registered → tree leaf, unregistered → pending.
+  const registry = new RegistryStore(STORE_DIR).load();
+  const registered: RegisteredHolder[] = [];
+  const pending: Record<string, { balance: string }> = {};
+
+  for (const w of whales) {
+    const reg = registry[w.address];
+    if (reg) {
+      registered.push({
+        solanaAddress: w.address,
+        bjjPubkeyX: BigInt(reg.bjjPubkeyX),
+        bjjPubkeyY: BigInt(reg.bjjPubkeyY),
+        balance: w.balance,
+      });
+    } else {
+      pending[w.address] = { balance: w.balance.toString() };
+    }
   }
 
-  holders = dedup(holders);
-  if (holders.length === 0) throw new Error("No holders found");
-
   console.log(
-    `[snapshot] ${holders.length} holders, building Merkle tree...`
+    `[snapshot] Registered: ${registered.length}, pending registration: ${Object.keys(pending).length}`,
   );
-  const { root, layers, indexByAddress } = buildTree(holders);
+
+  // 4. Build the Merkle tree over registered whales.
+  const { root, layers, indexByBjjPubkeyX } = buildTree(registered);
   console.log(`[snapshot] Root: ${root}`);
 
   const meta: SnapshotMeta = {
+    circuit: "whale-holder-v2",
     root: root.toString(),
+    depth: TREE_DEPTH,
     blockHeight: slot,
     timestamp: new Date().toISOString(),
-    totalHolders: holders.length,
-    depth: TREE_DEPTH,
+    totalWhales: whales.length,
+    totalRegistered: registered.length,
+    totalPending: Object.keys(pending).length,
   };
 
-  const entries: Snapshot["entries"] = {};
-  for (const holder of holders) {
-    const idx = indexByAddress[holder.address];
+  const tree: Snapshot["tree"] = {};
+  for (const holder of registered) {
+    const pkXKey = holder.bjjPubkeyX.toString();
+    const idx = indexByBjjPubkeyX[pkXKey];
     const { pathElements, pathIndices } = getMerklePath(layers, idx);
-    entries[holder.address] = {
+    tree[pkXKey] = {
       balance: holder.balance.toString(),
       index: idx,
       pathElements: pathElements.map((e) => e.toString()),
       pathIndices,
+      bjjPubkeyY: holder.bjjPubkeyY.toString(),
     };
   }
 
-  const snapshot: Snapshot = { meta, entries };
+  const snapshot: Snapshot = { meta, tree, pending };
   currentSnapshot = snapshot;
 
   if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
   fs.writeFileSync(
     path.join(DATA_DIR, "snapshot.json"),
-    JSON.stringify(snapshot, null, 2)
+    JSON.stringify(snapshot, null, 2),
   );
   fs.writeFileSync(
     path.join(DATA_DIR, "snapshot-meta.json"),
-    JSON.stringify(meta, null, 2)
+    JSON.stringify(meta, null, 2),
   );
 
   console.log(
-    `[snapshot] Saved to data/ (${holders.length} holders, slot ${slot})`
+    `[snapshot] Saved to data/ — ${registered.length} in tree, ${Object.keys(pending).length} pending`,
   );
   return snapshot;
 }
 
 // ── Try loading from disk on startup ────────────────────────────────────────
-
 function loadFromDisk(): boolean {
   try {
     const raw = fs.readFileSync(path.join(DATA_DIR, "snapshot.json"), "utf-8");
     currentSnapshot = JSON.parse(raw);
+    const meta = currentSnapshot!.meta;
     console.log(
-      `[snapshot] Loaded from disk (${currentSnapshot!.meta.totalHolders} holders, ` +
-        `${currentSnapshot!.meta.timestamp})`
+      `[snapshot] Loaded from disk — circuit=${meta.circuit}, registered=${meta.totalRegistered}, pending=${meta.totalPending}, ${meta.timestamp}`,
     );
     return true;
   } catch {
@@ -210,7 +265,6 @@ function loadFromDisk(): boolean {
 }
 
 // ── Start the cron ──────────────────────────────────────────────────────────
-
 export function startSnapshotCron(): void {
   loadFromDisk();
 
@@ -226,7 +280,7 @@ export function startSnapshotCron(): void {
 
   refreshTimer = setInterval(run, REFRESH_INTERVAL_MS);
   console.log(
-    `[snapshot] Cron started — refreshing every ${REFRESH_INTERVAL_MS / 3_600_000}h`
+    `[snapshot] Cron started — refreshing every ${REFRESH_INTERVAL_MS / 3_600_000}h`,
   );
 }
 
