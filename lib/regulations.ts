@@ -121,6 +121,7 @@ export const REGULATIONS: Regulation[] = [
       "range-proof",
     ],
     integrationPaths: ["SDK", "Verify API", "On-chain verifier"],
+    goesDeeper: { label: "zkRune for EUDI Implementers", href: "/enterprise/eudi-wallet" },
     externalReference: {
       label: "EUDI ARF (European Commission)",
       href: "https://github.com/eu-digital-identity-wallet/eudi-doc-architecture-and-reference-framework",

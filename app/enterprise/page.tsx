@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import EnterpriseHeader from "@/components/EnterpriseHeader";
 
 export const metadata: Metadata = {
   title: "zkRune for Compliance — Article 12 Logging for High-Risk AI",
@@ -107,57 +108,17 @@ const COMPARISON = [
   },
 ];
 
-function EnterpriseHeader() {
-  return (
-    <header className="fixed top-0 left-0 right-0 z-50 bg-zk-darker/85 backdrop-blur-lg border-b border-white/5">
-      <div className="max-w-7xl mx-auto px-6 md:px-8 py-4 flex items-center justify-between">
-        <Link href="/enterprise" className="flex items-center gap-3 group">
-          <img src="/zkrune-log.png" alt="zkRune" className="h-9 w-auto" />
-          <div className="flex flex-col leading-tight">
-            <span className="text-xl font-hatton text-white">zkRune</span>
-            <span className="text-[10px] uppercase tracking-[0.2em] text-zk-gray">
-              For Compliance
-            </span>
-          </div>
-        </Link>
+const HEADER_NAV = [
+  { href: "#paradox", label: "The Paradox" },
+  { href: "#mapping", label: "Article 12 Mapping" },
+  { href: "#readiness", label: "Readiness" },
+  { href: "#contact", label: "Contact" },
+];
 
-        <nav className="hidden md:flex items-center gap-8">
-          <a
-            href="#paradox"
-            className="text-sm font-medium text-zk-gray hover:text-white transition-colors uppercase tracking-wider"
-          >
-            The Paradox
-          </a>
-          <a
-            href="#mapping"
-            className="text-sm font-medium text-zk-gray hover:text-white transition-colors uppercase tracking-wider"
-          >
-            Article 12 Mapping
-          </a>
-          <a
-            href="#readiness"
-            className="text-sm font-medium text-zk-gray hover:text-white transition-colors uppercase tracking-wider"
-          >
-            Readiness
-          </a>
-          <a
-            href="#contact"
-            className="text-sm font-medium text-zk-gray hover:text-white transition-colors uppercase tracking-wider"
-          >
-            Contact
-          </a>
-        </nav>
-
-        <a
-          href="mailto:zkruneprotocol@gmail.com?subject=Article%2012%20Technical%20Session"
-          className="hidden md:inline-flex px-5 py-2 bg-white text-zk-darker font-medium rounded-full hover:bg-zk-gray/90 transition-all text-sm"
-        >
-          Book a session
-        </a>
-      </div>
-    </header>
-  );
-}
+const HEADER_CTA = {
+  href: "mailto:zkruneprotocol@gmail.com?subject=Article%2012%20Technical%20Session",
+  label: "Book a session",
+};
 
 function CountdownBadge() {
   const deadline = new Date("2026-08-02T00:00:00Z").getTime();
@@ -176,7 +137,11 @@ function CountdownBadge() {
 export default function EnterprisePage() {
   return (
     <main className="relative min-h-screen bg-zk-darker text-white overflow-hidden font-dm-sans">
-      <EnterpriseHeader />
+      <EnterpriseHeader
+        subtitle="For Compliance"
+        navItems={HEADER_NAV}
+        cta={HEADER_CTA}
+      />
 
       <div className="noise-texture absolute inset-0 pointer-events-none" />
       <div className="absolute top-0 right-0 w-[60%] h-[800px] overflow-hidden pointer-events-none">

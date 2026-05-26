@@ -6,7 +6,9 @@
 
 # Runtime stores (per-deployment)
 nullifiers.json
+nullifier-owners.json
 verified-users.json
+registry.json
 data/
 data-*/
 store/
