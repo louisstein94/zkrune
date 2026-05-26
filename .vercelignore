@@ -14,25 +14,27 @@ node_modules
 
 # Sibling packages — none are imported by either Next.js app.
 # Only /packages/zkrune-sdk is imported (by lib/clientZkProof.ts).
-packages/zkrune-mobile
-packages/zkrune-telegram-bot
-packages/zkrune-widget
-packages/zkrune-cli
-packages/kage-plugin
-packages/x402-verify
+/packages/zkrune-mobile/
+/packages/zkrune-telegram-bot/
+/packages/zkrune-widget/
+/packages/zkrune-cli/
+/packages/kage-plugin/
+/packages/x402-verify/
 
 # Smart-contract / non-Next.js subprojects
-solana-staking-program
-solana-groth16-verifier
-sui-groth16-verifier
-evm-verifier
+/solana-staking-program/
+/solana-groth16-verifier/
+/sui-groth16-verifier/
+/evm-verifier/
 **/.anchor
 **/target
 
-# Circuit *source* files. Runtime needs only /public/circuits/*.wasm
-# and /public/circuits/*.zkey, which stay in the upload.
-circuits
-ceremony
+# Circuit *source* files at the repo root.
+# Leading slash anchors to root — bare `circuits` / `ceremony` would
+# also strip public/circuits/ and app/ceremony/, breaking the verifier
+# and the ceremony route.
+/circuits/
+/ceremony/
 
 # QA / test outputs
 coverage
@@ -45,6 +47,7 @@ e2e
 .vercel
 .git
 
-# Misc local
-business
-docs
+# Misc local. Anchored to root so app/docs/ (Fumadocs route) and
+# content/docs/ (MDX content) remain in the deployment.
+/business/
+/docs/
