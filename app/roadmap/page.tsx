@@ -14,7 +14,7 @@ const phases = [
     colorHex: "#6366F1",
     items: [
       { text: "Groth16 zk-SNARK circuit infrastructure", done: true },
-      { text: "13 production-ready verification circuits", done: true },
+      { text: "14 production-ready verification circuits", done: true },
       { text: "100% client-side proof generation", done: true },
       { text: "Visual Circuit Builder", done: true },
       { text: "Verification template gallery", done: true },

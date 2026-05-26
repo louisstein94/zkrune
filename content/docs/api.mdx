@@ -3,6 +3,16 @@ title: Verify API
 description: HTTP endpoint for server-side Groth16 proof verification.
 ---
 
+## OpenAPI specification
+
+The full machine-readable spec lives at **[`zkrune.com/openapi.yaml`](/openapi.yaml)** (OpenAPI 3.1, MIT-licensed). Use it to:
+
+- **Import into Postman** — *Import → Link → paste `https://zkrune.com/openapi.yaml`*. Generates a ready-to-run collection.
+- **Generate clients** — `openapi-generator-cli`, `oazapfts`, `orval`, or any OpenAPI 3.1-compatible tool.
+- **Lint your integration** — drop the spec into your editor's OpenAPI plugin to type-check requests/responses.
+
+The reference below is the human-readable summary; the YAML is authoritative.
+
 ## `POST /api/verify-proof`
 
 Verify a Groth16 proof against a trusted verification key stored on the server. The client never sends the vKey — the server loads it from its own filesystem based on `circuitName`.

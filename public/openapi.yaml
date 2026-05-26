@@ -1,0 +1,295 @@
+openapi: 3.1.0
+
+info:
+  title: zkRune Verify API
+  version: "1.2.1"
+  summary: Server-side verification of Groth16 zero-knowledge proofs.
+  description: |
+    The zkRune hosted verifier checks a Groth16 proof against a trusted
+    verification key held on the server. Clients generate proofs locally
+    (via the SDK, widget, or any snarkjs runtime) and submit the proof
+    object plus its public signals here.
+
+    The server never sees the private witness. Only the proof structure
+    and the publicly declared outputs (e.g. `age >= 18`) are transmitted.
+
+    Mainnet verifier contracts mirror the same verification logic on
+    Solana, Ethereum (Base), and Sui — see `/trust` for addresses.
+  contact:
+    name: zkRune
+    url: https://zkrune.com
+    email: zkruneprotocol@gmail.com
+  license:
+    name: MIT
+    url: https://github.com/louisstein94/zkrune/blob/main/LICENSE
+
+servers:
+  - url: https://zkrune.com
+    description: Production
+  - url: https://www.zkrune.com
+    description: Production (www mirror)
+
+tags:
+  - name: Verification
+    description: Proof verification operations
+
+paths:
+  /api/verify-proof:
+    post:
+      tags: [Verification]
+      operationId: verifyProof
+      summary: Verify a Groth16 proof against a trusted verification key
+      description: |
+        Submit a Groth16 proof, its public signals, and the circuit name.
+        The server loads the matching verification key from its own
+        filesystem (never trusting any client-supplied vKey) and returns
+        the cryptographic verification result.
+
+        For the `balance-proof` circuit, an optional `walletAddress` and
+        `mintAddress` can be supplied. When present, the server
+        additionally checks the on-chain balance via Solana RPC and
+        returns `attestation: "attested"` if the balance satisfies the
+        proven threshold. Without a wallet, the result remains
+        `self-asserted`.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/VerifyProofRequest"
+            examples:
+              ageVerification:
+                summary: Age verification (self-asserted)
+                value:
+                  circuitName: age-verification
+                  proof:
+                    pi_a: ["...", "...", "1"]
+                    pi_b: [["...", "..."], ["...", "..."], ["1", "0"]]
+                    pi_c: ["...", "...", "1"]
+                    protocol: groth16
+                    curve: bn128
+                  publicSignals: ["1"]
+              balanceProofAttested:
+                summary: Balance proof with on-chain attestation
+                value:
+                  circuitName: balance-proof
+                  proof:
+                    pi_a: ["...", "...", "1"]
+                    pi_b: [["...", "..."], ["...", "..."], ["1", "0"]]
+                    pi_c: ["...", "...", "1"]
+                    protocol: groth16
+                    curve: bn128
+                  publicSignals: ["1", "10000"]
+                  walletAddress: "<solana-wallet-address>"
+                  mintAddress: SOL
+      responses:
+        "200":
+          description: Verification result returned (check `isValid` and `success`).
+          content:
+            application/json:
+              schema:
+                oneOf:
+                  - $ref: "#/components/schemas/VerifyProofSuccess"
+                  - $ref: "#/components/schemas/VerifyProofVerifyError"
+              examples:
+                verified:
+                  summary: Valid proof
+                  value:
+                    success: true
+                    isValid: true
+                    circuitName: age-verification
+                    message: Proof cryptographically verified!
+                    timing: 3
+                    attestation: self-asserted
+                verifiedAttested:
+                  summary: Valid balance proof, attested via Solana RPC
+                  value:
+                    success: true
+                    isValid: true
+                    circuitName: balance-proof
+                    message: Proof cryptographically verified!
+                    timing: 7
+                    attestation: attested
+                    onChainVerification:
+                      walletAddress: "<solana-wallet-address>"
+                      balanceSufficient: true
+                invalid:
+                  summary: Cryptographically valid request, invalid proof
+                  value:
+                    success: false
+                    isValid: false
+                    error: "Proof verification returned false"
+        "400":
+          description: Client error — missing field or unknown circuit.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              examples:
+                missingField:
+                  value:
+                    error: Missing proof, publicSignals, or circuitName
+                unknownCircuit:
+                  value:
+                    error: "Unknown or unsupported circuit: my-custom-circuit"
+        "503":
+          description: Circuit is temporarily under maintenance.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/MaintenanceResponse"
+              example:
+                error: 'Circuit "balance-proof" is temporarily under maintenance while its trusted setup is being updated. Please try again later.'
+                maintenance: true
+        "500":
+          description: Server error during verification.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorResponse"
+              example:
+                error: "Verification failed: <details>"
+
+components:
+  schemas:
+    CircuitName:
+      type: string
+      description: One of the 14 production circuits supported by the hosted verifier.
+      enum:
+        - age-verification
+        - balance-proof
+        - range-proof
+        - membership-proof
+        - hash-preimage
+        - private-voting
+        - quadratic-voting
+        - signature-verification
+        - anonymous-reputation
+        - credential-proof
+        - nft-ownership
+        - whale-holder
+        - token-swap
+        - patience-proof
+
+    Groth16Proof:
+      type: object
+      required: [pi_a, pi_b, pi_c, protocol, curve]
+      additionalProperties: false
+      properties:
+        pi_a:
+          type: array
+          items:
+            type: string
+          minItems: 3
+          maxItems: 3
+          description: Three field-element strings forming the proof's A element.
+        pi_b:
+          type: array
+          items:
+            type: array
+            items:
+              type: string
+          description: 3×2 field-element matrix forming the proof's B element.
+        pi_c:
+          type: array
+          items:
+            type: string
+          minItems: 3
+          maxItems: 3
+          description: Three field-element strings forming the proof's C element.
+        protocol:
+          type: string
+          enum: [groth16]
+        curve:
+          type: string
+          enum: [bn128]
+
+    VerifyProofRequest:
+      type: object
+      required: [proof, publicSignals, circuitName]
+      additionalProperties: false
+      properties:
+        circuitName:
+          $ref: "#/components/schemas/CircuitName"
+        proof:
+          $ref: "#/components/schemas/Groth16Proof"
+        publicSignals:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          maxItems: 64
+          description: Public output signals declared by the circuit. Each is a decimal string of a field element.
+        walletAddress:
+          type: string
+          description: Optional Solana wallet address. When supplied for `balance-proof`, the server performs an on-chain balance check via Solana RPC and may upgrade the result to `attested`.
+        mintAddress:
+          type: string
+          description: Optional SPL token mint (or the literal `"SOL"` for the native token). Defaults to the zkRUNE mint when omitted.
+
+    VerifyProofSuccess:
+      type: object
+      required: [success, isValid, circuitName, message, timing, attestation]
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          const: true
+        isValid:
+          type: boolean
+          description: Whether the proof verifies against the trusted vKey.
+        circuitName:
+          $ref: "#/components/schemas/CircuitName"
+        message:
+          type: string
+        timing:
+          type: integer
+          description: Server-side verification duration in milliseconds.
+        attestation:
+          type: string
+          enum: [attested, self-asserted]
+          description: |
+            `attested` when the proof was independently verified against an
+            authoritative source (e.g. on-chain balance via Solana RPC for
+            `balance-proof`). Otherwise `self-asserted`.
+        onChainVerification:
+          type: object
+          additionalProperties: false
+          properties:
+            walletAddress:
+              type: string
+            balanceSufficient:
+              type: boolean
+
+    VerifyProofVerifyError:
+      type: object
+      required: [success, isValid, error]
+      additionalProperties: false
+      properties:
+        success:
+          type: boolean
+          const: false
+        isValid:
+          type: boolean
+          const: false
+        error:
+          type: string
+
+    ErrorResponse:
+      type: object
+      required: [error]
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+
+    MaintenanceResponse:
+      type: object
+      required: [error, maintenance]
+      additionalProperties: false
+      properties:
+        error:
+          type: string
+        maintenance:
+          type: boolean
+          const: true
