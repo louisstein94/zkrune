@@ -32,18 +32,18 @@ export default function FAQ() {
       category: "integration"
     },
     {
-      question: "Which verification templates are available?",
-      answer: "13 production-ready Groth16 circuits: Age Verification, Balance Proof, Membership Proof, Range Proof, Private Voting, NFT Ownership, Credential Proof, Token Swap Proof, Quadratic Voting, Signature Verification, Anonymous Reputation, and more. Each circuit has its own WASM and proving key generated through a multi-party trusted setup ceremony.",
+      question: "Which verification circuits are available?",
+      answer: "14 production Groth16 circuits: Age Verification, Balance Proof, Membership Proof, Range Proof, Private Voting, NFT Ownership, Credential Proof, Token Swap, Quadratic Voting, Signature Verification, Anonymous Reputation, Hash Preimage, Patience Proof, Whale Holder. Each circuit has its own WASM and proving key generated through a multi-party trusted setup ceremony. See the full list at /docs/circuits.",
       category: "technical"
     },
     {
-      question: "What is the zkRUNE token?",
-      answer: "zkRUNE is a Solana SPL token (51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump) that powers the zkRune ecosystem. It enables governance voting on protocol decisions, staking with up to 36% APY, access to the template marketplace where circuit creators earn 95% of sales, and premium tiers for advanced features.",
-      category: "token"
+      question: "What does pricing look like?",
+      answer: "The SDK, widget, and self-hosted verifier are MIT-licensed and free forever. The hosted verifier at zkrune.com/api/verify-proof is free during public beta with rate limits. Enterprise tier (dedicated infrastructure, SLA, custom circuits, audit reports, GDPR DPA) is contract-based — see /enterprise for the compliance vertical or email us.",
+      category: "pricing"
     },
     {
-      question: "Is the cryptography real or simulated?",
-      answer: "Real. Every template uses compiled Circom circuits with the Groth16 proving system — the same cryptography securing major blockchain protocols. The trusted setup ceremony was completed with multi-party participation. Proofs are mathematically verifiable and cannot be forged. All circuit source code is open on GitHub.",
+      question: "How was the cryptography reviewed?",
+      answer: "Every circuit uses compiled Circom code with the Groth16 proving system (BN128 curve) — the same cryptography securing major blockchain protocols. Trusted setup was completed via multi-party computation; as long as one contributor was honest, the parameters are sound. All circuit source is open on GitHub. A third-party security audit is scheduled in our roadmap.",
       category: "technical"
     },
     {

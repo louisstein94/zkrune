@@ -24,29 +24,31 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   metadataBase: new URL('https://zkrune.com'),
   title: {
-    default: "zkRune - Privacy Verification Infrastructure for Solana",
+    default: "zkRune — Privacy-Preserving Verification Infrastructure",
     template: "%s | zkRune"
   },
-  description: "Embeddable zero-knowledge verification for access, eligibility, and identity. 100% client-side Groth16 proofs — secrets never leave the device.",
+  description: "Add age-gating, membership, and eligibility checks to any app without becoming a data target. 14 production zero-knowledge circuits. SDK, widget, or hosted API.",
   icons: {
     icon: '/mobile-logo.png',
     apple: '/mobile-logo.png',
     shortcut: '/mobile-logo.png',
   },
   keywords: [
-    "zkRune", "Zero-Knowledge", "ZK Proofs", "Solana", "Privacy", "Blockchain", 
-    "Cryptography", "Groth16", "zk-SNARK", "Web3", "DeFi",
-    "Privacy Verification", "Credential Verification", "Access Control",
-    "Age Verification", "Membership Proof", "Privacy Infrastructure"
+    "zkRune", "Zero-Knowledge Verification", "ZK Proofs", "Privacy Infrastructure",
+    "Age Verification API", "Age Gating", "Membership Proof", "Credential Verification",
+    "Privacy Compliance", "GDPR", "EU AI Act", "UK Online Safety Act",
+    "Groth16", "zk-SNARK", "Privacy-Preserving Authentication",
+    "Anonymous Verification", "Eligibility Verification", "Access Control",
+    "Solana", "Ethereum", "Base", "Sui"
   ],
   authors: [{ name: "zkRune Team", url: "https://zkrune.com" }],
   creator: "zkRune Team",
   publisher: "zkRune",
-  
+
   // OpenGraph
   openGraph: {
-    title: "zkRune - Privacy Verification Infrastructure for Solana",
-    description: "Embeddable zero-knowledge verification for access, eligibility, and identity. 13 production Groth16 circuits. 100% client-side — no server, no data leakage.",
+    title: "zkRune — Privacy-Preserving Verification Infrastructure",
+    description: "Add age-gating, membership, and eligibility checks without becoming a data target. 14 production zero-knowledge circuits. SDK, widget, or hosted API.",
     url: "https://zkrune.com",
     siteName: "zkRune",
     locale: "en_US",
@@ -56,16 +58,16 @@ export const metadata: Metadata = {
         url: '/og-image.png',
         width: 1200,
         height: 630,
-        alt: 'zkRune - Privacy Verification Infrastructure',
+        alt: 'zkRune — Privacy-Preserving Verification Infrastructure',
       }
     ],
   },
-  
+
   // Twitter
   twitter: {
     card: "summary_large_image",
-    title: "zkRune - Privacy Verification Infrastructure",
-    description: "Embeddable ZK verification for access and eligibility. 13 Groth16 circuits, 100% client-side. Secrets never leave the device.",
+    title: "zkRune — Privacy-Preserving Verification Infrastructure",
+    description: "Verify users without storing their data. 14 production ZK circuits. SDK, widget, or hosted API.",
     creator: "@rune_zk",
     site: "@rune_zk",
     images: ['/og-image.png'],

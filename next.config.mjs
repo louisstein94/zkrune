@@ -1,7 +1,10 @@
 // Temporarily disable PWA to fix Babel dependencies issue
 // import withPWA from '@ducanh2912/next-pwa';
+import { createMDX } from 'fumadocs-mdx/next';
 
 const BUILD_ID = Date.now().toString(36);
+
+const withMDX = createMDX();
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -71,7 +74,7 @@ const nextConfig = {
 };
 
 // Temporarily disable PWA
-export default nextConfig;
+export default withMDX(nextConfig);
 
 /*
 /**

@@ -184,7 +184,7 @@ export async function GET(req: NextRequest) {
     const accept = req.headers.get('accept') || '';
     const isBrowser = accept.includes('text/html') && !accept.includes('application/json');
     if (isBrowser) {
-      return Response.redirect(`${baseUrl}/zkblink`, 302);
+      return Response.redirect(`${baseUrl}/playground`, 302);
     }
 
     return actionJsonResponse({

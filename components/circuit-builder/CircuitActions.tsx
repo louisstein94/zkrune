@@ -269,7 +269,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
         <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
         </svg>
-        {isPublishing ? 'Publishing...' : 'Create Blink'}
+        {isPublishing ? 'Publishing...' : 'Publish proof'}
       </button>
 
       {/* Blink info modal */}
@@ -283,8 +283,8 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
                 </svg>
               </div>
               <div>
-                <h3 className="text-white font-semibold text-lg">Create Blink</h3>
-                <p className="text-zinc-400 text-xs">Share your ZK proof as a Solana Blink</p>
+                <h3 className="text-white font-semibold text-lg">Publish Proof</h3>
+                <p className="text-zinc-400 text-xs">Share your ZK proof as a verifiable link</p>
               </div>
             </div>
 
@@ -305,7 +305,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
                     onClick={copyBlinkUrl}
                     className="flex-1 px-4 py-2.5 bg-violet-600 text-white text-sm rounded-lg hover:bg-violet-500 transition-colors font-medium"
                   >
-                    Copy Blink URL
+                    Copy verification link
                   </button>
                   <button
                     onClick={() => {
@@ -325,7 +325,7 @@ export default function CircuitActions({ nodes, edges, onLoad, onClear }: Circui
               <div className="space-y-4">
                 <div className="bg-zinc-800/50 rounded-xl p-4">
                   <p className="text-zinc-300 text-sm">
-                    This will compile your circuit, generate a proof, and publish it as a shareable Solana Blink. Anyone with the link can verify your proof on-chain.
+                    This will compile your circuit, generate a proof, and publish it as a shareable verification link. Anyone with the link can verify your proof on-chain.
                   </p>
                   <div className="mt-3 flex items-center gap-2 text-xs text-zinc-500">
                     <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

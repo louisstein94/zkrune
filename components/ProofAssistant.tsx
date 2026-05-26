@@ -25,7 +25,7 @@ export default function ProofAssistant() {
   const [proofState, setProofState] = useState<ProofState>({ status: 'idle' });
   const { publish, isPublishing, result: blinkResult, error: blinkError, reset: resetBlink } = usePublishBlink();
 
-  const welcomeText = 'Hey! I\'m zkBlink — your zero-knowledge proof builder. Tell me what you want to prove privately, and I\'ll craft the proof for you.\n\nFor example:\n\n- "Prove I\'m over 18"\n- "Show I have more than 10,000 tokens"\n- "I want to vote privately in a DAO"\n- "Prove I\'m a member of a group anonymously"';
+  const welcomeText = 'Hey! I\'m your zero-knowledge proof builder. Tell me what you want to prove privately, and I\'ll craft the proof for you.\n\nFor example:\n\n- "Prove I\'m over 18"\n- "Show I have more than 10,000 tokens"\n- "I want to vote privately in a DAO"\n- "Prove I\'m a member of a group anonymously"';
   const { messages, sendMessage, status } = useChat({
     transport: chatTransport,
     messages: [
@@ -87,7 +87,7 @@ export default function ProofAssistant() {
       proof: proofState.result.groth16Proof,
       publicSignals: proofState.result.publicSignals,
       label: spec ? `${spec.name} — zkRune` : 'zkRune Proof',
-      description: 'ZK proof generated via zkBlink',
+      description: 'ZK proof generated with zkRune',
     });
   }, [proofState, publish]);
 
@@ -226,7 +226,7 @@ export default function ProofAssistant() {
                         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2}>
                           <path strokeLinecap="round" strokeLinejoin="round" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                         </svg>
-                        Share as Solana Blink
+                        Share proof link
                       </>
                     )}
                   </button>
@@ -322,8 +322,8 @@ export default function ProofAssistant() {
           </svg>
         </div>
         <div>
-          <h2 className="text-white font-semibold text-sm">zkBlink</h2>
-          <p className="text-zinc-500 text-xs">Create proofs & shareable Blinks through conversation</p>
+          <h2 className="text-white font-semibold text-sm">Proof Playground</h2>
+          <p className="text-zinc-500 text-xs">Build ZK proofs through conversation and share them as verifiable links</p>
         </div>
         <div className="ml-auto flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20">
           <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />

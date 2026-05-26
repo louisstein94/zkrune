@@ -25,18 +25,17 @@ export default function CTAShowcase() {
           <div className="inline-flex items-center gap-2 px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 rounded-full mb-6">
             <span className="w-2 h-2 rounded-full bg-zk-primary" />
             <span className="text-sm font-medium text-zk-primary uppercase tracking-wider">
-              Open Source • Free to Use
+              MIT Licensed · Free during beta
             </span>
           </div>
 
           <h2 className="font-hatton text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-white mb-6">
-            Ready to Create
-            <br />
-            <span className="text-zk-primary">ZK Proofs?</span>
+            Ready to{" "}
+            <span className="text-zk-primary">integrate?</span>
           </h2>
 
           <p className="text-base md:text-lg lg:text-xl text-zk-gray max-w-2xl mx-auto mb-8 px-4">
-            Create your first zero-knowledge proof in under 60 seconds.
+            Add privacy-preserving verification to your app in under 60 seconds.
           </p>
 
           {/* Install Command */}
@@ -54,21 +53,21 @@ export default function CTAShowcase() {
               <p className="text-2xl md:text-3xl font-hatton text-white">
                 0.44<span className="text-zk-primary">s</span>
               </p>
-              <p className="text-xs md:text-sm text-zk-gray">Proof Speed</p>
+              <p className="text-xs md:text-sm text-zk-gray">Proof Generation</p>
             </div>
             <div className="hidden sm:block w-px bg-zk-gray/20" />
             <div className="text-center">
               <p className="text-2xl md:text-3xl font-hatton text-white">
-                13<span className="text-zk-primary">/13</span>
+                14<span className="text-zk-primary">/14</span>
               </p>
-              <p className="text-xs md:text-sm text-zk-gray">Real Circuits</p>
+              <p className="text-xs md:text-sm text-zk-gray">Production Circuits</p>
             </div>
             <div className="hidden sm:block w-px bg-zk-gray/20" />
             <div className="text-center">
               <p className="text-2xl md:text-3xl font-hatton text-white">
-                100<span className="text-zk-primary">%</span>
+                3<span className="text-zk-primary"> chains</span>
               </p>
-              <p className="text-xs md:text-sm text-zk-gray">Open Source</p>
+              <p className="text-xs md:text-sm text-zk-gray">Mainnet Verifiers</p>
             </div>
           </div>
 
@@ -78,18 +77,18 @@ export default function CTAShowcase() {
               href="/docs"
               className="px-10 py-4 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-2xl shadow-zk-primary/20 text-lg"
             >
-              Get Started →
+              Start building →
             </a>
             <a
-              href="/templates"
+              href="/enterprise"
               className="px-10 py-4 border-2 border-zk-primary/30 text-zk-primary font-medium rounded-full hover:bg-zk-primary/10 transition-all text-lg"
             >
-              Browse Templates
+              For enterprise
             </a>
           </div>
 
           <p className="mt-6 text-xs md:text-sm text-zk-gray px-4">
-            No credit card required • Open source • MIT licensed
+            MIT licensed · Open source · No credit card during beta
           </p>
         </div>
       </div>

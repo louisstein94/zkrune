@@ -7,7 +7,7 @@ const phases = [
   {
     id: 1,
     label: "Phase 1",
-    title: "Core Infrastructure",
+    title: "Foundation",
     period: "Q4 2025 – Q1 2026",
     status: "completed",
     color: "zk-primary",
@@ -19,66 +19,59 @@ const phases = [
       { text: "Visual Circuit Builder", done: true },
       { text: "Verification template gallery", done: true },
       { text: "NPM SDK & CLI published", done: true },
-      { text: "PWA + Android APK", done: true },
       { text: "Hosted proof verification API", done: true },
+      { text: "PWA + Android APK", done: true },
     ],
   },
   {
     id: 2,
     label: "Phase 2",
-    title: "Token & Product Launch",
+    title: "Production Trust",
     period: "Q1 2026 – Q2 2026",
-    status: "active",
+    status: "completed",
     color: "zk-accent",
     colorHex: "#8B5CF6",
     items: [
-      { text: "zkRUNE token launched on Solana", done: true },
-      { text: "Template marketplace live (95% to creators)", done: true },
-      { text: "Premium tiers with burn mechanism", done: true },
-      { text: "Mobile ZK Wallet — Android APK", done: true },
-      { text: "Trusted Setup Ceremony completed (multi-party)", done: true },
-      { text: "Pre-audit security hardening", done: true },
+      { text: "Trusted Setup Ceremony (multi-party)", done: true },
       { text: "Trust model published (production / self-asserted / experimental)", done: true },
+      { text: "Pre-audit security hardening", done: true },
       { text: "Groth16 Verifier deployed on Solana mainnet", done: true },
-      { text: "Staking program mainnet migration", done: false },
+      { text: "Cross-chain proof verification (Ethereum, Base)", done: true },
+      { text: "Embeddable verification widget (script-tag integration)", done: true },
+      { text: "Integration docs & developer portal", done: true },
+      { text: "On-chain data source for balance proof (Solana RPC)", done: true },
+      { text: "Issuer / registry model for membership proof", done: true },
     ],
   },
   {
     id: 3,
     label: "Phase 3",
-    title: "Prove with zkRune",
+    title: "Traction",
     period: "Q3 – Q4 2026",
-    status: "upcoming",
+    status: "active",
     color: "zk-secondary",
     colorHex: "#34D399",
     items: [
-      { text: "Embeddable verification widget (script-tag integration)", done: true },
       { text: "First 3 integrations onboarded", done: false },
-      { text: "On-chain data source for balance proof (Solana RPC)", done: true },
-      { text: "Issuer / registry model for membership proof", done: true },
-      { text: "3rd party security audit", done: false },
-      { text: "iOS app", done: false },
-      { text: "Integration docs & developer portal", done: true },
       { text: "Self-asserted → attested upgrade path for age proof", done: false },
+      { text: "Enterprise SDK & white-label solutions", done: false },
+      { text: "3rd party security audit", done: false },
+      { text: "Institutional privacy tooling", done: false },
     ],
   },
   {
     id: 4,
     label: "Phase 4",
-    title: "Scale & Ecosystem",
+    title: "Scale",
     period: "2027+",
     status: "future",
     color: "zk-gray",
     colorHex: "#9CA3AF",
     items: [
-      { text: "Cross-chain proof verification (Ethereum, Base)", done: true },
-      { text: "ZK credential standard (W3C compatible)", done: false },
-      { text: "On-chain governance with quadratic voting", done: false },
-      { text: "Enterprise SDK & white-label solutions", done: false },
-      { text: "Developer grants program", done: false },
-      { text: "Advanced circuit types (recursive SNARKs)", done: false },
-      { text: "Decentralized proof relay network", done: false },
-      { text: "Institutional privacy tooling", done: false },
+      { text: "W3C ZK credential standard", done: false },
+      { text: "Recursive SNARKs (advanced circuit types)", done: false },
+      { text: "Cross-chain expansion (additional L2s)", done: false },
+      { text: "iOS app", done: false },
     ],
   },
 ];
@@ -142,12 +135,12 @@ export default function RoadmapPage() {
         <div className="mb-20 p-6 bg-zk-dark/50 border border-white/5 rounded-2xl backdrop-blur-sm">
           <div className="flex items-center justify-between mb-4">
             <span className="text-sm font-medium text-zk-gray uppercase tracking-wider">Overall Progress</span>
-            <span className="text-sm font-bold text-zk-primary">Phase 2 / 4</span>
+            <span className="text-sm font-bold text-zk-primary">Phase 3 / 4</span>
           </div>
           <div className="h-2 bg-zk-darker rounded-full overflow-hidden">
             <div
               className="h-full rounded-full bg-gradient-to-r from-zk-primary via-zk-accent to-zk-secondary/50 transition-all duration-1000"
-              style={{ width: "45%" }}
+              style={{ width: "60%" }}
             />
           </div>
           <div className="flex justify-between mt-3">

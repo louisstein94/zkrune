@@ -7,9 +7,8 @@ import StructuredData from "@/components/StructuredData";
 import { generateOrganizationSchema, generateSoftwareApplicationSchema } from "@/lib/seo";
 import FAQ from "@/components/FAQ";
 import CTAShowcase from "@/components/CTAShowcase";
-import InteractiveHeroDemo from "@/components/InteractiveHeroDemo";
+import HeroLiveDemo from "@/components/HeroLiveDemo";
 import TrustBadges from "@/components/TrustBadges";
-import TokenStatsBanner from "@/components/TokenStatsBanner";
 import CopyContractAddress from "@/components/CopyContractAddress";
 
 export default function Home() {
@@ -39,44 +38,38 @@ export default function Home() {
       {/* Main Content */}
       <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between px-6 md:px-12 lg:px-16 py-20 pt-32 min-h-screen gap-12">
         {/* Left Side - Content */}
-        <div className="max-w-2xl space-y-8 text-center lg:text-left">
-          {/* Product Badges */}
-          <div className="flex flex-wrap items-center gap-3 mb-2">
-            <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-primary/40 bg-zk-primary/10 rounded-full backdrop-blur-sm">
-              <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
-              <span className="text-xs font-bold text-zk-primary uppercase tracking-wider">
-                Privacy Infrastructure
-              </span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-accent/40 bg-zk-accent/10 rounded-full backdrop-blur-sm">
-              <span className="text-xs font-bold text-zk-accent uppercase tracking-wider">
-                Groth16 ZK-SNARKs
-              </span>
-            </div>
-            <div className="inline-flex items-center gap-2 px-4 py-2 border border-zk-secondary/40 bg-zk-secondary/10 rounded-full backdrop-blur-sm">
-              <div className="w-2 h-2 rounded-full bg-zk-secondary" />
-              <span className="text-xs font-bold text-zk-secondary uppercase tracking-wider">
-                Solana · Sui · Base mainnet
-              </span>
-            </div>
+        <div className="max-w-2xl space-y-7 text-center lg:text-left">
+          {/* Eyebrow */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-zk-primary/40 bg-zk-primary/10 rounded-full backdrop-blur-sm">
+            <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
+            <span className="text-xs font-bold text-zk-primary uppercase tracking-wider">
+              Zero-Knowledge Verification Infrastructure
+            </span>
           </div>
 
           {/* Hero Text */}
-          <div className="space-y-4">
-            <h2 className="font-hatton text-4xl md:text-5xl lg:text-6xl leading-tight text-white">
-              Verify Without
-              <br />
-              <span className="text-zk-primary">Exposing</span>.
-            </h2>
-            <p className="text-lg md:text-xl text-zk-gray max-w-xl mx-auto lg:mx-0">
-              Embeddable zero-knowledge verification for access, eligibility, and identity across <span className="text-zk-accent font-semibold">Solana, Sui, and Base</span>. Secrets never leave the device.
+          <div className="space-y-5">
+            <h1 className="font-hatton text-4xl md:text-5xl lg:text-6xl leading-[1.05] text-white">
+              Privacy-preserving<br />
+              verification for{" "}
+              <span className="text-zk-primary">any app</span>.
+            </h1>
+            <p className="text-lg md:text-xl text-zk-gray max-w-xl mx-auto lg:mx-0 leading-relaxed">
+              Add age-gating, membership, and eligibility checks without becoming a data target. 14 production zero-knowledge circuits. SDK, widget, or hosted API.
             </p>
-            <p className="text-sm text-zk-primary/80 max-w-xl mx-auto lg:mx-0 flex items-center gap-2">
-              <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-              </svg>
-              100% client-side Groth16 proofs — no server, no data leakage
-            </p>
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm text-zk-gray/80 max-w-xl mx-auto lg:mx-0">
+              <span className="inline-flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-zk-secondary" />
+                Mainnet on Solana · Ethereum · Sui · Base
+              </span>
+              <span className="hidden md:inline text-zk-gray/30">|</span>
+              <span className="inline-flex items-center gap-1.5">
+                <svg className="w-3.5 h-3.5 text-zk-primary/80" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M2.166 4.999A11.954 11.954 0 0010 1.944 11.954 11.954 0 0017.834 5c.11.65.166 1.32.166 2.001 0 5.225-3.34 9.67-8 11.317C5.34 16.67 2 12.225 2 7c0-.682.057-1.35.166-2.001zm11.541 3.708a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                </svg>
+                Multi-party trusted setup · Open source
+              </span>
+            </div>
           </div>
 
           {/* Enhanced Stats - Social Proof + Technical */}
@@ -142,26 +135,25 @@ export default function Home() {
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row gap-4 pt-4 w-full sm:w-auto">
             <a
-              href="/templates"
+              href="/docs"
               className="px-8 py-4 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105 shadow-lg shadow-zk-primary/20 inline-block text-center"
             >
-              Launch App →
+              Start building →
             </a>
             <a
-              href="#how-it-works"
+              href="https://github.com/louisstein94/zkrune"
+              target="_blank"
+              rel="noopener noreferrer"
               className="px-8 py-4 border border-zk-primary/30 text-zk-primary font-medium rounded-full hover:border-zk-primary hover:bg-zk-primary/10 transition-all inline-block text-center"
             >
-              Learn More
+              View on GitHub ↗
             </a>
           </div>
         </div>
 
-        {/* Right Side - Interactive Demo + Rune Animation */}
-        <div className="relative w-full lg:w-1/2 h-[400px] lg:h-[600px] flex flex-col items-center justify-center gap-8">
-          <InteractiveHeroDemo />
-          <p className="text-xs text-center text-zk-gray max-w-sm">
-            Live demo: Watch how Zero-Knowledge Proofs protect your privacy
-          </p>
+        {/* Right Side - Live Demo */}
+        <div className="relative w-full lg:w-1/2 flex items-center justify-center">
+          <HeroLiveDemo />
         </div>
       </div>
 
@@ -191,8 +183,8 @@ export default function Home() {
             {/* Stats Grid */}
             <div className="grid grid-cols-3 gap-4 md:gap-6 pt-6 border-t border-white/10">
               <div className="text-center">
-                <p className="text-3xl md:text-4xl font-hatton text-zk-primary mb-1">13</p>
-                <p className="text-xs md:text-sm text-zk-gray uppercase tracking-wider">Real Groth16 Circuits</p>
+                <p className="text-3xl md:text-4xl font-hatton text-zk-primary mb-1">14</p>
+                <p className="text-xs md:text-sm text-zk-gray uppercase tracking-wider">Production Circuits</p>
               </div>
               <div className="text-center">
                 <p className="text-3xl md:text-4xl font-hatton text-zk-primary mb-1">&lt;5s</p>
@@ -200,7 +192,7 @@ export default function Home() {
               </div>
               <div className="text-center">
                 <p className="text-3xl md:text-4xl font-hatton text-zk-primary mb-1">0</p>
-                <p className="text-xs md:text-sm text-zk-gray uppercase tracking-wider">Server Calls</p>
+                <p className="text-xs md:text-sm text-zk-gray uppercase tracking-wider">PII Retained</p>
               </div>
             </div>
           </div>
@@ -212,10 +204,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
             <h2 className="text-3xl md:text-4xl font-hatton text-white mb-4">
-              Prove with zkRune
+              Production verification patterns
             </h2>
             <p className="text-lg text-zk-gray max-w-2xl mx-auto">
-              Three production-ready verification flows. Pick a claim, generate a proof, verify it — all client-side.
+              Three ready-to-integrate flows from our 14-circuit library. Pick a claim, generate a proof, verify it — all client-side.
             </p>
           </div>
 
@@ -281,7 +273,7 @@ export default function Home() {
               href="/templates"
               className="inline-flex items-center gap-2 text-sm text-zk-primary hover:text-zk-primary/80 transition-colors font-medium"
             >
-              See all 13 templates
+              See all 14 circuits
               <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
               </svg>
@@ -341,7 +333,7 @@ const { isValid } = await zk.verifyRemote({
               <a href="/docs" className="text-xs text-zk-primary hover:text-zk-primary/80 transition-colors font-medium">
                 Full documentation →
               </a>
-              <a href="/api-docs" className="text-xs text-zk-gray hover:text-zk-primary transition-colors font-medium">
+              <a href="/docs/api" className="text-xs text-zk-gray hover:text-zk-primary transition-colors font-medium">
                 API Reference →
               </a>
             </div>
@@ -354,93 +346,6 @@ const { isValid } = await zk.verifyRemote({
 
       {/* FAQ Section */}
       <FAQ />
-
-      {/* zkRune Token Utility */}
-      <div className="relative z-10 px-6 md:px-12 lg:px-16 py-16 border-t border-white/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-10">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-zk-primary/10 border border-zk-primary/30 rounded-full mb-6">
-              <span className="text-sm font-bold text-zk-primary uppercase tracking-wider">
-                zkRUNE Token
-              </span>
-            </div>
-            <h2 className="text-3xl md:text-4xl font-hatton text-white mb-4">
-              Real Utility, Real Value
-            </h2>
-            <p className="text-base text-zk-gray max-w-xl mx-auto">
-              Governance, staking, marketplace access, and premium tiers — powered by a single token.
-            </p>
-          </div>
-
-          <div className="mb-10">
-            <TokenStatsBanner />
-          </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-5">
-            <a href="/governance" className="group p-6 bg-zk-dark/40 border border-zk-primary/15 rounded-2xl hover:border-zk-primary/40 hover:translate-y-[-2px] transition-all duration-300">
-              <div className="w-12 h-12 bg-zk-primary/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-zk-primary/30 transition-colors">
-                <svg className="w-6 h-6 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-hatton text-white mb-2">Governance</h3>
-              <p className="text-xs text-zk-gray leading-relaxed">
-                Vote on templates and protocol decisions with quadratic voting.
-              </p>
-            </a>
-
-            <a href="/staking" className="group p-6 bg-zk-dark/40 border border-zk-secondary/15 rounded-2xl hover:border-zk-secondary/40 hover:translate-y-[-2px] transition-all duration-300">
-              <div className="w-12 h-12 bg-zk-secondary/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-zk-secondary/30 transition-colors">
-                <svg className="w-6 h-6 text-zk-secondary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-hatton text-white mb-2">Staking</h3>
-              <p className="text-xs text-zk-gray leading-relaxed">
-                Up to 36% APY with 30-day to 1-year lock multipliers.
-              </p>
-            </a>
-
-            <a href="/marketplace" className="group p-6 bg-zk-dark/40 border border-zk-primary/15 rounded-2xl hover:border-zk-primary/40 hover:translate-y-[-2px] transition-all duration-300">
-              <div className="w-12 h-12 bg-zk-primary/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-zk-primary/30 transition-colors">
-                <svg className="w-6 h-6 text-zk-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-hatton text-white mb-2">Marketplace</h3>
-              <p className="text-xs text-zk-gray leading-relaxed">
-                Publish and sell custom circuits. Creators earn 95% of every sale.
-              </p>
-            </a>
-
-            <a href="/premium" className="group p-6 bg-zk-dark/40 border border-zk-accent/15 rounded-2xl hover:border-zk-accent/40 hover:translate-y-[-2px] transition-all duration-300">
-              <div className="w-12 h-12 bg-zk-accent/20 rounded-xl flex items-center justify-center mb-4 group-hover:bg-zk-accent/30 transition-colors">
-                <svg className="w-6 h-6 text-zk-accent" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
-                </svg>
-              </div>
-              <h3 className="text-lg font-hatton text-white mb-2">Premium</h3>
-              <p className="text-xs text-zk-gray leading-relaxed">
-                Burn tokens for unlimited proofs and white-label solutions.
-              </p>
-            </a>
-          </div>
-
-          <div className="mt-8 text-center">
-            <a
-              href="https://solscan.io/token/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 text-sm text-zk-primary hover:text-zk-primary/80 transition-colors"
-            >
-              <span className="font-medium">View zkRUNE on Solscan</span>
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
-              </svg>
-            </a>
-          </div>
-        </div>
-      </div>
 
       {/* Final CTA */}
       <CTAShowcase />
@@ -504,23 +409,44 @@ const { isValid } = await zk.verifyRemote({
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Resources</h4>
               <a href="/docs" className="text-zk-gray hover:text-zk-primary transition-colors">Documentation</a>
-              <a href="/api-docs" className="text-zk-gray hover:text-zk-primary transition-colors">API Reference</a>
+              <a href="/docs/api" className="text-zk-gray hover:text-zk-primary transition-colors">API Reference</a>
               <a href="/verify-proof" className="text-zk-gray hover:text-zk-primary transition-colors">Verify Proof</a>
+              <a href="/trust" className="text-zk-gray hover:text-zk-primary transition-colors">Trust &amp; Security</a>
+              <a href="/roadmap" className="text-zk-gray hover:text-zk-primary transition-colors">Roadmap</a>
             </div>
             
             <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Community</h4>
+              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Company</h4>
+              <a href="/about" className="text-zk-gray hover:text-zk-primary transition-colors">
+                About
+              </a>
               <a href="https://x.com/rune_zk" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
                 Twitter
               </a>
               <a href="https://github.com/louisstein94/zkrune" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
                 GitHub
               </a>
-              <a href="https://x.com/legelsteinn" target="_blank" rel="noopener noreferrer" className="text-zk-gray hover:text-zk-primary transition-colors">
-                Developer
+              <a href="mailto:zkruneprotocol@gmail.com" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Contact
               </a>
             </div>
             
+            <div className="flex flex-col gap-2">
+              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Token</h4>
+              <a href="/governance" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Governance
+              </a>
+              <a href="/staking" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Staking
+              </a>
+              <a href="/marketplace" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Marketplace
+              </a>
+              <a href="/premium" className="text-zk-gray hover:text-zk-primary transition-colors">
+                Premium
+              </a>
+            </div>
+
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Legal</h4>
               <a href="/terms" className="text-zk-gray hover:text-zk-primary transition-colors">

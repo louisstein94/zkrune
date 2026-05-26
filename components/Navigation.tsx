@@ -27,20 +27,9 @@ export default function Navigation() {
   const desktopMenuRef = useRef<HTMLDivElement | null>(null);
 
   const navItems: NavItem[] = [
-    { name: "Home", href: "/" },
     { name: "Templates", href: "/templates" },
-    { name: "zkBlink", href: "/zkblink" },
-    {
-      name: "Token",
-      href: "#",
-      submenu: [
-        { name: "Governance", href: "/governance" },
-        { name: "Premium", href: "/premium" },
-        { name: "Marketplace", href: "/marketplace" },
-        { name: "Staking", href: "/staking" },
-      ],
-    },
-    { name: "Roadmap", href: "/roadmap" },
+    { name: "Enterprise", href: "/enterprise" },
+    { name: "Trust", href: "/trust" },
     { name: "Docs", href: "/docs" },
   ];
 
@@ -261,10 +250,10 @@ export default function Navigation() {
 
             {/* CTA Button */}
             <Link
-              href="/templates"
+              href="/docs"
               className="px-6 py-2 bg-zk-primary text-white font-medium rounded-full hover:bg-zk-primary/90 transition-all hover:scale-105"
             >
-              Try Templates
+              Start building
             </Link>
           </div>
 
@@ -368,11 +357,11 @@ export default function Navigation() {
               GitHub
             </a>
             <Link
-              href="/templates"
+              href="/docs"
               onClick={closeMobile}
               className="mt-2 px-6 py-2 bg-zk-primary text-white font-medium rounded-full text-center"
             >
-              Try Templates
+              Start building
             </Link>
           </nav>
         )}

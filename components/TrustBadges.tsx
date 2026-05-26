@@ -39,8 +39,8 @@ export default function TrustBadges() {
           <path fillRule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
         </svg>
       ),
-      title: "Real Cryptography",
-      description: "Groth16 ZK-SNARKs, not simulations"
+      title: "Groth16 ZK-SNARKs",
+      description: "Battle-tested cryptography over BN128"
     },
     {
       icon: (
@@ -81,10 +81,15 @@ export default function TrustBadges() {
           </span>
           
           <h2 className="font-hatton text-3xl md:text-4xl text-white mb-3">
-            Privacy You Can <span className="text-zk-primary">Trust</span>
+            Built on{" "}
+            <span className="text-zk-primary">trust foundations</span>
           </h2>
           <p className="text-zk-gray max-w-2xl mx-auto">
-            Built with security and transparency at its core
+            Multi-party trusted setup, mainnet verifiers, and a published trust model. Read the full disclosure on{" "}
+            <a href="/trust" className="text-zk-primary hover:text-zk-primary/80 transition-colors underline underline-offset-2">
+              the trust page
+            </a>
+            .
           </p>
         </div>
 
@@ -114,8 +119,11 @@ export default function TrustBadges() {
         {/* Bottom Text */}
         <div className="mt-12 text-center">
           <p className="text-sm text-zk-gray max-w-3xl mx-auto">
-            zkRune is built on the same cryptographic principles that secure billions of dollars in blockchain transactions. 
-            Every proof is mathematically verifiable and your private data never leaves your browser.
+            Same cryptography that secures major blockchain protocols. Every proof is mathematically verifiable; private data never leaves the user&apos;s device. For diligence and audit roadmap, see{" "}
+            <a href="/trust" className="text-zk-primary hover:text-zk-primary/80 transition-colors">
+              /trust
+            </a>
+            .
           </p>
         </div>
       </div>

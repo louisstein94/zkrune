@@ -44,10 +44,10 @@ export default function ProofAssistantPage() {
             <span className="text-violet-300 text-xs font-medium">AI-Powered</span>
           </div>
           <h1 className="font-hatton text-4xl text-white mb-3">
-            zkBlink
+            Proof Playground
           </h1>
           <p className="text-zinc-400 text-lg max-w-xl mx-auto">
-            Describe what you want to prove — zkBlink will craft the proof and generate a shareable Solana Blink. No technical knowledge required.
+            Describe what you want to prove — the assistant picks the right circuit, generates a zero-knowledge proof, and gives you a shareable verification link. No technical knowledge required.
           </p>
         </div>
 
