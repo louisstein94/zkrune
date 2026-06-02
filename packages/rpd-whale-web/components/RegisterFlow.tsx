@@ -304,20 +304,16 @@ export default function RegisterFlow() {
                 </p>
               </div>
 
-              <div className="rounded-xl bg-white p-4 flex justify-center">
-                <QRCodeSVG value={qrPayload} size={224} level="M" />
-              </div>
-
               <div>
                 <p className="text-rpd-gray/60 text-xs font-mono uppercase mb-2">
-                  BJJ secret (hex backup)
+                  Your hex backup (copy this)
                 </p>
-                <p className="text-white font-mono text-[10px] break-all p-3 bg-black/40 rounded-lg border border-white/10">
+                <p className="text-white font-mono text-[11px] break-all p-3 bg-black/40 rounded-lg border border-white/10">
                   {hexBackup}
                 </p>
                 <button
                   onClick={() => navigator.clipboard.writeText(hexBackup)}
-                  className="mt-2 text-xs text-rpd-primary hover:text-rpd-primary/80"
+                  className="mt-2 w-full py-2.5 rounded-lg bg-rpd-primary text-white font-bold text-sm"
                 >
                   Copy to clipboard
                 </button>
@@ -327,11 +323,25 @@ export default function RegisterFlow() {
                 <p className="text-yellow-400 font-semibold text-sm mb-2">Next step</p>
                 <ol className="text-rpd-gray text-xs space-y-1 list-decimal list-inside">
                   <li>Open the Telegram bot and tap the Mini App button.</li>
-                  <li>Choose "Scan registration QR" inside the Mini App.</li>
-                  <li>Scan the QR above — or paste the hex secret.</li>
-                  <li>The Mini App stores it locally and generates proofs.</li>
+                  <li>Paste the hex backup into the "Paste your hex backup" field.</li>
+                  <li>Tap "Import identity" — the Mini App stores it locally.</li>
+                  <li>Generate proofs whenever you need to enter Whale Chat.</li>
                 </ol>
               </div>
+
+              <details className="rounded-xl border border-white/10 bg-white/[0.02] p-3">
+                <summary className="text-rpd-gray/60 text-xs cursor-pointer">
+                  Show QR (for cross-device transfer)
+                </summary>
+                <div className="mt-3 rounded-xl bg-white p-4 flex justify-center">
+                  <QRCodeSVG value={qrPayload} size={224} level="M" />
+                </div>
+                <p className="text-rpd-gray/60 text-xs mt-2 leading-relaxed">
+                  Useful if you're registering on desktop but the Mini App is on
+                  your phone — scan with your phone's native camera, then paste
+                  into the Mini App.
+                </p>
+              </details>
             </div>
           )}
 

@@ -5,7 +5,6 @@ import { useCallback, useEffect, useState } from "react";
 import {
   bjjSecretFromHex,
   clearBjjSecretLocal,
-  decodeBjjSecretQr,
   deriveBjjPubkey,
   loadBjjSecretLocal,
   saveBjjSecretLocal,
@@ -123,32 +122,6 @@ export default function RpdVerifier() {
   useEffect(() => {
     if (bjjSk && phase === "fetching-snapshot") lookup(bjjSk);
   }, [bjjSk, phase, lookup]);
-
-  // ── QR scan handler ──────────────────────────────────────────────────────
-  const handleScanQr = () => {
-    const tg = window.Telegram?.WebApp;
-    if (!tg || !tg.showScanQrPopup) {
-      setErrorMsg(
-        "QR scanning is not supported here — paste the hex backup below instead.",
-      );
-      return;
-    }
-    tg.showScanQrPopup({ text: "Scan the BJJ registration QR" }, (raw: string) => {
-      try {
-        tg.closeScanQrPopup?.();
-      } catch {}
-      const sk = decodeBjjSecretQr(raw);
-      if (!sk) {
-        setErrorMsg("That QR does not look like a zkRune BJJ registration code.");
-        return;
-      }
-      saveBjjSecretLocal(sk);
-      setBjjSk(sk);
-      setPasteInput("");
-      setErrorMsg("");
-      setPhase("fetching-snapshot");
-    });
-  };
 
   const handlePasteImport = () => {
     try {
@@ -348,8 +321,8 @@ export default function RpdVerifier() {
                   <p className="text-yellow-400 font-semibold text-sm mb-1">No identity stored</p>
                   <p className="text-rpd-gray text-xs leading-relaxed">
                     You need to bind a BabyJubjub identity to your Solana wallet
-                    first. This is a one-time browser flow — open it on the
-                    public web, sign once, then come back and scan the QR.
+                    first. This is a one-time browser flow — register once on
+                    the public web, then paste the hex backup below.
                   </p>
                 </div>
 
@@ -368,16 +341,13 @@ export default function RpdVerifier() {
                   <div className="flex-1 h-px bg-white/5" />
                 </div>
 
-                <button
-                  onClick={handleScanQr}
-                  className="w-full py-3 rounded-xl bg-rpd-primary text-white font-bold"
-                >
-                  📷 Scan registration QR
-                </button>
-
                 <div>
                   <p className="text-rpd-gray/60 text-xs font-mono uppercase mb-2">
-                    Or paste hex backup
+                    Paste your hex backup
+                  </p>
+                  <p className="text-rpd-gray/60 text-xs mb-2 leading-relaxed">
+                    Open the registration page, tap <span className="text-white">Copy to clipboard</span>
+                    {" "}under the QR, and paste the 62-character hex here.
                   </p>
                   <input
                     type="text"
@@ -389,9 +359,9 @@ export default function RpdVerifier() {
                   <button
                     onClick={handlePasteImport}
                     disabled={!pasteInput}
-                    className="mt-2 w-full py-2.5 rounded-lg border border-white/15 text-white text-sm disabled:opacity-40"
+                    className="mt-2 w-full py-3 rounded-xl bg-rpd-primary text-white font-bold disabled:opacity-40"
                   >
-                    Import secret
+                    Import identity
                   </button>
                 </div>
 
