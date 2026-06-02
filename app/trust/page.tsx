@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import Navigation from "@/components/Navigation";
+import MainnetVerifiersGrid from "@/components/MainnetVerifiersGrid";
 
 export const metadata: Metadata = {
   title: "Trust & Security — zkRune",
