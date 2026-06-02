@@ -21,7 +21,7 @@ const TOKEN = {
 const REGISTER_URL =
   process.env.NEXT_PUBLIC_REGISTER_URL || "https://rpd-whale-web.vercel.app/register";
 const BOT_API =
-  (process.env.NEXT_PUBLIC_BOT_API_URL || "https://zkrune-production.up.railway.app").replace(/\/$/, "");
+  (process.env.NEXT_PUBLIC_BOT_API_URL || "https://rpd-whale-bot-production.up.railway.app").replace(/\/$/, "");
 
 type Phase =
   | "loading-key"

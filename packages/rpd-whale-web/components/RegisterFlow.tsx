@@ -49,7 +49,7 @@ interface SnapshotShape {
 }
 
 async function fetchSnapshot(): Promise<SnapshotShape> {
-  const base = process.env.NEXT_PUBLIC_BOT_API_URL || "https://zkrune-production.up.railway.app";
+  const base = process.env.NEXT_PUBLIC_BOT_API_URL || "https://rpd-whale-bot-production.up.railway.app";
   const res = await fetch(`${base}/snapshot.json`, { cache: "no-store" });
   if (!res.ok) throw new Error("Snapshot not available");
   return res.json();

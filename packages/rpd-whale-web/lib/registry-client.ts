@@ -10,7 +10,7 @@
  * via NEXT_PUBLIC_BOT_API_URL for local testing.
  */
 
-const BASE = (process.env.NEXT_PUBLIC_BOT_API_URL || "https://zkrune-production.up.railway.app").replace(/\/$/, "");
+const BASE = (process.env.NEXT_PUBLIC_BOT_API_URL || "https://rpd-whale-bot-production.up.railway.app").replace(/\/$/, "");
 
 export interface RegistrationStatus {
   registered: boolean;
