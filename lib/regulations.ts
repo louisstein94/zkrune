@@ -220,6 +220,7 @@ export const REGULATIONS: Regulation[] = [
       "signature-verification",
     ],
     integrationPaths: ["SDK", "Verify API", "On-chain verifier"],
+    goesDeeper: { label: "zkRune for CASPs", href: "/enterprise/mica" },
     externalReference: {
       label: "Regulation (EU) 2023/1114",
       href: "https://eur-lex.europa.eu/eli/reg/2023/1114/oj",

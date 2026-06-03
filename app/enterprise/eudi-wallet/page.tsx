@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import EnterpriseHeader from "@/components/EnterpriseHeader";
+import MainnetVerifiersGrid from "@/components/MainnetVerifiersGrid";
 
 export const metadata: Metadata = {
   title: "zkRune for EUDI Wallet — open-source ZK selective disclosure",
@@ -37,28 +38,6 @@ const HEADER_CTA = {
   href: "mailto:zkruneprotocol@gmail.com?subject=EUDI%20Wallet%20Integration%20Session",
   label: "Book a session",
 };
-
-const VERIFIERS = [
-  {
-    chain: "Base",
-    address: "0xa03A353d890033aC9b3044776440C2a4c9E849EA",
-    explorer:
-      "https://basescan.org/address/0xa03A353d890033aC9b3044776440C2a4c9E849EA",
-  },
-  {
-    chain: "Solana",
-    address: "9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad",
-    explorer:
-      "https://solscan.io/account/9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad",
-  },
-  {
-    chain: "Sui",
-    address:
-      "0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5",
-    explorer:
-      "https://suiscan.xyz/mainnet/object/0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5",
-  },
-];
 
 const BUYERS = [
   {
@@ -442,45 +421,11 @@ export default function EnterpriseEudiWalletPage() {
       </section>
 
       {/* VERIFIERS */}
-      <section className="relative z-10 px-6 md:px-12 lg:px-16 py-20 bg-zk-dark/40 border-y border-white/5">
-        <div className="max-w-6xl mx-auto">
-          <div className="space-y-3 mb-8">
-            <span className="text-xs font-bold text-zk-gray uppercase tracking-[0.2em]">
-              Mainnet anchors
-            </span>
-            <h2 className="font-hatton text-3xl md:text-4xl text-white max-w-3xl">
-              Verification keys on three independent chains.
-            </h2>
-            <p className="text-zk-gray max-w-3xl text-sm">
-              The vKeys served by the hosted verifier are the same ones
-              anchored on Base, Solana, and Sui mainnet. Relying parties can
-              re-verify any proof against the on-chain key without trusting
-              zkRune's hosted endpoint.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            {VERIFIERS.map((v) => (
-              <a
-                key={v.chain}
-                href={v.explorer}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-5 rounded-2xl border border-white/10 bg-zk-darker/60 hover:border-zk-primary/30 transition-colors block group"
-              >
-                <p className="text-xs font-bold text-zk-gray uppercase tracking-wider mb-2">
-                  {v.chain}
-                </p>
-                <p className="font-mono text-xs text-zk-primary break-all leading-relaxed">
-                  {v.address}
-                </p>
-                <p className="mt-3 text-xs text-zk-gray group-hover:text-white transition-colors">
-                  View on explorer ↗
-                </p>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <MainnetVerifiersGrid
+        eyebrow="Mainnet anchors"
+        heading="Verification keys on three independent chains."
+        body="The vKeys served by the hosted verifier are the same ones anchored on Base, Solana, and Sui mainnet. Relying parties can re-verify any proof against the on-chain key without trusting zkRune's hosted endpoint."
+      />
 
       {/* CONTACT */}
       <section

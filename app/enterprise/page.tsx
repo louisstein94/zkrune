@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import EnterpriseHeader from "@/components/EnterpriseHeader";
+import { MAINNET_VERIFIERS } from "@/lib/verifiers";
 
 export const metadata: Metadata = {
   title: "zkRune for Compliance — Article 12 Logging for High-Risk AI",
@@ -30,28 +31,6 @@ export const metadata: Metadata = {
 // Revalidate hourly so the "days until 2 Aug 2026" countdown stays accurate
 // under static rendering without forcing a per-request render.
 export const revalidate = 3600;
-
-const VERIFIERS = [
-  {
-    chain: "Base",
-    address: "0xa03A353d890033aC9b3044776440C2a4c9E849EA",
-    explorer:
-      "https://basescan.org/address/0xa03A353d890033aC9b3044776440C2a4c9E849EA",
-  },
-  {
-    chain: "Solana",
-    address: "9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad",
-    explorer:
-      "https://solscan.io/account/9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad",
-  },
-  {
-    chain: "Sui",
-    address:
-      "0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5",
-    explorer:
-      "https://suiscan.xyz/mainnet/object/0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5",
-  },
-];
 
 const MAPPING = [
   {
@@ -341,7 +320,7 @@ export default function EnterprisePage() {
               Mainnet verifier contracts — publicly inspectable today
             </h3>
             <div className="space-y-2">
-              {VERIFIERS.map((v) => (
+              {MAINNET_VERIFIERS.map((v) => (
                 <a
                   key={v.chain}
                   href={v.explorer}

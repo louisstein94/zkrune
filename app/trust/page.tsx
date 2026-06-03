@@ -25,28 +25,6 @@ export const metadata: Metadata = {
   },
 };
 
-const VERIFIERS = [
-  {
-    chain: "Base",
-    address: "0xa03A353d890033aC9b3044776440C2a4c9E849EA",
-    explorer:
-      "https://basescan.org/address/0xa03A353d890033aC9b3044776440C2a4c9E849EA",
-  },
-  {
-    chain: "Solana",
-    address: "9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad",
-    explorer:
-      "https://solscan.io/account/9apA5U8YywgTHXQqpbvUMHJej7yorHcN56cewKfkX7ad",
-  },
-  {
-    chain: "Sui",
-    address:
-      "0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5",
-    explorer:
-      "https://suiscan.xyz/mainnet/object/0x278301424c954dcfdb6e46407728964271fbfff3dc1d4fae5b799c7e977bd4c5",
-  },
-];
-
 const PILLARS = [
   {
     title: "Multi-party trusted setup",
@@ -189,43 +167,10 @@ export default function TrustPage() {
       </section>
 
       {/* VERIFIERS */}
-      <section id="verifiers" className="relative z-10 px-6 md:px-12 lg:px-16 py-16">
-        <div className="max-w-6xl mx-auto">
-          <div className="space-y-3 mb-8">
-            <span className="text-xs font-bold text-zk-gray uppercase tracking-[0.2em]">
-              On-chain anchors
-            </span>
-            <h2 className="font-hatton text-3xl md:text-4xl text-white">
-              Verifier contracts on mainnet.
-            </h2>
-            <p className="text-zk-gray max-w-3xl">
-              The verification key for every supported circuit is anchored on three
-              production chains. You can verify the same proof on any of them.
-            </p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-4">
-            {VERIFIERS.map((v) => (
-              <a
-                key={v.chain}
-                href={v.explorer}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-5 rounded-2xl border border-white/10 bg-zk-darker/60 hover:border-zk-primary/30 transition-colors block group"
-              >
-                <p className="text-xs font-bold text-zk-gray uppercase tracking-wider mb-2">
-                  {v.chain}
-                </p>
-                <p className="font-mono text-xs text-zk-primary break-all leading-relaxed">
-                  {v.address}
-                </p>
-                <p className="mt-3 text-xs text-zk-gray group-hover:text-white transition-colors">
-                  View on explorer ↗
-                </p>
-              </a>
-            ))}
-          </div>
-        </div>
-      </section>
+      <MainnetVerifiersGrid
+        sectionId="verifiers"
+        body="The verification key for every supported circuit is anchored on three production chains. You can verify the same proof on any of them."
+      />
 
       {/* SECURITY POSTURE */}
       <section className="relative z-10 px-6 md:px-12 lg:px-16 py-16 bg-zk-dark/40 border-y border-white/5">
