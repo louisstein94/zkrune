@@ -172,6 +172,7 @@ export const REGULATIONS: Regulation[] = [
       "Drop-in age proof generated in the user's browser. Your service receives only the cryptographic assertion that age >= threshold — never the underlying birthdate. Same widget covers UK Online Safety Act requirements.",
     mappedCircuits: ["age-verification", "range-proof"],
     integrationPaths: ["Widget", "SDK", "Verify API"],
+    goesDeeper: { label: "zkRune for age-aware platforms", href: "/enterprise/age-gating" },
     externalReference: {
       label: "Regulation (EU) 2022/2065 Art. 28",
       href: "https://eur-lex.europa.eu/eli/reg/2022/2065/oj",
@@ -192,6 +193,7 @@ export const REGULATIONS: Regulation[] = [
       "Privacy-preserving age verification mapped to Ofcom's 'highly effective' criteria. No PII retained server-side; proof artefact is the audit record.",
     mappedCircuits: ["age-verification", "range-proof"],
     integrationPaths: ["Widget", "SDK"],
+    goesDeeper: { label: "zkRune for age-aware platforms", href: "/enterprise/age-gating" },
     externalReference: {
       label: "Online Safety Act 2023 (UK)",
       href: "https://www.legislation.gov.uk/ukpga/2023/50/contents",
@@ -271,6 +273,7 @@ export const REGULATIONS: Regulation[] = [
       "membership-proof",
     ],
     integrationPaths: ["SDK", "Verify API"],
+    goesDeeper: { label: "zkRune for financial resilience", href: "/enterprise/dora" },
     externalReference: {
       label: "Regulation (EU) 2022/2554",
       href: "https://eur-lex.europa.eu/eli/reg/2022/2554/oj",
@@ -318,6 +321,7 @@ export const REGULATIONS: Regulation[] = [
       "hash-preimage",
     ],
     integrationPaths: ["SDK", "Verify API"],
+    goesDeeper: { label: "zkRune for financial resilience", href: "/enterprise/dora" },
     externalReference: {
       label: "Directive (EU) 2022/2555",
       href: "https://eur-lex.europa.eu/eli/dir/2022/2555/oj",
