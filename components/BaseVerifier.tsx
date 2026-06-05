@@ -1,8 +1,8 @@
 "use client";
 
 import { FC, useState } from 'react';
-import { createPublicClient, http, parseAbi } from 'viem';
-import { base } from 'viem/chains';
+import { parseAbi } from 'viem';
+import { baseClient } from '@/lib/evm/baseClient';
 
 const VERIFIER_ADDRESS = (process.env.NEXT_PUBLIC_EVM_VERIFIER_ADDRESS ||
   '0xa03A353d890033aC9b3044776440C2a4c9E849EA') as `0x${string}`;
@@ -27,8 +27,6 @@ const TEMPLATE_ID_MAP: Record<string, number> = {
 const ABI = parseAbi([
   'function verifyProofStatic(uint8 templateId, uint256[2] a, uint256[2][2] b, uint256[2] c, uint256[] publicInputs) view returns (bool)',
 ]);
-
-const client = createPublicClient({ chain: base, transport: http() });
 
 interface Props {
   proof: any;
@@ -65,7 +63,7 @@ export const BaseVerifier: FC<Props> = ({
       const c: [bigint, bigint] = [BigInt(proof.pi_c[0]), BigInt(proof.pi_c[1])];
       const pubInputs = publicSignals.map((s) => BigInt(s));
 
-      const result = await client.readContract({
+      const result = await baseClient.readContract({
         address: VERIFIER_ADDRESS,
         abi: ABI,
         functionName: 'verifyProofStatic',

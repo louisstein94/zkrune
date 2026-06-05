@@ -1,9 +1,9 @@
 "use client";
 
 import { FC, useMemo, useState } from "react";
-import { createPublicClient, http, parseAbi } from "viem";
-import { base } from "viem/chains";
+import { parseAbi } from "viem";
 import { generateClientProof } from "@/lib/clientZkProof";
+import { baseClient } from "@/lib/evm/baseClient";
 
 const VERIFIER_ADDRESS = (process.env.NEXT_PUBLIC_EVM_VERIFIER_ADDRESS ||
   "0xa03A353d890033aC9b3044776440C2a4c9E849EA") as `0x${string}`;
@@ -11,8 +11,6 @@ const VERIFIER_ADDRESS = (process.env.NEXT_PUBLIC_EVM_VERIFIER_ADDRESS ||
 const ABI = parseAbi([
   "function verifyProofStatic(uint8 templateId, uint256[2] a, uint256[2][2] b, uint256[2] c, uint256[] publicInputs) view returns (bool)",
 ]);
-
-const baseClient = createPublicClient({ chain: base, transport: http() });
 
 type Stage = "idle" | "proving" | "verifying" | "calling" | "done" | "error";
 
