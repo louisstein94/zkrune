@@ -203,7 +203,15 @@ export default function EnterpriseEudiWalletPage() {
             >
               full regulations matrix
             </a>{" "}
-            (AI Act, DSA, MiCA, DORA, NIS2, UK OSA, GDPR).
+            (AI Act, DSA, MiCA, DORA, NIS2, UK OSA, GDPR). For AI agent
+            deployments using EUDI-issued credentials, see{" "}
+            <a
+              href="/enterprise/ai-agents"
+              className="text-zk-secondary hover:text-zk-secondary/80 transition-colors underline underline-offset-2"
+            >
+              Proof of Agent
+            </a>
+            .
           </p>
         </div>
       </section>

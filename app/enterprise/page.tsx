@@ -167,7 +167,15 @@ export default function EnterprisePage() {
             >
               full regulations matrix
             </a>{" "}
-            — DSA, MiCA, eIDAS 2.0, DORA, NIS2, GDPR, UK OSA.
+            — DSA, MiCA, eIDAS 2.0, DORA, NIS2, GDPR, UK OSA. For AI agent
+            deployments specifically, see{" "}
+            <a
+              href="/enterprise/ai-agents"
+              className="text-zk-secondary hover:text-zk-secondary/80 transition-colors underline underline-offset-2"
+            >
+              Proof of Agent
+            </a>
+            .
           </p>
         </div>
       </section>
