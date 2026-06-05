@@ -226,6 +226,14 @@ export default function EnterpriseAiAgentsPage() {
               zkRune slots above them
             </a>{" "}
             as the agent-attestation layer — see the comparison table below.
+            Deploying agents in the US?{" "}
+            <a
+              href="/enterprise/us-privacy"
+              className="text-zk-secondary hover:text-zk-secondary/80 transition-colors underline underline-offset-2"
+            >
+              Colorado AI Act
+            </a>{" "}
+            is binding 1 February 2026.
           </p>
         </div>
       </section>

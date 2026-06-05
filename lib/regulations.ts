@@ -27,7 +27,13 @@ export type RegulationCategory =
   | "Financial Services"
   | "Cybersecurity";
 
-export type Jurisdiction = "EU" | "EU+EEA" | "UK" | "EEA+UK";
+export type Jurisdiction =
+  | "EU"
+  | "EU+EEA"
+  | "UK"
+  | "EEA+UK"
+  | "US"
+  | "US-State";
 
 export type IntegrationPath =
   | "SDK"
@@ -355,6 +361,58 @@ export const REGULATIONS: Regulation[] = [
       href: "https://eur-lex.europa.eu/eli/reg/2016/679/oj",
     },
     lastReviewed: "2026-05-27",
+  },
+  {
+    slug: "us-ccpa-cpra",
+    name: "California Consumer Privacy Act (as amended by CPRA)",
+    shortName: "CCPA / CPRA",
+    category: "Data Protection",
+    status: "binding",
+    jurisdiction: "US-State",
+    bindingDate: "CCPA binding since 1 January 2020; CPRA amendments since 1 January 2023",
+    problem:
+      "CPRA requires data collection to be reasonably necessary and proportionate to disclosed purposes, with consumer rights including deletion. The default architecture — collect all behavioural and demographic data, then implement rights workflows on top — creates a structural conflict that the CPPA is enforcing.",
+    zkRuneFit:
+      "Architectural data-minimisation: verify the threshold (age, residency, eligibility) without retaining the underlying personal data. Right-to-delete becomes structurally trivial because there is nothing to delete server-side.",
+    mappedCircuits: [
+      "age-verification",
+      "range-proof",
+      "membership-proof",
+      "credential-proof",
+    ],
+    integrationPaths: ["Widget", "SDK", "Verify API"],
+    goesDeeper: { label: "zkRune for US privacy", href: "/enterprise/us-privacy" },
+    externalReference: {
+      label: "California Civil Code § 1798.100 et seq.",
+      href: "https://leginfo.legislature.ca.gov/faces/codes_displayText.xhtml?division=3.&part=4.&lawCode=CIV&title=1.81.5",
+    },
+    lastReviewed: "2026-06-03",
+  },
+  {
+    slug: "us-colorado-ai-act",
+    name: "Colorado AI Act (SB 24-205)",
+    shortName: "Colorado AI Act",
+    category: "AI Governance",
+    status: "rolling-out",
+    jurisdiction: "US-State",
+    bindingDate: "Binding 1 February 2026",
+    problem:
+      "First US state-level AI Act. Developers and deployers of high-risk AI systems must conduct impact assessments, provide consumer notice and an appeal right for adverse consequential decisions, and disclose AI-system use. Retention of decision-input data conflicts with state privacy law data-minimisation principles.",
+    zkRuneFit:
+      "Cryptographic commitment to each consequential AI decision; the impact assessment becomes a tamper-evident chain that the Colorado attorney general can re-verify. Cleanly composable with the Proof of Agent framework for agentic deployments.",
+    mappedCircuits: [
+      "hash-preimage",
+      "signature-verification",
+      "membership-proof",
+      "patience-proof",
+    ],
+    integrationPaths: ["SDK", "Verify API"],
+    goesDeeper: { label: "zkRune for US privacy", href: "/enterprise/us-privacy" },
+    externalReference: {
+      label: "Colorado SB 24-205",
+      href: "https://leg.colorado.gov/bills/sb24-205",
+    },
+    lastReviewed: "2026-06-03",
   },
 ];
 
