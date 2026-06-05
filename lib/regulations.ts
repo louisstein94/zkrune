@@ -162,6 +162,31 @@ export const REGULATIONS: Regulation[] = [
     },
     lastReviewed: "2026-05-27",
   },
+  {
+    slug: "ai-act-article-50",
+    name: "EU AI Act — Article 50 (transparency for AI-generated content)",
+    shortName: "AI Act Art. 50",
+    category: "AI Governance",
+    status: "rolling-out",
+    jurisdiction: "EU+EEA",
+    bindingDate: "Binding 2 August 2026",
+    problem:
+      "Providers of generative AI systems and deployers of AI-generated content must inform users they are interacting with an AI, label deep-fakes, and disclose AI-generated public-interest text. Doing so credibly requires a tamper-evident signal that the content was produced by a registered system — without exposing the underlying prompt or user identity.",
+    zkRuneFit:
+      "Cryptographic provenance attestations: the content carries a proof binding it to a registered system, an authorising user, and a time window. The label is independently verifiable by any consumer of the content without revealing private inputs. Maps directly to the Proof of Agent provenance pillar.",
+    mappedCircuits: [
+      "signature-verification",
+      "hash-preimage",
+      "membership-proof",
+    ],
+    integrationPaths: ["SDK", "Verify API"],
+    goesDeeper: { label: "Proof of Agent", href: "/enterprise/ai-agents" },
+    externalReference: {
+      label: "Regulation (EU) 2024/1689 Art. 50",
+      href: "https://eur-lex.europa.eu/legal-content/EN/TXT/?uri=CELEX:32024R1689",
+    },
+    lastReviewed: "2026-06-03",
+  },
 
   // ───────────── Digital Platforms ─────────────
   {

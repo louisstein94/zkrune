@@ -1,10 +1,10 @@
 import { toRuntime, toRuntimeAsync } from "fumadocs-mdx"
+import * as meta_0 from "../content/docs/meta.json?collection=meta&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
 import * as docs_0 from "../content/docs/api.mdx?collection=docs&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
 import * as docs_1 from "../content/docs/circuits.mdx?collection=docs&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
 import * as docs_2 from "../content/docs/index.mdx?collection=docs&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
 import * as docs_3 from "../content/docs/sdk.mdx?collection=docs&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
 import * as docs_4 from "../content/docs/trust-model.mdx?collection=docs&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
 import * as docs_5 from "../content/docs/widget.mdx?collection=docs&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
-import * as meta_0 from "../content/docs/meta.json?collection=meta&hash=4f3bc6e48351eef47611191451d86bf2ebc0c4238119c3a0c8870a549ef72ca3"
 export const docs = [toRuntime("doc", docs_0, {"path":"api.mdx","absolutePath":"/Users/louis/Documents/GitHub/zkrune/content/docs/api.mdx"}), toRuntime("doc", docs_1, {"path":"circuits.mdx","absolutePath":"/Users/louis/Documents/GitHub/zkrune/content/docs/circuits.mdx"}), toRuntime("doc", docs_2, {"path":"index.mdx","absolutePath":"/Users/louis/Documents/GitHub/zkrune/content/docs/index.mdx"}), toRuntime("doc", docs_3, {"path":"sdk.mdx","absolutePath":"/Users/louis/Documents/GitHub/zkrune/content/docs/sdk.mdx"}), toRuntime("doc", docs_4, {"path":"trust-model.mdx","absolutePath":"/Users/louis/Documents/GitHub/zkrune/content/docs/trust-model.mdx"}), toRuntime("doc", docs_5, {"path":"widget.mdx","absolutePath":"/Users/louis/Documents/GitHub/zkrune/content/docs/widget.mdx"})];
 export const meta = [toRuntime("meta", meta_0, {"path":"meta.json","absolutePath":"/Users/louis/Documents/GitHub/zkrune/content/docs/meta.json"})];

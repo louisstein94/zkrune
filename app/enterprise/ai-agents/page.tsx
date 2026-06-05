@@ -5,12 +5,12 @@ import MainnetVerifiersGrid from "@/components/MainnetVerifiersGrid";
 export const metadata: Metadata = {
   title: "zkRune — Proof of Agent for the agentic web",
   description:
-    "Open-source zero-knowledge primitives for AI agent identity: delegated authority, training-data provenance, permission constraints, and human-in-loop attestations. No closed ecosystem, no hardware lock-in, no token gate.",
+    "Open-source zero-knowledge primitives for AI agent identity: delegated authority, Agent Passport verification, permission constraints, and human-in-loop attestations. zkRune verifies issuer-signed attestations — it does not generate proof-of-training. No closed ecosystem, no hardware lock-in, no token gate.",
   alternates: { canonical: "https://zkrune.com/enterprise/ai-agents" },
   openGraph: {
     title: "zkRune — Proof of Agent for the agentic web",
     description:
-      "Open-source ZK primitives for AI agent identity: authority, provenance, constraint, human-in-loop.",
+      "Open-source ZK primitives for AI agent identity: authority, Agent Passport, constraint, human-in-loop.",
     url: "https://zkrune.com/enterprise/ai-agents",
     siteName: "zkRune",
     locale: "en_US",
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "zkRune — Proof of Agent for the agentic web",
     description:
-      "Open-source ZK primitives for AI agent identity. Authority · Provenance · Constraint · Human-in-loop.",
+      "Open-source ZK primitives for AI agent identity. Authority · Agent Passport · Constraint · Human-in-loop.",
     images: ["/og-image.png"],
   },
   robots: { index: true, follow: true },
@@ -69,12 +69,12 @@ const PROOF_OF_AGENT = [
       "User signs a delegation token bound to the agent's public key, scope, and expiry. The agent proves possession of the signed delegation without exposing the user's private key. Selective disclosure lets the relying party verify the binding without seeing unrelated user attributes.",
   },
   {
-    pillar: "Provenance",
+    pillar: "Agent Passport",
     question:
-      "Is the model behind this agent trained on data the agent is licensed to use?",
-    zkRuneCircuit: "membership-proof · hash-preimage",
+      "Does this agent hold a current, issuer-signed Passport for the data, licences, and credentials it claims to operate under?",
+    zkRuneCircuit: "membership-proof · hash-preimage · signature-verification",
     notes:
-      "Licensed training-data sources commit to a Merkle root. The agent proves its model artefact's training set is a subset of that root without revealing the corpus. Cleanly addresses upcoming EU AI Act transparency obligations on training data and the GPAI Code of Practice expectations.",
+      "Data licensors and credential issuers sign Agent Passports — attestations binding the agent's identity to authorised corpora, licences, or external credentials. The agent presents a zero-knowledge proof that it holds a current Passport; the relying party verifies the issuer's signature chain against on-chain anchors. **zkRune verifies the Passport. It does not generate proof that the model was actually trained on a given corpus — that responsibility stays with the issuer (the data licensor or attesting authority).** Maps to GPAI Code of Practice training-data transparency expectations and to EU AI Act Article 50 provenance obligations.",
   },
   {
     pillar: "Constraint",
@@ -111,7 +111,7 @@ const COMPARISON = [
       "We do not compete head-on. Where Reclaim provides the web-data proof, zkRune can act as the policy-and-binding layer that takes their attestation and turns it into an agent-scoped credential.",
   },
   {
-    layer: "Agent attestation (authority · provenance · constraint · oversight)",
+    layer: "Agent attestation (authority · Agent Passport · constraint · oversight)",
     incumbent: "(no dominant incumbent)",
     incumbentNote:
       "Worldcoin holds the human side but the agent-specific attestation layer is commercially open. AI governance vendors (Credo AI, Holistic AI) provide policy and dashboarding but not cryptographic evidence.",
@@ -198,8 +198,8 @@ export default function EnterpriseAiAgentsPage() {
           </h1>
           <p className="text-lg md:text-xl text-zk-gray max-w-3xl leading-relaxed">
             World ID closed the proof-of-human layer in April 2026. The
-            agent-specific layer above it — authority, provenance, constraint,
-            human-in-loop — is commercially open. zkRune is the open-source
+            agent-specific layer above it — authority, Agent Passport,
+            constraint, human-in-loop — is commercially open. zkRune is the open-source
             cryptographic primitive set for that layer. No closed ecosystem,
             no Orb hardware, no token gate. Drop into any agent runtime.
           </p>
@@ -285,7 +285,7 @@ export default function EnterpriseAiAgentsPage() {
               </div>
               <ul className="space-y-2.5 text-zk-gray">
                 <li>• Cryptographic authority delegation (signature-verification)</li>
-                <li>• Training-data provenance proofs (membership-proof)</li>
+                <li>• Agent Passport verification — issuer-attested licensing (membership-proof)</li>
                 <li>• Spending / scope / rate-limit proofs (range-proof)</li>
                 <li>• Human-review attestations (signature-verification + patience-proof)</li>
                 <li>• Mainnet anchors on three chains — re-verifiable</li>

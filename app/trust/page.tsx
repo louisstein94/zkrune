@@ -84,11 +84,11 @@ const SECURITY = [
 const NOT_DONE = [
   {
     label: "Third-party security audit",
-    body: "Engagement targeted for Q3–Q4 2026. No external audit reports yet. Track progress on the roadmap.",
+    body: "Engagement targeted for Q3–Q4 2026. No external audit reports yet. See the certification roadmap below.",
   },
   {
-    label: "SOC 2 / ISO 27001",
-    body: "Not pursued. zkRune is currently a small open-source team; formal certifications are not yet a realistic spend. Enterprise contracts can include a custom data-handling DPA.",
+    label: "SOC 2 / ISO 27001 / HITRUST",
+    body: "Not yet certified. Phased roadmap below: SOC 2 Type I targeted 2027 H1, ISO 27001 targeted 2027 H2, SOC 2 Type II targeted 2028 H1. HITRUST gated on healthcare deal demand.",
   },
   {
     label: "Formal verification of circuits",
@@ -99,6 +99,78 @@ const NOT_DONE = [
     body: "Several circuits (age-verification, range-proof, credential-proof, anonymous-reputation) classify as self-asserted. The math is sound; the underlying claim is only as trustworthy as the user. Attested upgrades are on the roadmap.",
   },
 ];
+
+type CertificationState = "engaged" | "planned" | "demand-gated";
+
+const CERTIFICATION_ROADMAP: {
+  quarter: string;
+  milestone: string;
+  state: CertificationState;
+  scope: string;
+  why: string;
+}[] = [
+  {
+    quarter: "Q3–Q4 2026",
+    milestone: "Third-party security audit",
+    state: "engaged",
+    scope:
+      "Cryptographic audit of the 14 production circuits, WASM prover, and on-chain verifiers by a recognised ZK-auditing firm (Zellic, ZKSecurity, or Veridise class). Full report published open-access.",
+    why: "The floor. Every enterprise security questionnaire begins here, and supervisor-facing pages (`/enterprise`, `/enterprise/dora`) cite the engagement date.",
+  },
+  {
+    quarter: "2027 H1",
+    milestone: "SOC 2 Type I",
+    state: "planned",
+    scope:
+      "Point-in-time attestation against the AICPA Trust Services Criteria (security, availability, confidentiality, processing integrity).",
+    why: "US enterprise procurement treats SOC 2 as effectively non-negotiable. Type I is the gateway to Type II.",
+  },
+  {
+    quarter: "2027 H2",
+    milestone: "ISO/IEC 27001 certification",
+    state: "planned",
+    scope:
+      "ISMS certification scoped to the hosted verifier, SDK supply chain, and ceremony operations.",
+    why: "EU enterprise procurement expectation; cited explicitly in DORA Art. 28 supplier risk obligations and in member-state EUDI Wallet vendor selection.",
+  },
+  {
+    quarter: "2028 H1",
+    milestone: "SOC 2 Type II",
+    state: "planned",
+    scope:
+      "Twelve-month operating-effectiveness observation building on Type I controls.",
+    why: "Banks, insurers, healthcare networks procure against Type II — not Type I.",
+  },
+  {
+    quarter: "2028 (gated)",
+    milestone: "HITRUST CSF",
+    state: "demand-gated",
+    scope:
+      "Healthcare-specific certification mapping HIPAA Security Rule plus dozens of adjacent frameworks (NIST CSF, PCI DSS, GDPR).",
+    why: "Pursued if and when healthcare deal demand materialises. Not a sunk cost otherwise — listed here for honesty, not to over-promise.",
+  },
+];
+
+const CERT_STATE_META: Record<
+  CertificationState,
+  { label: string; dot: string; badge: string }
+> = {
+  engaged: {
+    label: "Engaged",
+    dot: "bg-zk-secondary",
+    badge: "bg-zk-secondary/15 text-zk-secondary border-zk-secondary/30",
+  },
+  planned: {
+    label: "Planned",
+    dot: "bg-zk-primary",
+    badge: "bg-zk-primary/15 text-zk-primary border-zk-primary/30",
+  },
+  "demand-gated": {
+    label: "Demand-gated",
+    dot: "bg-zk-gray",
+    badge: "bg-zk-gray/15 text-zk-gray border-zk-gray/30",
+  },
+};
 
 export default function TrustPage() {
   return (
@@ -238,6 +310,87 @@ export default function TrustPage() {
                 <p className="text-sm text-zk-gray leading-relaxed">{n.body}</p>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AUDIT & CERTIFICATION ROADMAP */}
+      <section
+        id="certification-roadmap"
+        className="relative z-10 px-6 md:px-12 lg:px-16 py-16 bg-zk-dark/40 border-y border-white/5"
+      >
+        <div className="max-w-6xl mx-auto">
+          <div className="space-y-3 mb-10">
+            <span className="text-xs font-bold text-zk-gray uppercase tracking-[0.2em]">
+              Audit &amp; certification roadmap
+            </span>
+            <h2 className="font-hatton text-3xl md:text-4xl text-white max-w-3xl">
+              How we close the trust gaps above.
+            </h2>
+            <p className="text-zk-gray max-w-3xl text-sm leading-relaxed">
+              Targets, not promises. Each milestone is gated on the previous,
+              on customer demand, and on the open-source commons remaining
+              the primary deliverable. We publish dates so buyers and
+              auditors can hold us accountable — not to anchor expectations
+              we cannot meet.
+            </p>
+          </div>
+
+          <div className="space-y-3">
+            {CERTIFICATION_ROADMAP.map((m) => {
+              const meta = CERT_STATE_META[m.state];
+              return (
+                <div
+                  key={m.milestone}
+                  className="grid md:grid-cols-12 gap-4 p-5 rounded-xl border border-white/10 bg-zk-darker/60"
+                >
+                  <div className="md:col-span-3">
+                    <p className="text-xs font-bold text-zk-gray uppercase tracking-[0.18em] mb-1">
+                      Target
+                    </p>
+                    <p className="font-hatton text-lg text-white">{m.quarter}</p>
+                    <span
+                      className={`inline-flex items-center gap-1.5 mt-2 px-2.5 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${meta.badge}`}
+                    >
+                      <span className={`w-1.5 h-1.5 rounded-full ${meta.dot}`} />
+                      {meta.label}
+                    </span>
+                  </div>
+                  <div className="md:col-span-4">
+                    <p className="text-xs font-bold text-zk-gray uppercase tracking-[0.18em] mb-1">
+                      Milestone
+                    </p>
+                    <p className="text-white text-sm font-medium mb-2">
+                      {m.milestone}
+                    </p>
+                    <p className="text-xs text-zk-gray leading-relaxed">
+                      {m.scope}
+                    </p>
+                  </div>
+                  <div className="md:col-span-5">
+                    <p className="text-xs font-bold text-zk-gray uppercase tracking-[0.18em] mb-1">
+                      Why it matters for buyers
+                    </p>
+                    <p className="text-sm text-zk-gray leading-relaxed">
+                      {m.why}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div className="mt-8 p-5 rounded-xl border border-white/5 bg-zk-darker/40">
+            <p className="text-xs text-zk-gray/80 leading-relaxed">
+              <span className="text-zk-gray font-semibold uppercase tracking-[0.15em]">
+                Honest framing —
+              </span>{" "}
+              The open-source commons remains the primary deliverable. Every
+              milestone above is gated on the previous one, on real
+              enterprise demand, and on funding (grant, paid pilot, or
+              acquirer support). We will not chase certifications without
+              the buyers that need them.
+            </p>
           </div>
         </div>
       </section>
