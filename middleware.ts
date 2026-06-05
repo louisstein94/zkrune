@@ -115,6 +115,26 @@ const EMBED_ALLOWED_PARENTS = (
   .split(/\s+/)
   .filter(Boolean);
 
+// Base (L2) RPC endpoints reached from the browser by the live on-chain
+// verification demos (XonaDemo, BaseVerifier). Must mirror the fallback list
+// in lib/evm/baseClient.ts, plus any private RPC configured via env.
+function baseRpcOrigin(url: string | undefined): string {
+  try {
+    return url ? new URL(url).origin : '';
+  } catch {
+    return '';
+  }
+}
+
+const BASE_RPC_CONNECT_SRC = [
+  'https://mainnet.base.org',
+  'https://base-rpc.publicnode.com',
+  'https://base.drpc.org',
+  baseRpcOrigin(process.env.NEXT_PUBLIC_BASE_RPC_URL),
+]
+  .filter(Boolean)
+  .join(' ');
+
 function buildDefaultCsp(nonce: string): string {
   return [
     "default-src 'self'",
@@ -127,7 +147,7 @@ function buildDefaultCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://*.helius-rpc.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://mainnet.lightwalletd.com:9067 https://*.vercel.app",
+    `connect-src 'self' https://*.helius-rpc.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://mainnet.lightwalletd.com:9067 https://*.vercel.app ${BASE_RPC_CONNECT_SRC}`,
     "frame-ancestors 'none'",
     "base-uri 'self'",
     "form-action 'self'",
@@ -149,7 +169,7 @@ function buildEmbedCsp(nonce: string): string {
     "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
     "img-src 'self' data: https:",
     "font-src 'self' data: https://fonts.gstatic.com",
-    "connect-src 'self' https://zkrune.com https://www.zkrune.com https://*.helius-rpc.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://mainnet.lightwalletd.com:9067 https://*.vercel.app",
+    `connect-src 'self' https://zkrune.com https://www.zkrune.com https://*.helius-rpc.com https://api.mainnet-beta.solana.com https://api.devnet.solana.com https://mainnet.lightwalletd.com:9067 https://*.vercel.app ${BASE_RPC_CONNECT_SRC}`,
     `frame-ancestors ${parents}`,
     "base-uri 'self'",
     "form-action 'self'",
