@@ -410,9 +410,9 @@ const { isValid } = await zk.verifyRemote({
               <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Resources</h4>
               <a href="/docs" className="text-zk-gray hover:text-zk-primary transition-colors">Documentation</a>
               <a href="/docs/api" className="text-zk-gray hover:text-zk-primary transition-colors">API Reference</a>
-              <a href="/verify-proof" className="text-zk-gray hover:text-zk-primary transition-colors">Verify Proof</a>
-              <a href="/trust" className="text-zk-gray hover:text-zk-primary transition-colors">Trust &amp; Security</a>
               <a href="/regulations" className="text-zk-gray hover:text-zk-primary transition-colors">Regulations</a>
+              <a href="/trust" className="text-zk-gray hover:text-zk-primary transition-colors">Trust &amp; Security</a>
+              <a href="/verify-proof" className="text-zk-gray hover:text-zk-primary transition-colors">Verify Proof</a>
               <a href="/changelog" className="text-zk-gray hover:text-zk-primary transition-colors">Changelog</a>
               <a href="/roadmap" className="text-zk-gray hover:text-zk-primary transition-colors">Roadmap</a>
             </div>

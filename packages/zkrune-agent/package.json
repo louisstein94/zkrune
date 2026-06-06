@@ -1,0 +1,69 @@
+{
+  "name": "zkrune-agent",
+  "version": "0.1.0",
+  "description": "zkAgent Passport — open ZK selective-disclosure validation layer for AI agents. Mints a delegated-authority passport and binds a fresh, action-scoped ZK attestation to every request (MCP / A2A / x402). Light mode (v1): delegated authority + human-in-the-loop + freshness, zero new trusted setup.",
+  "license": "MIT",
+  "main": "./dist/index.js",
+  "module": "./dist/index.mjs",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.mjs",
+      "require": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts --clean",
+    "dev": "tsup src/index.ts --format cjs,esm --dts --watch",
+    "test": "vitest run"
+  },
+  "keywords": [
+    "zkrune",
+    "ai-agent",
+    "agent-identity",
+    "zero-knowledge",
+    "groth16",
+    "erc-8004",
+    "mcp",
+    "a2a",
+    "x402",
+    "attestation"
+  ],
+  "author": "zkRune",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/louisstein94/zkrune.git",
+    "directory": "packages/zkrune-agent"
+  },
+  "homepage": "https://zkrune.com",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7"
+  },
+  "peerDependencies": {
+    "snarkjs": "^0.7.4",
+    "zkrune-sdk": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "snarkjs": {
+      "optional": true
+    },
+    "zkrune-sdk": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.0.0",
+    "tsup": "^8.5.1",
+    "typescript": "^5.4.0",
+    "vitest": "^3.0.0"
+  }
+}

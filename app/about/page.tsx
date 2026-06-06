@@ -53,14 +53,52 @@ const PRINCIPLES = [
   },
 ];
 
+const SERVES: { label: string; href: string; body: string }[] = [
+  {
+    label: "EU AI Act — Article 12",
+    href: "/enterprise",
+    body: "High-risk AI vendors facing the 2 August 2026 record-keeping mandate.",
+  },
+  {
+    label: "Proof of Agent",
+    href: "/enterprise/ai-agents",
+    body: "AI agent platforms, enterprise AI ops, governance vendors. Authority · Agent Passport · Constraint · Human-in-loop.",
+  },
+  {
+    label: "EUDI Wallet — eIDAS 2.0",
+    href: "/enterprise/eudi-wallet",
+    body: "Wallet implementers, attestation issuers, relying parties. ARF-aligned selective disclosure.",
+  },
+  {
+    label: "MiCA + Travel Rule",
+    href: "/enterprise/mica",
+    body: "Crypto-asset service providers, ART/EMT issuers, AML technology integrators.",
+  },
+  {
+    label: "Age-gating",
+    href: "/enterprise/age-gating",
+    body: "Dating, social, adult, gambling platforms in scope of DSA Art. 28 + UK OSA + US state laws.",
+  },
+  {
+    label: "DORA + NIS2",
+    href: "/enterprise/dora",
+    body: "Financial entities, ICT third-party providers, NIS2-adjacent critical infrastructure.",
+  },
+  {
+    label: "US Privacy + Sectoral",
+    href: "/enterprise/us-privacy",
+    body: "Multi-state SaaS, AI vendors under Colorado AI Act, HIPAA / COPPA / GLBA / FCRA-regulated operators.",
+  },
+];
+
 const LOOKING_FOR = [
   {
     label: "Pilot integrators",
-    body: "Web2 or web3 apps with an age-gating, membership, KYC-lite, or eligibility-verification problem. We work hands-on with the first integrations.",
+    body: "Web2 or web3 apps with an age-gating, membership, KYC-lite, eligibility-verification, or agent-attestation problem. We work hands-on with the first integrations.",
   },
   {
     label: "Enterprise compliance teams",
-    body: "Especially Annex III high-risk AI vendors facing EU AI Act Article 12. See /enterprise for the compliance-specific pitch.",
+    body: "DPOs, compliance leads, and engineering teams in scope of any of the seven regimes above. See /regulations for the full matrix and /enterprise/* for per-vertical landings.",
   },
   {
     label: "Grant partners",
@@ -224,8 +262,50 @@ export default function AboutPage() {
         </div>
       </section>
 
-      {/* LOOKING FOR */}
+      {/* SERVES */}
       <section className="relative z-10 px-6 md:px-12 lg:px-16 py-16">
+        <div className="max-w-5xl mx-auto">
+          <div className="space-y-3 mb-10">
+            <span className="text-xs font-bold text-zk-gray uppercase tracking-[0.2em]">
+              Who we serve
+            </span>
+            <h2 className="font-hatton text-3xl md:text-4xl text-white max-w-3xl">
+              Seven compliance verticals, one ZK primitive set.
+            </h2>
+            <p className="text-zk-gray max-w-3xl text-sm leading-relaxed">
+              Same 14 production circuits underneath all of them. Per-vertical
+              landings have buyer-relevant mapping tables; the{" "}
+              <a
+                href="/regulations"
+                className="text-zk-primary hover:text-zk-primary/80 transition-colors underline underline-offset-2"
+              >
+                regulations matrix
+              </a>{" "}
+              is the universal filter.
+            </p>
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {SERVES.map((s) => (
+              <a
+                key={s.href}
+                href={s.href}
+                className="group p-5 rounded-2xl border border-white/10 bg-zk-dark/30 hover:border-zk-primary/30 hover:bg-zk-dark/50 transition-all"
+              >
+                <div className="flex items-start justify-between gap-3 mb-2">
+                  <h3 className="font-hatton text-lg text-white">{s.label}</h3>
+                  <span className="text-zk-gray group-hover:text-zk-primary transition-colors text-sm">
+                    →
+                  </span>
+                </div>
+                <p className="text-sm text-zk-gray leading-relaxed">{s.body}</p>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* LOOKING FOR */}
+      <section className="relative z-10 px-6 md:px-12 lg:px-16 py-16 bg-zk-dark/40 border-y border-white/5">
         <div className="max-w-5xl mx-auto">
           <div className="space-y-3 mb-10">
             <span className="text-xs font-bold text-zk-gray uppercase tracking-[0.2em]">
