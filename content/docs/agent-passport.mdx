@@ -1,0 +1,129 @@
+---
+title: Agent Passport
+description: Give any AI agent a portable, zero-knowledge passport — verified statelessly on every MCP / A2A / x402 request.
+---
+
+> **Live verifier:** [`/agent/verify`](/agent/verify) — paste a passport, or generate a fresh one, and watch it verify in the browser.
+
+The **zkAgent Passport** gives any AI agent a portable credential it carries on every request. A relying party verifies it **statelessly** — no database, no shared state — to learn *which agent, under whose authority, within which limits, with a human in the loop*.
+
+It does not invent a new identity format. The passport rides as two HTTP headers, slotting under **MCP**, **A2A**, and **x402**, and maps onto the **ERC-8004** Trustless Agents *Validation Registry*.
+
+## What it proves (light mode, v1)
+
+Three claims, all proven with Groth16 ZK-SNARKs over BN128 — and **zero new trusted setup**, because light mode reuses the existing `signature-verification` circuit:
+
+| Claim | How |
+| --- | --- |
+| **Delegated authority** | A human signs a delegation over the agent's key + policy + expiry. |
+| **Human-in-the-loop** | For sensitive actions, a fresh human signature is bound to the specific action. |
+| **Freshness** | The attestation carries a signed timestamp; the verifier checks it against a TTL window. |
+
+Constraint enforcement (`maxSpend`, `onlyDomains`) is carried and committed in v1 and enforced by the [relying-party gate](#relying-party-gate). Issuer-attested **provenance** is v2.
+
+> **Honest scope.** zkRune *verifies* issuer-attested provenance — it does not generate proof-of-training, and never claims ZK proves training data is "licensed" or "compliant". Licensing is a legal fact carried by a trusted issuer's attestation; the ZK proves the attestation chain and the action binding.
+
+## The two headers
+
+On the wire, a passport is two base64 headers:
+
+```http
+X-zkRune-Passport: <base64 PassportEnvelope>   # minted once
+X-zkRune-Action:   <base64 ActionAttestation>  # one per request
+```
+
+- **`X-zkRune-Passport`** — the human's delegation: agent public key, policy (`maxSpend`, `onlyDomains`, `humanInLoop`), expiry, and the delegation signature. Long-lived.
+- **`X-zkRune-Action`** — a fresh Groth16 proof binding *one* action to the passport via the message `M = Poseidon(actionDigest ‖ issuedAt ‖ agentId)`. Because the proof is bound to `actionDigest`, it cannot be replayed onto a different action.
+
+## SDK
+
+Install:
+
+```bash
+npm install zkrune-agent
+```
+
+### Mint and attest (agent side)
+
+```ts
+import { AgentPassport, createSdkBackend } from "zkrune-agent";
+import { ZkRune } from "zkrune-sdk";
+
+const backend = createSdkBackend(new ZkRune());
+
+// Mint once — the human delegates a policy to the agent key
+const passport = await AgentPassport.mint({
+  humanSigner,                 // implements AgentSigner (a wallet)
+  agentSigner,                 // the agent's own key
+  policy: { maxSpend: "500 USDC", onlyDomains: ["*.example.com"], humanInLoop: true },
+  backend,
+});
+
+// Attest each action — returns the headers to attach to the request
+const headers = await passport.attest({
+  action: {
+    method: "POST",
+    target: "https://api.example.com/pay",
+    amount: "120 USDC",
+    externalId: paymentIntentId,   // ties replay protection to an id the RP dedupes
+  },
+  approver: humanSigner,           // fresh human approval (humanInLoop policies)
+});
+
+await fetch("https://api.example.com/pay", { method: "POST", headers, body });
+```
+
+### Verify (relying party)
+
+```ts
+import { verifyAttestation, localGroth16Backend } from "zkrune-agent";
+import vkey from "./signature-verification_vkey.json";
+
+const result = await verifyAttestation(req.headers, localGroth16Backend(vkey), {
+  ttlSeconds: 300,
+});
+
+if (!result.ok) {
+  return reject(result.reasons);   // e.g. "attestation not fresh", "bound message M does not match"
+}
+// result.checks → { passportNotExpired, delegationValid, signerMatchesPolicy,
+//                   proofValid, messageBindingValid, fresh }
+```
+
+The verifier is stateless — anyone can run it. For a hosted endpoint, POST the two headers (or a JSON body `{ passport, action }`) to **`/api/agent/verify`**.
+
+## Relying-party gate
+
+Gate an endpoint on a valid passport — same 403-challenge / retry loop as [`@louisstein/x402-verify`](/docs/api). Works with Express, Hono, or any Fetch-API runtime:
+
+```ts
+import { agentPassportFetchGuard, localGroth16Backend } from "zkrune-agent";
+import vkey from "./signature-verification_vkey.json";
+
+const guard = agentPassportFetchGuard({
+  backend: localGroth16Backend(vkey),
+  enforceDomain: true,        // action target must match the delegated onlyDomains
+  requireHumanInLoop: true,
+  ttlSeconds: 300,
+});
+
+export async function POST(req: Request) {
+  const blocked = await guard(req);
+  if (blocked) return blocked;   // 403 challenge, or 503 if the verifier is unreachable
+  // ...x402 payment check, then serve
+}
+```
+
+The gate enforces `onlyDomains` / `maxSpend` by comparing the action against the **delegated** policy. This is sound: both the policy (via the human's delegation signature) and the concrete action (via the bound message `M`) are signature-verified, so the comparison is over established values, not client claims.
+
+## Replay protection
+
+1. **Action-binding (always)** — the proof is bound to `actionDigest`; not portable to another action.
+2. **External idempotency (stateless)** — bind `action.externalId` to an id the relying party already deduplicates (x402 payment-intent id, MCP / A2A request id).
+3. **Nullifier registry (optional)** — for high-value actions, a relying party may keep a nullifier set to also close the within-TTL window.
+
+## Roadmap
+
+- **v1 (light)** — delegated authority + human-in-the-loop + freshness. Zero new ceremony. *Shipped as a scaffold.*
+- **v1.1 (full)** — `maxSpend` / `onlyDomains` enforced in-circuit (ZK-hiding the amount) via a composed `agent-action` circuit + one ceremony.
+- **v2** — issuer-attested, policy-bound provenance + an open issuer registry.

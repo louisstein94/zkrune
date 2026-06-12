@@ -14,6 +14,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "https://zkrune.com/integrations" },
 };
 
+const liveCount = integrations.filter((i) => i.tier === "Live").length;
 const referenceCount = integrations.filter((i) => i.tier === "Reference").length;
 const conceptCount = integrations.filter((i) => i.tier === "Concept").length;
 
@@ -45,6 +46,12 @@ export default function IntegrationsIndex() {
 
           <div className="mt-8 flex flex-wrap gap-6 text-sm text-zk-gray">
             <span>
+              <span className="text-zk-secondary font-semibold">
+                {liveCount}
+              </span>{" "}
+              live integration{liveCount !== 1 ? "s" : ""}
+            </span>
+            <span>
               <span className="text-white font-semibold">
                 {referenceCount}
               </span>{" "}
@@ -53,17 +60,6 @@ export default function IntegrationsIndex() {
             <span>
               <span className="text-white font-semibold">{conceptCount}</span>{" "}
               concept{conceptCount !== 1 ? "s" : ""}
-            </span>
-            <span>
-              Posting one a day — share via{" "}
-              <a
-                href="https://x.com/zkrune"
-                target="_blank"
-                rel="noreferrer"
-                className="text-zk-primary hover:underline"
-              >
-                @zkrune
-              </a>
             </span>
           </div>
         </div>
@@ -101,12 +97,14 @@ export default function IntegrationsIndex() {
             Note on tiers
           </p>
           <p className="text-sm text-zk-gray leading-relaxed">
-            <span className="text-white font-semibold">Reference</span> means
-            the integration is a community-built design, not an official
-            partnership — the ZK proof and on-chain verification steps are real
-            zkRune infrastructure, while the partner-side call may be simulated
-            for demo purposes. <span className="text-white font-semibold">Concept</span>{" "}
-            means a proposed architecture, open for collaboration. We are not
+            <span className="text-zk-secondary font-semibold">Live</span> means
+            the partner has deployed the gate to a production endpoint — every
+            real request hits the on-chain verifier.{" "}
+            <span className="text-white font-semibold">Reference</span> is a
+            community-built design with working ZK + on-chain verification but
+            a simulated partner call.{" "}
+            <span className="text-white font-semibold">Concept</span> is a
+            proposed architecture, open for collaboration. We are not
             affiliated with any of the projects listed unless explicitly noted.
           </p>
           <a

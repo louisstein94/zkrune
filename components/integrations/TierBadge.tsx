@@ -1,8 +1,8 @@
 import type { IntegrationTier } from "@/lib/integrations";
 
 const STYLES: Record<IntegrationTier, string> = {
-  Reference:
-    "border-zk-primary/40 bg-zk-primary/10 text-zk-primary",
+  Live: "border-zk-secondary/50 bg-zk-secondary/15 text-zk-secondary",
+  Reference: "border-zk-primary/40 bg-zk-primary/10 text-zk-primary",
   Concept: "border-zk-gray/30 bg-zk-gray/10 text-zk-gray",
 };
 

@@ -42,7 +42,10 @@ function bytesToBigInt(bytes: Uint8Array): bigint {
 /** SHA-256 of a string → big-endian bigint reduced into the field. Portable. */
 export async function digestToField(input: string): Promise<bigint> {
   const data = new TextEncoder().encode(input);
-  const hash = await globalThis.crypto.subtle.digest('SHA-256', data);
+  // Cast keeps stricter DOM typings happy: TextEncoder.encode now returns
+  // Uint8Array<ArrayBufferLike>, while subtle.digest wants BufferSource over
+  // ArrayBuffer specifically. Runtime is unchanged.
+  const hash = await globalThis.crypto.subtle.digest('SHA-256', data.buffer as ArrayBuffer);
   return bytesToBigInt(new Uint8Array(hash)) % (await fieldModulus());
 }
 

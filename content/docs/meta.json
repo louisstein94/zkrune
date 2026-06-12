@@ -1,4 +1,4 @@
 {
   "title": "Developer Docs",
-  "pages": ["index", "sdk", "widget", "api", "circuits", "trust-model"]
+  "pages": ["index", "sdk", "widget", "api", "agent-passport", "circuits", "trust-model"]
 }

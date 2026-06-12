@@ -8,10 +8,12 @@ import { XonaDemo } from "@/components/integrations/xona/XonaDemo";
 const integration = getIntegration("xona")!;
 
 export const metadata: Metadata = {
-  title: `zkRune × ${integration.name} — Reference integration`,
+  title: `zkRune × ${integration.name} — Live on x402`,
   description: integration.description,
   alternates: { canonical: "https://zkrune.com/integrations/xona" },
 };
+
+const LIVE_ENDPOINT = "https://api.xona-agent.com/zkrune/image/flux-2-flex";
 
 const STEPS = [
   {
@@ -35,15 +37,15 @@ const STEPS = [
   {
     label: "x402 image-gen call to Xona",
     detail:
-      "Partner endpoint receives the proof hash and verifier reference alongside the x402 payment. Simulated here for the demo.",
-    status: "simulated" as const,
+      "Live at api.xona-agent.com/zkrune/image/flux-2-flex. The endpoint runs the same gate behind every real request.",
+    status: "real" as const,
   },
 ];
 
 const CODE_SAMPLE = `// Xona's x402 image endpoint — add the zkRune gate in three lines.
-// @zkrune/x402-verify · reads headers only, never the request body.
+// @louisstein/x402-verify · reads headers only, never the request body.
 import { Hono } from "hono";
-import { zkRuneHonoMiddleware } from "@zkrune/x402-verify";
+import { zkRuneHonoMiddleware } from "@louisstein/x402-verify";
 
 app.post(
   "/image/flux-2-flex",
@@ -75,10 +77,10 @@ export default function XonaIntegrationPage() {
             What this demo shows
           </h2>
           <p className="text-sm md:text-base text-zk-gray mb-8 max-w-3xl leading-relaxed">
-            Three steps. Two are real, one is simulated — by design. The goal
-            is not to ship a paid Xona call from this page. The goal is to
-            prove that zkRune drops in front of any x402 endpoint without
-            new infrastructure on either side.
+            Three real steps, end to end. The gate is deployed on Xona&apos;s
+            live x402 endpoint — every real request to{" "}
+            <code className="text-zk-secondary">api.xona-agent.com/zkrune/image/flux-2-flex</code>{" "}
+            runs through the on-chain verifier before the image is served.
           </p>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
@@ -95,14 +97,102 @@ export default function XonaIntegrationPage() {
               body="The proof is checked against the deployed zkRune verifier on Base mainnet via verifyProofStatic. View call — no wallet, no gas. Anyone can replay it."
             />
             <DemoStep
-              status="simulated"
+              status="real"
               n="3"
-              title="Simulated x402 call to Xona"
-              body="The right-hand panel shows the exact HTTP request a live Xona integration would receive: x402 payment header alongside an X-zkRune-Proof reference. The image is a placeholder."
+              title="Live on Xona's x402 endpoint"
+              body="The same gate runs in production at api.xona-agent.com/zkrune/image/flux-2-flex. Missing proof → 403 challenge. Valid proof → handed off to x402 for payment. Try the curl evidence below."
             />
           </div>
 
           <XonaDemo />
+        </div>
+      </section>
+
+      <section className="px-6 md:px-12 lg:px-16 pb-16">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-wrap items-baseline justify-between gap-3 mb-3">
+            <h2 className="font-hatton text-3xl text-white">
+              Live on Xona today
+            </h2>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] px-2.5 py-1 rounded-full border border-zk-secondary/50 bg-zk-secondary/15 text-zk-secondary">
+              Production
+            </span>
+          </div>
+          <p className="text-sm md:text-base text-zk-gray mb-6 max-w-3xl leading-relaxed">
+            The gate is deployed on Xona&apos;s x402 endpoint. Every real
+            request to{" "}
+            <a
+              href={LIVE_ENDPOINT}
+              target="_blank"
+              rel="noreferrer"
+              className="text-zk-secondary font-mono break-all hover:underline"
+            >
+              {LIVE_ENDPOINT.replace("https://", "")}
+            </a>{" "}
+            runs through{" "}
+            <code className="text-zk-primary">@zkrune/x402-verify</code> before
+            the image is served. Three cases, copy-pasteable.
+          </p>
+
+          <div className="space-y-3">
+            <CurlCase
+              label="No proof"
+              status={403}
+              statusKind="reject"
+              cmd={`curl -X POST ${LIVE_ENDPOINT} \\
+  -H "Content-Type: application/json" \\
+  -d '{"prompt":"x"}'`}
+              response={`{
+  "error": "zkrune_eligibility_required",
+  "reason": "missing_headers",
+  "circuit": "age-verification",
+  "verifier": "base:0xa03A353d…9E849EA",
+  "generateProofAt": "https://zkrune.com",
+  "message": "This endpoint requires a zkRune age-verification proof..."
+}`}
+              note="Gate emits the 403 challenge — same shape as x402's 402, self-describing so the caller knows exactly which proof to generate."
+            />
+            <CurlCase
+              label="Valid proof"
+              status={402}
+              statusKind="pass"
+              cmd={`curl -X POST ${LIVE_ENDPOINT} \\
+  -H "X-zkRune-Proof: <base64 envelope>" \\
+  -H "X-zkRune-Circuit: age-verification" \\
+  -d '{"prompt":"a cyberpunk fox holding a zk rune"}'`}
+              response={`{
+  "x402Version": 2,
+  "error": "Payment Required",
+  "resource": {
+    "url": "https://api.xona-agent.com/zkrune/image/flux-2-flex",
+    "description": "...ZK age-verified, Base Mainnet."
+  },
+  "accepts": [{
+    "scheme": "exact",
+    "network": "eip155:8453",
+    "amount": "60000",
+    "asset": "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913"
+  }]
+}`}
+              note="Proof passed on-chain verification — control handed to x402, which now asks for 0.06 USDC on Base. Both gates run in production; only the success path needs a paying wallet."
+            />
+            <CurlCase
+              label="Tampered proof"
+              status={403}
+              statusKind="reject"
+              cmd={`curl -X POST ${LIVE_ENDPOINT} \\
+  -H "X-zkRune-Proof: not-a-real-proof" \\
+  -H "X-zkRune-Circuit: age-verification" \\
+  -d '{"prompt":"x"}'`}
+              response={`{
+  "error": "zkrune_eligibility_required",
+  "reason": "malformed_proof",
+  "circuit": "age-verification",
+  "message": "The X-zkRune-Proof header is not a valid base64-encoded proof envelope."
+}`}
+              note="Garbage rejected at the gate — never reaches the verifier or the payment layer."
+            />
+          </div>
         </div>
       </section>
 
@@ -190,12 +280,20 @@ export default function XonaIntegrationPage() {
             Endpoint integration
           </h2>
           <p className="text-sm md:text-base text-zk-gray mb-6 max-w-3xl leading-relaxed">
-            The gate ships as a real package —{" "}
-            <code className="text-zk-primary">@zkrune/x402-verify</code>. It
-            reads HTTP headers only, never the request body, so it drops in
-            front of any x402 endpoint regardless of stack. Xona&apos;s handler
-            adds three lines; the payment middleware and the handler stay
-            unchanged.
+            The gate ships as a published npm package —{" "}
+            <a
+              href="https://www.npmjs.com/package/@louisstein/x402-verify"
+              target="_blank"
+              rel="noreferrer"
+              className="text-zk-primary hover:underline"
+            >
+              <code>@louisstein/x402-verify</code>
+            </a>
+            . It reads HTTP headers only, never the request body, so it drops
+            in front of any x402 endpoint regardless of stack. Xona&apos;s
+            handler added three lines; the payment middleware and the handler
+            stayed unchanged. Same code is now running in their production
+            endpoint.
           </p>
           <div className="bg-zk-dark/60 border border-zk-gray/15 rounded-2xl p-6 md:p-8">
             <pre className="text-xs md:text-sm leading-relaxed text-zk-gray font-mono overflow-x-auto">
@@ -207,11 +305,11 @@ export default function XonaIntegrationPage() {
               ✓
             </span>
             <p className="text-xs text-zk-gray leading-relaxed">
-              <span className="text-white font-semibold">Verified live.</span>{" "}
-              The package runs a real Groth16 proof through the Base mainnet
-              verifier — every check passes, including on-chain rejection of a
-              tampered proof. The verification path is not simulated; only the
-              x402 image call in the demo above is.
+              <span className="text-white font-semibold">Deployed.</span>{" "}
+              Live on Xona&apos;s production endpoint —{" "}
+              <code className="text-zk-secondary">{LIVE_ENDPOINT.replace("https://", "")}</code>
+              . The package is on npm with a comprehensive smoke test (13/13
+              checks against the live Base verifier) — both sides shipped.
             </p>
           </div>
         </div>
@@ -240,22 +338,38 @@ export default function XonaIntegrationPage() {
       </section>
 
       <section className="px-6 md:px-12 lg:px-16 pb-24">
-        <div className="max-w-3xl mx-auto p-8 bg-gradient-to-br from-zk-primary/15 to-zk-accent/10 border border-zk-primary/30 rounded-2xl text-center">
+        <div className="max-w-3xl mx-auto p-8 bg-gradient-to-br from-zk-secondary/15 to-zk-primary/10 border border-zk-secondary/30 rounded-2xl text-center">
           <h2 className="font-hatton text-3xl text-white mb-3">
-            Build this for real
+            Already live — call it now
           </h2>
           <p className="text-sm text-zk-gray mb-6 max-w-xl mx-auto leading-relaxed">
-            This is a community-built reference design, not an official
-            partnership. If you are on the Xona team, or building an x402
-            service that needs an eligibility layer, let&apos;s wire up the
-            live call.
+            The integration is deployed on both sides: gate on Xona&apos;s
+            production endpoint, package on npm. If you run an x402 service
+            and want the same drop-in eligibility layer, the codepath is now a
+            reference customers can verify themselves with a single curl.
           </p>
           <div className="flex flex-wrap justify-center gap-3">
             <a
-              href="mailto:zkruneprotocol@gmail.com?subject=zkRune%20%C3%97%20Xona%20integration"
-              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-zk-primary to-zk-accent text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
+              href={LIVE_ENDPOINT}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-gradient-to-r from-zk-secondary to-zk-primary text-white text-sm font-medium rounded-lg hover:opacity-90 transition-opacity"
             >
-              Get in touch
+              Hit the live endpoint
+            </a>
+            <a
+              href="https://www.npmjs.com/package/@louisstein/x402-verify"
+              target="_blank"
+              rel="noreferrer"
+              className="inline-flex items-center gap-2 px-5 py-2.5 border border-zk-gray/30 text-zk-gray text-sm font-medium rounded-lg hover:text-white hover:border-zk-primary/40 transition-colors"
+            >
+              npm package
+            </a>
+            <a
+              href="mailto:zkruneprotocol@gmail.com?subject=zkRune%20x402%20gate%20for%20our%20endpoint"
+              className="inline-flex items-center gap-2 px-5 py-2.5 border border-zk-gray/30 text-zk-gray text-sm font-medium rounded-lg hover:text-white hover:border-zk-primary/40 transition-colors"
+            >
+              Gate our endpoint
             </a>
             <Link
               href="/integrations"
@@ -315,6 +429,63 @@ function DemoStep({
         {title}
       </h3>
       <p className="text-xs text-zk-gray leading-relaxed">{body}</p>
+    </div>
+  );
+}
+
+function CurlCase({
+  label,
+  status,
+  statusKind,
+  cmd,
+  response,
+  note,
+}: {
+  label: string;
+  status: number;
+  statusKind: "pass" | "reject";
+  cmd: string;
+  response: string;
+  note: string;
+}) {
+  const passColor =
+    statusKind === "pass"
+      ? "border-zk-secondary/40 bg-zk-secondary/10 text-zk-secondary"
+      : "border-red-500/40 bg-red-500/10 text-red-300";
+
+  return (
+    <div className="bg-zk-dark/60 border border-zk-gray/15 rounded-2xl overflow-hidden">
+      <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 border-b border-zk-gray/15 bg-zk-darker/40">
+        <span className="text-xs font-bold uppercase tracking-[0.18em] text-zk-gray">
+          {label}
+        </span>
+        <span
+          className={`inline-flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full border ${passColor}`}
+        >
+          HTTP {status}
+        </span>
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-px bg-zk-gray/10">
+        <div className="bg-zk-dark/80 p-5">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-zk-gray/70 mb-2">
+            Request
+          </p>
+          <pre className="text-[11px] leading-relaxed text-zk-gray font-mono overflow-x-auto whitespace-pre">
+            {cmd}
+          </pre>
+        </div>
+        <div className="bg-zk-dark/80 p-5">
+          <p className="text-[10px] uppercase tracking-[0.2em] text-zk-gray/70 mb-2">
+            Response
+          </p>
+          <pre className="text-[11px] leading-relaxed text-zk-gray font-mono overflow-x-auto whitespace-pre">
+            {response}
+          </pre>
+        </div>
+      </div>
+      <p className="px-5 py-3 text-xs text-zk-gray/80 leading-relaxed border-t border-zk-gray/15">
+        {note}
+      </p>
     </div>
   );
 }

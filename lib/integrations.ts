@@ -1,4 +1,4 @@
-export type IntegrationTier = "Reference" | "Concept";
+export type IntegrationTier = "Live" | "Reference" | "Concept";
 export type IntegrationCategory = "Agent Economy" | "Browser & Wallet";
 export type IntegrationChain =
   | "Solana"
@@ -39,13 +39,13 @@ export const integrations: Integration[] = [
   {
     slug: "xona",
     name: "Xona Agent",
-    tagline: "Creative AI on x402, gated by zkRune.",
-    chain: "SKALE on Base",
-    tier: "Reference",
+    tagline: "Live on x402 — age-gated AI image generation.",
+    chain: "Base",
+    tier: "Live",
     category: "Agent Economy",
     useCase: "Age-proof gated x402 image generation",
     description:
-      "Xona Agent serves premium AI image and video generation through x402 micro-payments. zkRune adds a privacy-preserving eligibility gate in front of any Xona endpoint — users prove they are 18+ (or licensed, jurisdictionally allowed, brand-approved) without exposing the underlying identity.",
+      "Xona Agent serves premium AI image and video generation through x402 micro-payments. zkRune adds a privacy-preserving eligibility gate in front of Xona's image endpoint: callers prove they are 18+ on Base mainnet without exposing the underlying birth year. Deployed at api.xona-agent.com/zkrune/image/flux-2-flex — every request hits the live gate.",
     links: {
       site: "https://xona-agent.com",
       x: "https://x.com/xona_agent",
