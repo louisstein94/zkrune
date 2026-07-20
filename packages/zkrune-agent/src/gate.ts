@@ -1,5 +1,5 @@
 // Endpoint-level eligibility gate for AI-agent requests, mirroring the
-// @louisstein/x402-verify gate shape so it slots into the same x402 retry loop.
+// @zkrune/x402-verify gate shape so it slots into the same x402 retry loop.
 //
 // x402 answers "who paid?". The passport answers "which agent, under whose
 // authority, within which limits, with a human in the loop?". The gate reads

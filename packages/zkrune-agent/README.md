@@ -70,7 +70,7 @@ if (!result.ok) throw new Error(result.reasons.join('; '));
 
 ## Relying-party gate (x402 / MCP / A2A)
 
-Gate any endpoint on a valid passport, mirroring the `@louisstein/x402-verify`
+Gate any endpoint on a valid passport, mirroring the `@zkrune/x402-verify`
 shape — same 403 challenge, same retry loop. Works with Express, Hono, or any
 Fetch-API runtime.
 

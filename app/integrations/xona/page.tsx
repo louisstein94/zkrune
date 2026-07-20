@@ -43,9 +43,9 @@ const STEPS = [
 ];
 
 const CODE_SAMPLE = `// Xona's x402 image endpoint — add the zkRune gate in three lines.
-// @louisstein/x402-verify · reads headers only, never the request body.
+// @zkrune/x402-verify · reads headers only, never the request body.
 import { Hono } from "hono";
-import { zkRuneHonoMiddleware } from "@louisstein/x402-verify";
+import { zkRuneHonoMiddleware } from "@zkrune/x402-verify";
 
 app.post(
   "/image/flux-2-flex",
@@ -282,12 +282,12 @@ export default function XonaIntegrationPage() {
           <p className="text-sm md:text-base text-zk-gray mb-6 max-w-3xl leading-relaxed">
             The gate ships as a published npm package —{" "}
             <a
-              href="https://www.npmjs.com/package/@louisstein/x402-verify"
+              href="https://www.npmjs.com/package/@zkrune/x402-verify"
               target="_blank"
               rel="noreferrer"
               className="text-zk-primary hover:underline"
             >
-              <code>@louisstein/x402-verify</code>
+              <code>@zkrune/x402-verify</code>
             </a>
             . It reads HTTP headers only, never the request body, so it drops
             in front of any x402 endpoint regardless of stack. Xona&apos;s
@@ -358,7 +358,7 @@ export default function XonaIntegrationPage() {
               Hit the live endpoint
             </a>
             <a
-              href="https://www.npmjs.com/package/@louisstein/x402-verify"
+              href="https://www.npmjs.com/package/@zkrune/x402-verify"
               target="_blank"
               rel="noreferrer"
               className="inline-flex items-center gap-2 px-5 py-2.5 border border-zk-gray/30 text-zk-gray text-sm font-medium rounded-lg hover:text-white hover:border-zk-primary/40 transition-colors"

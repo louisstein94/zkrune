@@ -1,0 +1,15 @@
+{
+  "name": "zkrune-example-agent-rwa-eligibility",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "An AI agent proving tokenized-RWA eligibility to a gated endpoint, x402-style.",
+  "scripts": {
+    "gate": "node gate-server.mjs",
+    "agent": "node agent-client.mjs"
+  },
+  "dependencies": {
+    "@zkrune/x402-verify": "^0.1.0",
+    "snarkjs": "^0.7.4"
+  }
+}

@@ -108,6 +108,27 @@ export default function CeremonyPage() {
         
         <div className="relative max-w-7xl mx-auto px-6">
           <div className="text-center mb-12">
+            {/* Honest current-status banner — production zkeys were regenerated after the Jan ceremony */}
+            <div className="max-w-3xl mx-auto mb-8 p-5 bg-amber-500/10 border border-amber-500/30 rounded-xl text-left">
+              <p className="text-sm text-amber-300 font-medium mb-1">Current production status</p>
+              <p className="text-sm text-zk-gray">
+                This page records the January 2026 ceremony. The circuits were modified afterward, so the
+                zkeys currently in production were regenerated and are{" "}
+                <span className="text-white">single-party for 13 of 14 circuits</span> — a fresh multi-party
+                Phase 2 is pending.{" "}
+                <Link
+                  href="https://github.com/louisstein94/zkrune/blob/main/ceremony/CEREMONY_REPORT.md"
+                  className="text-amber-300 underline"
+                >
+                  Per-circuit status
+                </Link>
+                {" · "}
+                <Link href="/trust" className="text-amber-300 underline">
+                  Trust page
+                </Link>
+                .
+              </p>
+            </div>
             {isFinalized ? (
               <>
                 <div className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 border-green-500/30 text-green-400 border rounded-full text-sm mb-6">
@@ -122,8 +143,8 @@ export default function CeremonyPage() {
                 </h1>
                 
                 <p className="text-xl text-zk-gray max-w-3xl mx-auto mb-8">
-                  The zkRune trusted setup ceremony has been successfully finalized with {contributionCount} community contributions.
-                  All 13 circuits now have production-ready verification keys.
+                  The January 2026 ceremony was finalized with {contributionCount} recorded contribution(s).
+                  See the status note above for the current production state.
                 </p>
 
                 {/* Finalized Stats */}
@@ -134,7 +155,7 @@ export default function CeremonyPage() {
                       <div className="text-sm text-zk-gray">Contributors</div>
                     </div>
                     <div>
-                      <div className="text-3xl font-bold text-green-400">13</div>
+                      <div className="text-3xl font-bold text-green-400">14</div>
                       <div className="text-sm text-zk-gray">Circuits</div>
                     </div>
                     <div>

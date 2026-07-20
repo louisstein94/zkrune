@@ -103,7 +103,7 @@ const READINESS = [
     label: "Audited circuits",
     value: "14 production Groth16 circuits",
     detail:
-      "Compiled with Circom, trusted setup completed via multi-party Phase 1 (Hermez Powers of Tau, 54 contributors) + Phase 2 (zkRune-side).",
+      "Compiled with Circom. Phase 1 is multi-party (Hermez Powers of Tau, 54 contributors); the Phase 2 zkeys currently in production are single-party — a fresh multi-party Phase 2 is pending (see /trust).",
   },
   {
     label: "Proof generation",

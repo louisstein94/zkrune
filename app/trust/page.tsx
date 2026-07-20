@@ -5,12 +5,12 @@ import MainnetVerifiersGrid from "@/components/MainnetVerifiersGrid";
 export const metadata: Metadata = {
   title: "Trust & Security — zkRune",
   description:
-    "What we built, what we proved, and what we haven't yet. Multi-party trusted setup, mainnet verifiers, published trust model, and an honest audit roadmap.",
+    "What we built, what we proved, and what we haven't yet. Mainnet verifiers, a published trust model, an honest per-circuit ceremony audit, and an audit roadmap.",
   alternates: { canonical: "https://zkrune.com/trust" },
   openGraph: {
     title: "Trust & Security — zkRune",
     description:
-      "Multi-party trusted setup, mainnet verifiers, published trust model, and an honest audit roadmap.",
+      "Mainnet verifiers, a published trust model, an honest per-circuit ceremony audit, and an audit roadmap.",
     url: "https://zkrune.com/trust",
     siteName: "zkRune",
     type: "website",
@@ -20,16 +20,16 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "Trust & Security — zkRune",
     description:
-      "Multi-party trusted setup, mainnet verifiers, trust model, audit roadmap.",
+      "Mainnet verifiers, published trust model, ceremony status, audit roadmap.",
     images: ["/og-image.png"],
   },
 };
 
 const PILLARS = [
   {
-    title: "Multi-party trusted setup",
-    body: "Phase 1 uses the Hermez Network Powers of Tau ceremony (54 Ethereum-community participants). Phase 2 is run circuit-by-circuit with multiple contributors. As long as one contributor is honest and discards their entropy, the setup is sound.",
-    link: { label: "Ceremony documentation", href: "https://github.com/louisstein94/zkrune/blob/main/CEREMONY.md" },
+    title: "Trusted setup — Phase 2 re-ceremony pending",
+    body: "Phase 1 reuses the Hermez Powers of Tau ceremony (54 Ethereum-community participants). A Phase 2 multi-party ceremony ran in January 2026, but the circuits were later modified — so the zkeys currently in production are single-party for 13 of 14 circuits, and a fresh multi-party Phase 2 is pending. We publish the per-circuit status rather than imply it is done.",
+    link: { label: "Per-circuit ceremony status", href: "https://github.com/louisstein94/zkrune/blob/main/ceremony/CEREMONY_REPORT.md" },
   },
   {
     title: "Mainnet verifiers, deployed",

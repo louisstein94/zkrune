@@ -173,7 +173,7 @@ if (containsMaliciousPattern(userInput)) {
 
 ### 1. **Trusted Setup**
 
-**Current:** Multi-party ceremony completed (January 2026)
+**Current:** A multi-party Phase 2 ran in January 2026, but production circuits were modified afterward — **13 of 14 ship single-party setups today** (see [ceremony/CEREMONY_REPORT.md](ceremony/CEREMONY_REPORT.md)). A fresh multi-party Phase 2 is pending.
 ```
 ⚠️  Proving keys generated via single-party snarkjs zkey contribute
 ✅  Produces valid, verifiable proofs

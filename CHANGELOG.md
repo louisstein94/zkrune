@@ -7,6 +7,15 @@ Format loosely follows [Keep a Changelog](https://keepachangelog.com/);
 versions are dated rather than semver-tagged because zkRune ships
 continuously rather than in semver-cadenced releases.
 
+## [2026-07-20]
+
+### Added
+- **`examples/agent-rwa-eligibility`** — runnable example: an AI agent proving tokenized-RWA eligibility to a gated endpoint in the x402 challenge/retry shape. A `gate-server` requires a `credential-proof` (built on `@zkrune/x402-verify`, verified on Base mainnet via a gas-free view call); an `agent-client` hits the resource, reads the 403 challenge, generates the zk-SNARK, and retries. Real on-chain verification, no mocks. x402 answers "who paid"; zkRune answers "who is allowed".
+- **`/api/actions/eligibility`** — tokenized-RWA eligibility Blink (Solana Actions spec). A holder proves they hold a valid, unexpired issuer-attested eligibility credential (e.g. accredited-investor or KYC-cleared status) without revealing the credential itself; the zk-SNARK is verified trustlessly on-chain by the Solana Groth16 verifier program. Built on the existing `credential-proof` circuit — zero new circuit work. A programmatic verification-transaction endpoint (agent/wallet-consumable), not a feed-distributed Blink.
+
+### Changed
+- Extracted the shared Groth16 on-chain verification transaction builder into `lib/blinks/groth16Tx.ts` (template ids, field/point encoding, verify instruction). Both `/api/actions/verify` and the new `/api/actions/eligibility` Blink route now consume it instead of duplicating the byte-packing logic.
+
 ## [2026-06-06]
 
 ### Added

@@ -1,114 +1,104 @@
 # zkRune Trusted Setup Ceremony Report
 
-## Overview
+> **Current status (corrected 2026-06-12).** A January 2026 multi-party Phase 2
+> ceremony was run. **However, the zkeys currently shipping in production were
+> regenerated *after* that ceremony (March–April 2026) and are NOT the ceremony
+> outputs.** As of this audit, **none of the 14 production circuits ship a
+> multi-party-backed zkey**: 1 can be restored to the January setup, 12 require a
+> fresh re-ceremony, and 1 was never part of any ceremony. Until a fresh Phase 2
+> is completed, treat the affected setups as **single-party** (the toxic waste may
+> be known to whoever generated them). See [Remediation](#remediation).
+
+## Per-circuit status (audit 2026-06-12)
+
+Method: `snarkjs zkey verify <current r1cs> <ptau> <January ceremony/zkeys/*_final.zkey>`.
+A January multi-party zkey only verifies if the circuit is unchanged since the ceremony.
+
+| Circuit | January zkey valid vs current circuit? | Production zkey today | Status |
+|---|---|---|---|
+| private-voting | ✅ valid (circuit unchanged since Nov 2025) | single-party (regenerated Apr) | **Restorable** — re-ship the Jan multi-party zkey, no new ceremony |
+| age-verification | ❌ (circuit changed Mar) | single-party | Needs re-ceremony |
+| balance-proof | ❌ (circuit changed Mar) | single-party | Needs re-ceremony |
+| range-proof | ❌ (circuit changed Mar) | single-party | Needs re-ceremony |
+| signature-verification | ❌ (circuit changed Mar) | single-party | Needs re-ceremony |
+| token-swap | ❌ (circuit changed Mar) | single-party | Needs re-ceremony |
+| membership-proof | ❌ (circuit changed Mar 18) | single-party | Needs re-ceremony |
+| hash-preimage | ❌ (circuit changed Apr 13) | single-party | Needs re-ceremony |
+| quadratic-voting | ❌ (circuit changed Apr 13) | single-party | Needs re-ceremony |
+| anonymous-reputation | ❌ (circuit changed Apr 16) | single-party | Needs re-ceremony |
+| credential-proof | ❌ (circuit changed Apr 16) | single-party | Needs re-ceremony |
+| nft-ownership | ❌ (circuit changed Apr 16) | single-party | Needs re-ceremony |
+| patience-proof | ❌ (circuit changed Apr 16) | single-party | Needs re-ceremony |
+| whale-holder | — (no January zkey) | single-party | **Never ceremonied** |
+
+**Summary: 1 restorable · 12 need re-ceremony · 1 never ceremonied → 13 of 14 require a fresh multi-party Phase 2.** Only the Phase 1 Powers of Tau is reusable.
+
+## What happened
+
+1. **Jan 14–15 2026 — original ceremony.** A Phase 2 multi-party ceremony was run
+   and finalized (beacon below). Its outputs are preserved in `ceremony/zkeys/`.
+2. **Circuits were later changed for correctness** (constraint fixes, boolean-output
+   enforcement, Merkle membership) across several commits — `60626ca` (Mar, 5
+   circuits), `95c8bb0` (Mar 18, membership), `33607cb` / `d9b9ce2` (Apr 13),
+   `9cef875` (Apr 16, 6 circuits). Changing a circuit invalidates its prior Phase 2.
+3. **The regenerated zkeys that shipped to production were not produced by a new
+   multi-party ceremony** — no Phase 2 contributions were recorded after Jan 14
+   (`ceremony/contributions/` holds a single record). They are therefore
+   effectively single-party setups.
+
+## Original January 2026 ceremony (historical)
 
 | Property | Value |
 |----------|-------|
-| Project | zkRune - Solana Privacy Hack 2026 |
-| Ceremony Type | Groth16 Multi-Party Computation |
-| Phase 1 | Hermez Network Powers of Tau (54 participants) |
-| Phase 2 | zkRune Community Ceremony |
-| Started | 2026-01-14T00:00:00Z |
-| Finalized | 2026-01-15T12:04:03Z |
-| Total Contributions | 5 |
+| Phase 1 | Hermez Network Powers of Tau (54 participants) — still valid & reused |
+| Phase 2 | zkRune community ceremony, finalized 2026-01-15T12:04:03Z |
+| Reported contributors | 5 (zkRune Core/Genesis, MikeJ, iCrypto, 0xMert, LizardKing) |
+| Contribution records in repo | 1 (`contributions/contribution_1_zkRune_Core.json`, 2026-01-14) |
 | Beacon Source | drand.cloudflare.com |
 | Beacon Value | `6ca3952b1a006bea69b40bac4c78a862ca475e90e1edb570d9610cbe18d0a8bc` |
 
-## Circuits (13 Total)
+> Note: the contributor table reflects the January ceremony as reported; the
+> repository retains one contribution record. Regardless of the January count,
+> the production zkeys today are post-ceremony regenerations (see above).
 
-| Circuit | Description |
-|---------|-------------|
-| age-verification | Prove age without revealing birthdate |
-| anonymous-reputation | Prove reputation score anonymously |
-| balance-proof | Prove token balance without revealing exact amount |
-| credential-proof | Prove credential ownership |
-| hash-preimage | Prove knowledge of hash preimage |
-| membership-proof | Prove membership in a group |
-| nft-ownership | Prove NFT ownership privately |
-| patience-proof | Prove time-locked token holding |
-| private-voting | Cast votes anonymously |
-| quadratic-voting | Quadratic voting with privacy |
-| range-proof | Prove value is within range |
-| signature-verification | Verify signatures in ZK |
-| token-swap | Private token swaps |
+## Security implications
 
-## Contributors
+A Groth16 Phase 2 is secure only if **at least one contributor was honest,
+independent, and deleted their toxic waste**. A single-party setup provides no
+such guarantee: whoever generated the zkey could, in principle, hold the toxic
+waste and forge proofs that pass verification. This affects every production
+circuit except a restored `private-voting`. Tools that rely on these circuits
+(hosted verifier, x402 gate, on-chain verifiers, the agent passport's
+`signature-verification`) inherit this status until remediated.
 
-| # | Name | Timestamp | Hash |
-|---|------|-----------|------|
-| 1 | zkRune Genesis | 2026-01-15T09:44:33 | storage_age-veri... |
-| 2 | MikeJ | 2026-01-15T09:44:33 | storage_age-veri... |
-| 3 | iCrypto | 2026-01-15T10:41:24 | e927ad72bb1a2e1a... |
-| 4 | 0xMert | 2026-01-15T11:50:26 | f50e4e08d4e3dfd8... |
-| 5 | LizardKing | 2026-01-15T11:54:45 | bdc24921379bcfba... |
+## Remediation
 
-## Final Contribution Hashes
+1. **Restore `private-voting`** to its January multi-party zkey (1 circuit, no new
+   ceremony). Re-ship the vkey across `public/circuits/` and the on-chain verifiers.
+2. **Run a fresh multi-party Phase 2** for the remaining 13 circuits, reusing the
+   Phase 1 ptau. Independence is what provides security — this requires **2–3
+   genuinely independent contributors** on their own machines (multiple agents
+   under one operator do **not** count). `scripts/ceremony.sh` automates the flow;
+   finalize with a public drand beacon.
+3. **Retire `whale-holder` v1** (Sybil-vulnerable) and ceremony v2 instead.
+4. **Propagate** new vkeys to `public/circuits/`, `solana-groth16-verifier`,
+   `evm-verifier`, and the Sui verifier.
 
-| Circuit | Final Hash |
-|---------|------------|
-| age-verification | f4866299b236453690bab012eeeb3a5439c3f1f24fab742e3064e125b6025641... |
-| anonymous-reputation | 420c352e1c06fce9fb1107f6f59e26715c0800068b33ed77cd1a499222192acb... |
-| balance-proof | 7a0f15a3df34eb48dfce51ed3ea44708fb26a8d7b8cfd1e18186b7ff357ecb0f... |
-| credential-proof | 9f297a361367624e273ec4c70714bf534c6429a7be4faa42204146dd9b28b9b2... |
-| hash-preimage | 64d394d5bbed98be8577227236a35544fda64817a6bc3b18190eed42e578af15... |
-| membership-proof | cc803cdc2d6b60b8051e60c93dfaf93d61965aa48c7b0431b9bf4d1833c99d75... |
-| nft-ownership | cefdb1403b60357cb302850ff0a712cd6564e86fad00aa4baec2f5fc1c887c9a... |
-| patience-proof | eb72671d4a429a11225f0d064c4f9475bafb3f2b2a5e0391c3c364e1bfe05c7a... |
-| private-voting | 5133f2ffb8d4149d13b4db58c78722db3d13766d25bb64f3afdbc1815a3ee911... |
-| quadratic-voting | 192b76324c36e93e790c11eb9295f73a704c57a5d96f9d04bf562b61f5d6f4c5... |
-| range-proof | 4c68878ade49bb496ad4af04733e4b1477cae45343346a8825810510ae1baf51... |
-| signature-verification | 35a6d38dfbe902f115271f339f8ca41fe6bdd6e3aae5cc28f7dc5d764a6cda7a... |
-| token-swap | de255ef5f48b3c1deace6a58cac00ae6ee040949158c94c2230e728d399524ba... |
-
-## Security Guarantees
-
-The Groth16 trusted setup is secure as long as **at least one participant** was honest and properly deleted their toxic waste (random values used during contribution).
-
-Each contributor added entropy that cannot be reversed. The final ceremony includes:
-
-1. **Phase 1**: Hermez Network's Powers of Tau ceremony with 54 participants
-2. **Phase 2**: zkRune community contributions (5 contributors)
-3. **Final Beacon**: Random value from drand network (`6ca3952b1a006bea69b40bac4c78a862ca475e90e1edb570d9610cbe18d0a8bc`)
-
-## Verification
-
-Anyone can verify the ceremony by running:
+## Verify it yourself
 
 ```bash
-# Clone the repository
-git clone https://github.com/louisstein94/zkrune.git
-cd zkrune
-
-# Verify each circuit's final zkey
+git clone https://github.com/louisstein94/zkrune.git && cd zkrune
+# Verify the CURRENT production zkeys against the multi-party chain.
+# This will FAIL for the regenerated circuits — that failure is the point.
 for circuit in circuits/*/; do
-  circuit_name=$(basename $circuit)
-  snarkjs zkey verify \
-    "$circuit/circuit.r1cs" \
+  name=$(basename "$circuit")
+  snarkjs zkey verify "$circuit/circuit.r1cs" \
     "ceremony/powersOfTau28_hez_final_14.ptau" \
-    "$circuit/circuit_final.zkey"
+    "ceremony/zkeys/${name}_final.zkey"
 done
 ```
 
-## Files
-
-- **Final zkeys**: `circuits/*/circuit_final.zkey`
-- **Verification keys**: `circuits/*/verification_key.json`
-- **Public files**: `public/circuits/`
-- **Beacon value**: `ceremony/beacon.txt`
-
-## Acknowledgments
-
-Thank you to all contributors who participated in the trusted setup ceremony:
-
-- zkRune Genesis (Initial setup)
-- MikeJ
-- iCrypto
-- 0xMert
-- LizardKing
-
-Your contributions ensure the security and trustlessness of zkRune's privacy features on Solana.
-
 ---
 
-*Generated on 2026-01-15T12:04:03Z*
+*Original ceremony: 2026-01-15. Status corrected after audit: 2026-06-12.*
 *https://github.com/louisstein94/zkrune*

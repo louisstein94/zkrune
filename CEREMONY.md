@@ -135,6 +135,13 @@ This checks:
 
 ## Security Guarantees
 
+> **Current production status (corrected 2026-06-12):** the section below describes
+> how a Phase 2 ceremony *should* provide security. As of the latest audit, the
+> zkeys in production were regenerated after the January 2026 ceremony and are
+> currently **single-party for 13 of 14 circuits** — a fresh multi-party Phase 2 is
+> pending. See [ceremony/CEREMONY_REPORT.md](ceremony/CEREMONY_REPORT.md) for the
+> per-circuit status.
+
 ### What makes this secure?
 
 1. **Multi-party**: Multiple contributors = no single point of failure
@@ -168,7 +175,7 @@ circuits/
 ├── balance-proof/
 │   ├── circuit_final.zkey
 │   └── verification_key.json
-└── ... (all 13 circuits)
+└── ... (all 14 circuits)
 
 public/circuits/
 ├── age-verification.zkey

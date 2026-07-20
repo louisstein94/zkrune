@@ -32,7 +32,7 @@ const phases = [
     color: "zk-accent",
     colorHex: "#8B5CF6",
     items: [
-      { text: "Trusted Setup Ceremony (multi-party)", done: true },
+      { text: "Trusted Setup Ceremony — Phase 2 re-ceremony pending (production zkeys currently single-party)", done: false },
       { text: "Trust model published (production / self-asserted / experimental)", done: true },
       { text: "Pre-audit security hardening", done: true },
       { text: "Groth16 Verifier deployed on Solana mainnet", done: true },

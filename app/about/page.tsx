@@ -25,7 +25,7 @@ export const metadata: Metadata = {
 };
 
 const SHIPPED = [
-  "14 production Groth16 circuits, with multi-party trusted setup artefacts published",
+  "14 production Groth16 circuits; trusted-setup status published openly (Phase 2 re-ceremony pending)",
   "Mainnet verifier contracts on Solana, Ethereum (Base L2), and Sui",
   "Client-side proving in WASM — proofs generated in 0.4–5 seconds on commodity hardware",
   "Open-source TypeScript SDK (zkrune-sdk) and embeddable widget (zkrune-widget)",

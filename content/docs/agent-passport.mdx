@@ -94,7 +94,7 @@ The verifier is stateless — anyone can run it. For a hosted endpoint, POST the
 
 ## Relying-party gate
 
-Gate an endpoint on a valid passport — same 403-challenge / retry loop as [`@louisstein/x402-verify`](/docs/api). Works with Express, Hono, or any Fetch-API runtime:
+Gate an endpoint on a valid passport — same 403-challenge / retry loop as [`@zkrune/x402-verify`](/docs/api). Works with Express, Hono, or any Fetch-API runtime:
 
 ```ts
 import { agentPassportFetchGuard, localGroth16Backend } from "zkrune-agent";

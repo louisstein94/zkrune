@@ -13,11 +13,14 @@ Each example is self-contained — open the folder, read the local
 | -------------------------------------------------- | ------------- | ---------------------------------------------------------------------- | ----- |
 | [`age-gate-widget`](./age-gate-widget)             | Browser       | Drop-in age gate using the script-tag widget. No build step.           | ~75   |
 | [`server-verify-node`](./server-verify-node)       | Backend       | Node `http` proxy that forwards proofs to the hosted verifier.          | ~65   |
+| [`agent-rwa-eligibility`](./agent-rwa-eligibility) | Agent + API   | An AI agent proving tokenized-RWA eligibility to a gated endpoint, x402-style. Verified on-chain on Base. | ~110  |
 
-The two are complementary: the browser generates the proof with the
+The first two are complementary: the browser generates the proof with the
 widget, your backend re-verifies it with the proxy before granting
 access. Together they form the full request flow most B2B integrations
-implement.
+implement. The third shows the same verification enforced at an endpoint
+for autonomous agents — the x402 challenge/retry loop, answering "who is
+allowed?" instead of "who paid?".
 
 ## Adapting these for production
 

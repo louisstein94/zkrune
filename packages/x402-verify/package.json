@@ -1,5 +1,5 @@
 {
-  "name": "@louisstein/x402-verify",
+  "name": "@zkrune/x402-verify",
   "version": "0.1.0",
   "description": "Endpoint-level zero-knowledge eligibility gate for x402 services. Verify a zkRune Groth16 proof on-chain before serving a paid response.",
   "license": "MIT",
