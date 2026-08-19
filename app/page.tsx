@@ -43,19 +43,18 @@ export default function Home() {
           <div className="inline-flex items-center gap-2 px-4 py-1.5 border border-zk-primary/40 bg-zk-primary/10 rounded-full backdrop-blur-sm">
             <div className="w-2 h-2 rounded-full bg-zk-primary animate-pulse" />
             <span className="text-xs font-bold text-zk-primary uppercase tracking-wider">
-              Zero-Knowledge Verification Infrastructure
+              Zero-Knowledge Eligibility Infrastructure
             </span>
           </div>
 
           {/* Hero Text */}
           <div className="space-y-5">
             <h1 className="font-hatton text-4xl md:text-5xl lg:text-6xl leading-[1.05] text-white">
-              Privacy-preserving<br />
-              verification for{" "}
-              <span className="text-zk-primary">any app</span>.
+              Private access to{" "}
+              <span className="text-zk-primary">regulated markets</span>.
             </h1>
             <p className="text-lg md:text-xl text-zk-gray max-w-xl mx-auto lg:mx-0 leading-relaxed">
-              Add age-gating, membership, and eligibility checks without becoming a data target. 14 production zero-knowledge circuits. SDK, widget, or hosted API.
+              Prove age, membership, balance or an issuer-attested credential without handing over the data behind it. 14 production zero-knowledge circuits. SDK, widget, or hosted API.
             </p>
             <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-xs md:text-sm text-zk-gray/80 max-w-xl mx-auto lg:mx-0">
               <span className="inline-flex items-center gap-1.5">
