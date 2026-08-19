@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { Connection, PublicKey } from '@solana/web3.js';
 import { getAssociatedTokenAddressSync } from '@solana/spl-token';
 import crypto from 'crypto';
+import { getSolanaRpcUrl } from '@/lib/solanaRpc';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -22,10 +23,6 @@ function getAttestationSecret(): string {
     );
   }
   return secret;
-}
-
-function getRpcUrl(): string {
-  return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
 }
 
 function signAttestation(walletAddress: string, balance: string, mintAddress: string, timestamp: number): string {
@@ -58,7 +55,7 @@ export async function POST(request: NextRequest) {
 
     const mintAddress = rawMint || ZKRUNE_MINT;
     const isSOL = mintAddress === 'SOL';
-    const connection = new Connection(getRpcUrl(), 'confirmed');
+    const connection = new Connection(getSolanaRpcUrl(), 'confirmed');
 
     let balance: string;
     let decimals: number;

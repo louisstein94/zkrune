@@ -2,6 +2,7 @@ import {
   PublicKey,
   TransactionInstruction,
 } from '@solana/web3.js';
+import { getSolanaRpcUrl } from '../solanaRpc';
 
 // On-chain Groth16 verifier program (Solana mainnet). Shared by every
 // Blink route that submits a proof for trustless on-chain verification.
@@ -26,12 +27,11 @@ export const TEMPLATE_IDS: Record<string, number> = {
   'signature-verification': 12,
 };
 
-export const MAINNET_PUBLIC_RPC = 'https://api.mainnet-beta.solana.com';
+export { MAINNET_PUBLIC_RPC } from '../solanaRpc';
 
+/** @deprecated Import getSolanaRpcUrl from lib/solanaRpc instead. */
 export function getRpcUrl(): string {
-  return process.env.HELIUS_RPC_URL
-    || process.env.NEXT_PUBLIC_SOLANA_RPC_URL
-    || MAINNET_PUBLIC_RPC;
+  return getSolanaRpcUrl();
 }
 
 const BN254_PRIME = BigInt(

@@ -1,9 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getSolanaRpcUrl } from '@/lib/solanaRpc';
 
-const RPC_URL =
-  process.env.HELIUS_RPC_URL ||
-  process.env.NEXT_PUBLIC_SOLANA_RPC_URL ||
-  'https://api.mainnet-beta.solana.com';
+const RPC_URL = getSolanaRpcUrl();
 
 // A4a: whitelist of JSON-RPC methods the proxy is allowed to forward.
 // Any request that includes a method outside this set is rejected with

@@ -3,6 +3,7 @@ import path from "path";
 import fs from "fs/promises";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { getAssociatedTokenAddressSync } from "@solana/spl-token";
+import { getSolanaRpcUrl } from '@/lib/solanaRpc';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
@@ -11,16 +12,12 @@ export const maxDuration = 30;
 
 const ZKRUNE_MINT = process.env.NEXT_PUBLIC_ZKRUNE_MINT || '51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump';
 
-function getRpcUrl(): string {
-  return process.env.NEXT_PUBLIC_SOLANA_RPC_URL || 'https://api.devnet.solana.com';
-}
-
 async function checkOnChainBalance(
   walletAddress: string,
   minimumBalance: bigint,
   mintAddress?: string,
 ): Promise<{ sufficient: boolean; onChainBalance: string }> {
-  const connection = new Connection(getRpcUrl(), 'confirmed');
+  const connection = new Connection(getSolanaRpcUrl(), 'confirmed');
   const walletPubkey = new PublicKey(walletAddress);
   const mint = mintAddress || ZKRUNE_MINT;
 
