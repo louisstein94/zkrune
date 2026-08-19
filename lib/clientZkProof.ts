@@ -136,11 +136,20 @@ function prepareCircuitInputs(templateId: string, params: Record<string, any>): 
     if (!result.currentTime) {
       result.currentTime = Math.floor(Date.now() / 1000).toString();
     }
-    // Always derive expectedHash from credentialHash at proving time.
-    if (!result.credentialHash) {
-      throw new Error('credential-proof requires credentialHash');
+    if (!result.credentialSecret || !result.validUntil) {
+      throw new Error('credential-proof requires credentialSecret and validUntil');
     }
-    result.expectedHash = result.credentialHash;
+    // expectedHash is the commitment the issuer published at issuance. It is
+    // a public input, so it must come from the issuer for the proof to mean
+    // anything. Only derive it here when none was supplied, which is the
+    // self-issued demo case — the secret and expiry still have to match it.
+    if (!result.expectedHash) {
+      result.expectedHash = computeHash(result.credentialSecret, result.validUntil);
+    }
+    // The circuit no longer takes a credentialHash. It used to be a free
+    // private input compared against expectedHash, which is what let a proof
+    // be produced without holding a credential.
+    delete result.credentialHash;
     return result;
   }
 

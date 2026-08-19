@@ -12,6 +12,7 @@ import {
   buildVerifyInstruction,
 } from '@/lib/blinks/groth16Tx';
 import * as snarkjs from 'snarkjs';
+import { poseidon2 } from 'poseidon-lite';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -32,14 +33,21 @@ export const maxDuration = 30;
 // it does not establish accreditation itself.
 const CIRCUIT = 'credential-proof';
 
-// A field-element stand-in for the issuer-attested credential hash the
-// verifier is checking against. In production this is the on-chain hash
-// the credential issuer (broker, KYC provider) published.
-const ATTESTED_CREDENTIAL_HASH =
-  '19536091450159168716976043526403471833495232309085654850701509158709717589851';
+// Stand-in for a credential an issuer (broker, KYC provider) handed to a
+// holder. In production the holder keeps the secret and the issuer publishes
+// only the commitment; here both sides live in this file so the Blink can
+// demonstrate the flow end to end.
+const CREDENTIAL_SECRET = '874512369874125369874125';
 
-// Far-future expiry so the demo credential is always unexpired.
+// Far-future expiry so the demo credential is always unexpired. The expiry is
+// hashed into the commitment, so it cannot be extended without invalidating it.
 const CREDENTIAL_VALID_UNTIL = '4102444800'; // 2100-01-01
+
+// The commitment the issuer publishes: Poseidon(credentialSecret, validUntil).
+// Only a party holding the preimage can satisfy the circuit against it.
+function attestedCommitment(): string {
+  return poseidon2([BigInt(CREDENTIAL_SECRET), BigInt(CREDENTIAL_VALID_UNTIL)]).toString();
+}
 
 const ELIGIBILITY_DESCRIPTION =
   'Prove you hold a valid, unexpired issuer-attested eligibility credential ' +
@@ -80,11 +88,10 @@ async function generateEligibilityProof(baseUrl: string) {
 
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     {
-      credentialHash: ATTESTED_CREDENTIAL_HASH,
-      credentialSecret: '1',
+      credentialSecret: CREDENTIAL_SECRET,
       validUntil: CREDENTIAL_VALID_UNTIL,
       currentTime: String(currentTime),
-      expectedHash: ATTESTED_CREDENTIAL_HASH,
+      expectedHash: attestedCommitment(),
     },
     { type: 'mem', data: wasmBuf } as any,
     { type: 'mem', data: zkeyBuf } as any,

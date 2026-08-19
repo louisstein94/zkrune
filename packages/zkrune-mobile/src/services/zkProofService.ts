@@ -110,7 +110,6 @@ export const PROOF_TEMPLATES: Record<ProofType, {
     conditionSuccessText: 'Valid credential ✓',
     conditionFailText: 'Invalid credential ✗',
     fields: [
-      { name: 'credentialHash', label: 'Credential Hash', type: 'text', placeholder: 'Credential hash value', required: true },
       { name: 'credentialSecret', label: 'Credential Secret', type: 'secret', placeholder: 'Your secret', required: true, isPrivate: true },
       { name: 'validUntil', label: 'Valid Until (timestamp)', type: 'number', placeholder: '1767225600', required: true },
       { name: 'currentTime', label: 'Current Time', type: 'number', placeholder: String(Math.floor(Date.now() / 1000)), required: true },

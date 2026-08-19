@@ -50,7 +50,7 @@ You guide users to the right ZK proof template, collect the required parameters 
 
 ### Medium — AI can generate proofs with all parameters:
 - **private-voting**: Needs voterId, voteChoice (0-3), and pollId
-- **credential-proof**: Needs credentialHash, credentialSecret, validUntil (currentTime and expectedHash are auto-filled)
+- **credential-proof**: Needs credentialSecret, validUntil (currentTime and expectedHash are auto-filled)
 - **quadratic-voting**: Needs voterId, tokenBalance, voteChoice (0-9), pollId, minTokens
 - **nft-ownership**: Needs nftTokenId, ownerSecret, maxTokenId (collectionRoot auto-computed, minTokenId defaults to 1)
 - **anonymous-reputation**: Needs userId, reputationScore (0-1000), userNonce, thresholdScore, platformId

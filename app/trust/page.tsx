@@ -96,7 +96,7 @@ const NOT_DONE = [
   },
   {
     label: "Self-asserted circuits remain self-asserted",
-    body: "Several circuits (age-verification, range-proof, credential-proof, anonymous-reputation) classify as self-asserted. The math is sound; the underlying claim is only as trustworthy as the user. Attested upgrades are on the roadmap.",
+    body: "Several circuits (age-verification, range-proof, anonymous-reputation) classify as self-asserted. The math is sound; the underlying claim is only as trustworthy as the user. Attested upgrades are on the roadmap. credential-proof is issuer-attested rather than self-asserted: it binds to a commitment the issuer published, so a proof cannot be produced without the issued secret.",
   },
 ];
 

@@ -8,7 +8,6 @@ interface CredentialProofFormProps {
 }
 
 export default function CredentialProofForm({ onProofGenerated }: CredentialProofFormProps) {
-  const [credentialHash, setCredentialHash] = useState("");
   const [credentialSecret, setCredentialSecret] = useState("");
   const [validUntil, setValidUntil] = useState("");
   const [currentTime, setCurrentTime] = useState("");
@@ -22,7 +21,7 @@ export default function CredentialProofForm({ onProofGenerated }: CredentialProo
   });
 
   const generateProof = async () => {
-    if (!credentialHash || !credentialSecret || !validUntil || !currentTime || !expectedHash) {
+    if (!credentialSecret || !validUntil || !currentTime || !expectedHash) {
       alert("Please fill all fields");
       return;
     }
@@ -30,12 +29,8 @@ export default function CredentialProofForm({ onProofGenerated }: CredentialProo
     setIsGenerating(true);
 
     try {
-      const isValid = credentialHash === expectedHash && 
-                      parseInt(validUntil) > parseInt(currentTime);
-
       // Generate REAL ZK proof in browser
       const data = await generateClientProof("credential-proof", {
-        credentialHash,
         credentialSecret,
         validUntil,
         currentTime,
@@ -43,15 +38,16 @@ export default function CredentialProofForm({ onProofGenerated }: CredentialProo
       });
 
       if (data.success && data.proof) {
+        // The circuit constrains isValid === 1, so a proof only exists when
+        // the secret opens the issuer's commitment and the credential is
+        // unexpired. Reaching this branch is itself the validity result.
         const resultProof = {
-          statement: isValid
-            ? "Credentials are valid and not expired"
-            : "Credentials are invalid or expired",
-          isValid: isValid,
+          statement: "Credential is attested by the issuer and not expired",
+          isValid: true,
           timestamp: data.proof.timestamp,
           proofHash: data.proof.proofHash,
           verificationKey: data.proof.verificationKey,
-          credentialStatus: isValid ? "VALID" : "INVALID",
+          credentialStatus: "VALID",
           expiryDate: new Date(parseInt(validUntil) * 1000).toLocaleString('en-US'),
           realProof: true,
           note: data.proof.note,
@@ -72,22 +68,6 @@ export default function CredentialProofForm({ onProofGenerated }: CredentialProo
 
   return (
     <div className="space-y-6">
-      <div>
-        <label className="block text-sm font-medium text-zk-gray mb-2">
-          Credential Hash (Private)
-        </label>
-        <input
-          type="text"
-          value={credentialHash}
-          onChange={(e) => setCredentialHash(e.target.value)}
-          placeholder="12345678901234567890"
-          className="w-full px-4 py-3 bg-zk-darker border border-zk-gray/30 rounded-lg text-white focus:border-zk-primary focus:outline-none transition-colors font-mono text-sm"
-        />
-        <p className="text-xs text-zk-gray mt-2">
-          Your credential hash will remain private
-        </p>
-      </div>
-
       <div>
         <label className="block text-sm font-medium text-zk-gray mb-2">
           Credential Secret (Private)
@@ -145,7 +125,7 @@ export default function CredentialProofForm({ onProofGenerated }: CredentialProo
 
       <button
         onClick={generateProof}
-        disabled={isGenerating || !credentialHash || !credentialSecret || !validUntil || !currentTime || !expectedHash}
+        disabled={isGenerating || !credentialSecret || !validUntil || !currentTime || !expectedHash}
         className="w-full py-4 bg-zk-primary text-white font-medium rounded-lg hover:bg-zk-primary/90 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
       >
         {isGenerating ? (

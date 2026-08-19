@@ -114,13 +114,12 @@ export const TEMPLATE_SPECS: TemplateSpec[] = [
     category: 'Identity',
     difficulty: 'Medium',
     params: [
-      { name: 'credentialHash', type: 'string', label: 'Credential Hash', description: 'Hash of your credential (private)', required: true },
       { name: 'credentialSecret', type: 'number', label: 'Credential Secret', description: 'Your credential secret key (private)', required: true },
       { name: 'validUntil', type: 'number', label: 'Valid Until', description: 'Credential expiration as unix timestamp in seconds (private)', required: true },
       { name: 'currentTime', type: 'number', label: 'Current Time', description: 'Current unix timestamp in seconds (public, auto-filled if omitted)', required: false },
-      { name: 'expectedHash', type: 'string', label: 'Expected Hash', description: 'Expected credential hash to verify against (public, defaults to credentialHash)', required: false },
+      { name: 'expectedHash', type: 'string', label: 'Issuer Commitment', description: 'Poseidon(credentialSecret, validUntil) published by the issuer (public, derived from your inputs if omitted)', required: false },
     ],
-    circuitInputKeys: ['credentialHash', 'credentialSecret', 'validUntil', 'currentTime', 'expectedHash'],
+    circuitInputKeys: ['credentialSecret', 'validUntil', 'currentTime', 'expectedHash'],
     examplePrompts: [
       'Prove I have a valid license',
       'Credential verification without showing details',

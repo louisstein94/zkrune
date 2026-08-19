@@ -95,11 +95,10 @@ export const CIRCUIT_SCHEMAS: Record<TemplateId, CircuitSchema> = {
     description: 'Prove possession of a valid, non-expired credential without exposing its contents',
     category: 'identity',
     fields: [
-      { name: 'credentialHash', label: 'Credential Hash', description: 'Hash of the credential data', required: true, type: 'hash' },
       { name: 'credentialSecret', label: 'Credential Secret', description: 'Private key or secret bound to the credential', required: true, type: 'hash' },
       { name: 'validUntil', label: 'Valid Until', description: 'Credential expiry as a Unix timestamp', required: true, type: 'timestamp' },
       { name: 'currentTime', label: 'Current Time', description: 'Current Unix timestamp for expiry check', required: true, type: 'timestamp' },
-      { name: 'expectedHash', label: 'Expected Hash', description: 'Public commitment hash to verify credential ownership', required: true, type: 'hash' },
+      { name: 'expectedHash', label: 'Issuer Commitment', description: 'Poseidon(credentialSecret, validUntil) published by the issuer at issuance', required: true, type: 'hash' },
     ],
   },
 

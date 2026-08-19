@@ -4,50 +4,49 @@ include "../../node_modules/circomlib/circuits/poseidon.circom";
 include "../../node_modules/circomlib/circuits/comparators.circom";
 
 // Credential Proof Circuit
-// Proves you have valid credentials without revealing the actual credential data
+//
+// Proves the prover holds a credential that an issuer attested to, without
+// revealing the credential, and that the credential has not expired.
+//
+// The issuer publishes expectedHash = Poseidon(credentialSecret, validUntil)
+// when it issues the credential. Only a party that knows the preimage of that
+// commitment can satisfy the circuit, so the proof binds to a real issuance.
+//
+// zkRune verifies the issuer's attestation. It does not establish the
+// underlying claim — that is the issuer's responsibility.
 template CredentialProof() {
-    // Private inputs
-    signal input credentialHash;      // Hash of the actual credential
-    signal input credentialSecret;    // Secret associated with credential
-    signal input validUntil;          // Expiration timestamp
-    
+    // Private inputs — the credential itself, never revealed
+    signal input credentialSecret;    // Secret handed to the holder at issuance
+    signal input validUntil;          // Expiry stamped into the commitment
+
     // Public inputs
-    signal input currentTime;         // Current timestamp
-    signal input expectedHash;        // Expected credential hash
-    
-    // Outputs
+    signal input currentTime;         // Verification timestamp
+    signal input expectedHash;        // Commitment the issuer published
+
     signal output isValid;
-    
-    // Intermediate signals
-    signal hashMatch;
-    signal notExpired;
-    
-    // Check 1: Credential hash matches expected hash
-    component hashComparator = IsEqual();
-    hashComparator.in[0] <== credentialHash;
-    hashComparator.in[1] <== expectedHash;
-    hashMatch <== hashComparator.out;
-    
-    // Check 2: Credential is not expired (validUntil > currentTime)
-    component timeComparator = GreaterThan(64);
-    timeComparator.in[0] <== validUntil;
-    timeComparator.in[1] <== currentTime;
-    notExpired <== timeComparator.out;
-    
-    // Check 3: Hash the secret with Poseidon to prove knowledge
-    component hasher = Poseidon(2);
-    hasher.inputs[0] <== credentialSecret;
-    hasher.inputs[1] <== validUntil;
-    
-    // Final validation: all checks must pass
-    signal check1;
-    check1 <== hashMatch * notExpired;
-    isValid <== check1;
-    
+
+    // Bind the proof to the issued credential.
+    //
+    // This constraint is what makes the circuit sound. Without it the prover
+    // could pick any private inputs and still satisfy the expiry check, so
+    // eligibility was provable with no credential at all. Because validUntil
+    // is an input to the commitment, it cannot be inflated independently
+    // either — changing it changes the hash and breaks this equality.
+    component commitment = Poseidon(2);
+    commitment.inputs[0] <== credentialSecret;
+    commitment.inputs[1] <== validUntil;
+    commitment.out === expectedHash;
+
+    // The credential must not have expired.
+    component notExpired = GreaterThan(64);
+    notExpired.in[0] <== validUntil;
+    notExpired.in[1] <== currentTime;
+
+    isValid <== notExpired.out;
+
     isValid * (isValid - 1) === 0;
-    // Proof is only valid when ALL checks pass.
+    // Proof is only valid when the credential is attested and unexpired.
     isValid === 1;
 }
 
 component main {public [currentTime, expectedHash]} = CredentialProof();
-

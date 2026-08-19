@@ -83,36 +83,47 @@ describe('anonymous-reputation', () => {
 
 // ============================================================
 // credential-proof
-// NOTE: isValid is binary-only (no === 1), expired credential still satisfiable
+// expectedHash is the issuer's commitment: Poseidon(credentialSecret,
+// validUntil). Opening it is what binds a proof to a real issuance.
+// See credential-proof-soundness.test.ts for the forgery regressions.
 // ============================================================
 describe('credential-proof', () => {
-  it('VALID: matching hash, not expired -> isValid=1', async () => {
-    // NOTE: circuit compares credentialHash == expectedHash directly (not Poseidon)
-    // Poseidon(credentialSecret, validUntil) is used only to prove knowledge of secret
-    const credentialHash = BigInt(12345);
+  it('VALID: holder opens the issuer commitment, not expired -> isValid=1', async () => {
     const credentialSecret = BigInt(67890);
+    const validUntil = BigInt(2000);
+    const commitment = poseidon2([credentialSecret, validUntil]);
 
     const { valid, publicSignals } = await proveAndVerify('credential-proof', {
-      credentialHash: credentialHash.toString(),
       credentialSecret: credentialSecret.toString(),
-      validUntil: '2000',
+      validUntil: validUntil.toString(),
       currentTime: '1000',
-      expectedHash: credentialHash.toString(), // must equal credentialHash
+      expectedHash: commitment.toString(),
     });
     expect(valid).toBe(true);
     expect(publicSignals[0]).toBe('1');
   }, 30000);
 
   it('INVALID: expired credential -> circuit unsatisfiable (isValid===1)', async () => {
-    const credentialHash = BigInt(12345);
     const credentialSecret = BigInt(67890);
+    const validUntil = BigInt(1000);
+    const commitment = poseidon2([credentialSecret, validUntil]);
 
     await expectUnsatisfiable('credential-proof', {
-      credentialHash: credentialHash.toString(),
       credentialSecret: credentialSecret.toString(),
-      validUntil: '1000',
+      validUntil: validUntil.toString(),
       currentTime: '2000',
-      expectedHash: credentialHash.toString(),
+      expectedHash: commitment.toString(),
+    });
+  }, 30000);
+
+  it('INVALID: secret that does not open the commitment -> unsatisfiable', async () => {
+    const commitment = poseidon2([BigInt(67890), BigInt(2000)]);
+
+    await expectUnsatisfiable('credential-proof', {
+      credentialSecret: '11111',
+      validUntil: '2000',
+      currentTime: '1000',
+      expectedHash: commitment.toString(),
     });
   }, 30000);
 });

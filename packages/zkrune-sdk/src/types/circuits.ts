@@ -33,10 +33,13 @@ export interface HashPreimageInputs {
 }
 
 export interface CredentialProofInputs {
-  credentialHash: string;
+  /** Secret handed to the holder at issuance. Private. */
   credentialSecret: string;
+  /** Expiry stamped into the issuer's commitment. Private. */
   validUntil: string;
+  /** Verification timestamp. Public. */
   currentTime: string;
+  /** Poseidon(credentialSecret, validUntil), published by the issuer. Public. */
   expectedHash: string;
 }
 

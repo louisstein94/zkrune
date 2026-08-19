@@ -30,17 +30,26 @@ Prove group membership via Merkle inclusion (depth=16, Poseidon).
 | `pathIndices`  | `hash`  | Path Indices [16]    |
 | `root`         | `hash`  | Merkle Root          |
 
-### `credential-proof` — self-asserted
+### `credential-proof` — issuer-attested
 
-Prove valid credential without exposing it.
+Prove you hold an unexpired credential an issuer attested to, without
+revealing the credential.
 
-| Field               | Type        | Label              |
-| ------------------- | ----------- | ------------------ |
-| `credentialHash`    | `hash`      | Credential Hash    |
-| `credentialSecret`  | `hash`      | Credential Secret  |
-| `validUntil`        | `timestamp` | Valid Until        |
-| `currentTime`       | `timestamp` | Current Time       |
-| `expectedHash`      | `hash`      | Expected Hash      |
+At issuance the issuer publishes `expectedHash = Poseidon(credentialSecret,
+validUntil)` and gives the holder the secret. The circuit checks that the
+private inputs open that commitment and that the credential has not expired,
+so only a real holder can produce a proof. Because `validUntil` is hashed
+into the commitment, the expiry cannot be extended independently.
+
+zkRune verifies the issuer's attestation. It does not establish the
+underlying claim — that remains the issuer's responsibility.
+
+| Field               | Type        | Label              | Visibility |
+| ------------------- | ----------- | ------------------ | ---------- |
+| `credentialSecret`  | `hash`      | Credential Secret  | private    |
+| `validUntil`        | `timestamp` | Valid Until        | private    |
+| `currentTime`       | `timestamp` | Current Time       | public     |
+| `expectedHash`      | `hash`      | Issuer Commitment  | public     |
 
 ### `anonymous-reputation` — self-asserted
 

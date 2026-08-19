@@ -71,7 +71,6 @@ export const CIRCUITS: Record<CircuitId, CircuitMeta> = {
     description: 'Prove possession of a valid credential without exposing it',
     category: 'identity',
     fields: [
-      { name: 'credentialHash', label: 'Credential Hash', description: 'Hash of credential data', required: true, type: 'hash' },
       { name: 'credentialSecret', label: 'Credential Secret', description: 'Private key bound to credential', required: true, type: 'hash' },
       { name: 'validUntil', label: 'Valid Until', description: 'Expiry timestamp', required: true, type: 'timestamp' },
       { name: 'currentTime', label: 'Current Time', description: 'Current timestamp', required: true, type: 'timestamp' },
