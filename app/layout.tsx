@@ -24,10 +24,10 @@ const playfairDisplay = Playfair_Display({
 export const metadata: Metadata = {
   metadataBase: new URL('https://zkrune.com'),
   title: {
-    default: "zkRune — Privacy-Preserving Verification Infrastructure",
+    default: "zkRune — Privacy-Preserving Eligibility Infrastructure",
     template: "%s | zkRune"
   },
-  description: "Add age-gating, membership, and eligibility checks to any app without becoming a data target. 14 production zero-knowledge circuits. SDK, widget, or hosted API.",
+  description: "Prove eligibility without revealing the underlying data. Zero-knowledge verification for age, membership, balance and issuer-attested credentials — the compliance layer for tokenized assets on Solana. 14 production circuits. SDK, widget, or hosted API.",
   icons: {
     icon: '/mobile-logo.png',
     apple: '/mobile-logo.png',
@@ -47,8 +47,8 @@ export const metadata: Metadata = {
 
   // OpenGraph
   openGraph: {
-    title: "zkRune — Privacy-Preserving Verification Infrastructure",
-    description: "Add age-gating, membership, and eligibility checks without becoming a data target. 14 production zero-knowledge circuits. SDK, widget, or hosted API.",
+    title: "zkRune — Privacy-Preserving Eligibility Infrastructure",
+    description: "Prove eligibility without revealing the underlying data. Zero-knowledge verification for age, membership, balance and issuer-attested credentials — the compliance layer for tokenized assets on Solana. 14 production circuits. SDK, widget, or hosted API.",
     url: "https://zkrune.com",
     siteName: "zkRune",
     locale: "en_US",
@@ -66,8 +66,8 @@ export const metadata: Metadata = {
   // Twitter
   twitter: {
     card: "summary_large_image",
-    title: "zkRune — Privacy-Preserving Verification Infrastructure",
-    description: "Verify users without storing their data. 14 production ZK circuits. SDK, widget, or hosted API.",
+    title: "zkRune — Privacy-Preserving Eligibility Infrastructure",
+    description: "Prove eligibility without revealing the data behind it. Zero-knowledge verification for age, membership, balance and issuer-attested credentials. 14 production circuits.",
     creator: "@rune_zk",
     site: "@rune_zk",
     images: ['/og-image.png'],

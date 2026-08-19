@@ -134,6 +134,24 @@ npm run dev
 # http://localhost:3000
 ```
 
+### Running the tests
+
+```bash
+npm test
+```
+
+The circuit test suites prove and verify against locally compiled artifacts
+(`circuit_test.zkey`, `test_vkey.json`) that are gitignored, so a fresh clone
+does not have them and those suites fail with `ENOENT` until you build them:
+
+```bash
+npm run setup:circom     # prints the Circom install command
+npm run compile:circuits
+```
+
+The compiled artifacts the app itself serves live in `public/circuits/` and are
+committed, so `npm run dev` and the live demos work without this step.
+
 ### SDK Integration
 
 ```bash
@@ -168,6 +186,13 @@ const { proof, publicSignals } = await zk.prove('age-verification', {
 
 ## zkRUNE Token
 
+> **Paused.** The token surfaces — governance, staking, the template
+> marketplace and burn-based premium tiers — are not currently live. Their
+> pages are parked under `app/_archive/` while the product refocuses on
+> eligibility and compliance tooling, and the tiers below are recorded as
+> prior design, not an active offer. Nothing here has been decided; see
+> `app/_archive/README.md`.
+
 **Contract:** [`51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump`](https://solscan.io/token/51mxznNWNBHh6iZWwNHBokoaxHYS2Amds1hhLGXkpump)
 
 | Feature | Description |
@@ -175,7 +200,7 @@ const { proof, publicSignals } = await zk.prove('age-verification', {
 | Governance | Vote on templates and protocol features |
 | Burn Mechanism | Burn tokens to unlock premium tiers |
 | Marketplace | Buy/sell circuit templates (95% to creators) |
-| Staking | Earn up to 36% APY |
+| Staking | Staking rewards |
 
 ### Premium Tiers
 
