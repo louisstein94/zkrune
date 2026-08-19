@@ -93,7 +93,7 @@ export const metadata: Metadata = {
   },
   
   // PWA Configuration
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
