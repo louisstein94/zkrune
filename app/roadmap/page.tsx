@@ -37,7 +37,7 @@ const groups = [
     colorHex: "#8B5CF6",
     blurb: "Actively being worked on. Not ready to depend on yet.",
     items: [
-      "Multi-party trusted setup re-ceremony (13 of 14 production circuits are currently single-party)",
+      "Multi-party trusted setup re-ceremony (13 of 14 circuits are currently single-party)",
       "Third-party security audit",
       "Self-asserted to attested upgrade path for age proof",
       "Enterprise SDK and white-label distribution",
@@ -121,7 +121,7 @@ export default function RoadmapPage() {
                 Current trust status
               </h2>
               <p className="text-sm text-zk-gray leading-relaxed">
-                13 of 14 production circuits are compiled from a single-party
+                13 of 14 circuits are compiled from a single-party
                 trusted setup. A fresh multi-party re-ceremony is pending and is our
                 current priority. Until it completes, treat soundness as depending on
                 that setup, and read the{" "}
