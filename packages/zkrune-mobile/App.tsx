@@ -45,9 +45,9 @@ class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <ScrollView style={styles.errorContainer} contentContainerStyle={styles.errorContent}>
-          <Text style={styles.errorTitle}>⚠️ Uygulama Hatası</Text>
+          <Text style={styles.errorTitle}>⚠️ Application Error</Text>
           <Text style={styles.errorMessage}>
-            {this.state.error?.message || 'Bilinmeyen hata'}
+            {this.state.error?.message || 'Unknown error'}
           </Text>
           <Text style={styles.errorStack}>
             {this.state.error?.stack?.slice(0, 1000)}

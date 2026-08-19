@@ -189,9 +189,9 @@ async function resolveKeypair(client, adminCapId) {
     const got = normAddr(fromEnv.toSuiAddress());
     if (got !== need) {
       throw new Error(
-        `SUI_PRIVATE_KEY signs as ${got} but AdminCap is owned by ${ownerAddr} (publish cüzdanı ile aynı olmalı). ` +
-          `Çözüm: o cüzdanın anahtarını export et (sui keytool export --key-identity ${ownerAddr}) ve SUI_PRIVATE_KEY yap, ` +
-          `veya keystore’ta bu adresi içeren anahtarı kullan ve SUI_PRIVATE_KEY’yi kaldır.`,
+        `SUI_PRIVATE_KEY signs as ${got} but AdminCap is owned by ${ownerAddr} (must match the publishing wallet). ` +
+          `Fix: export that wallet's key (sui keytool export --key-identity ${ownerAddr}) and set it as SUI_PRIVATE_KEY, ` +
+          `or use the keystore key holding this address and unset SUI_PRIVATE_KEY.`,
       );
     }
     return fromEnv;
@@ -207,10 +207,10 @@ async function resolveKeypair(client, adminCapId) {
 
   const have = candidates.map((kp) => kp.toSuiAddress()).join(', ');
   throw new Error(
-    `AdminCap sahibi: ${ownerAddr}. Keystore’taki adresler: ${have || '(yok)'}. ` +
-      `Publish yaptığın cüzdanın anahtarı gerekli. ` +
-      `sui client active-address ile kontrol et; ` +
-      `sui keytool export --key-identity ${ownerAddr} çıktısını SUI_PRIVATE_KEY olarak ekle.`,
+    `AdminCap owner: ${ownerAddr}. Addresses in keystore: ${have || '(none)'}. ` +
+      `The key of the wallet you published with is required. ` +
+      `Check it with: sui client active-address; ` +
+      `then set the output of sui keytool export --key-identity ${ownerAddr} as SUI_PRIVATE_KEY.`,
   );
 }
 

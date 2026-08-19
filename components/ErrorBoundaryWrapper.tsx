@@ -63,8 +63,8 @@ function DefaultErrorFallback({ error, resetError }: { error?: Error; resetError
             </svg>
           </div>
           <div>
-            <h2 className="text-xl font-hatton text-white">Bir Hata Oluştu</h2>
-            <p className="text-sm text-zk-gray">Üzgünüz, beklenmedik bir sorun yaşandı</p>
+            <h2 className="text-xl font-hatton text-white">Something Went Wrong</h2>
+            <p className="text-sm text-zk-gray">Sorry, an unexpected problem occurred</p>
           </div>
         </div>
 

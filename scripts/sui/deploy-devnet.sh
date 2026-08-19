@@ -23,18 +23,19 @@ GAS_OUT=$(sui client gas 2>&1) || true
 echo "$GAS_OUT"
 if echo "$GAS_OUT" | grep -qi "No gas coins"; then
   echo ""
-  echo "Devnet'te SUI yok. Faucet isteği gönderiliyor (birkaç saniye bekle)..."
+  echo "No SUI on devnet. Requesting from the faucet (wait a few seconds)..."
   sui client faucet || {
-    echo "Faucet başarısız oldu. Elle dene: sui client faucet"
-    echo "veya https://docs.sui.io/guides/developer/getting-started/get-coins"
+    echo "Faucet request failed. Try manually: sui client faucet"
+    echo "or see https://docs.sui.io/guides/developer/getting-started/get-coins"
     exit 1
   }
   sleep 3
   sui client gas
 fi
 
-# Devnet geçici ağ: `sui client publish -e` desteklenmiyor; doğru yol test-publish + pubfile.
-# Derleme testnet (veya mainnet) bağımlılıklarıyla yapılır, tx devnet'e gider.
+# Devnet is an ephemeral network: `sui client publish -e` is unsupported; the
+# correct path is test-publish + pubfile. The build uses testnet (or mainnet)
+# dependencies, while the transaction goes to devnet.
 BUILD_ENV="${SUI_BUILD_ENV:-testnet}"
 PUBFILE="$ROOT/sui-groth16-verifier/Pub.devnet.toml"
 

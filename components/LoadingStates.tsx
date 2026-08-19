@@ -40,10 +40,10 @@ export function ProofGenerationLoader({ progress = 0 }: { progress?: number }) {
 
       <div className="text-center">
         <h3 className="text-lg font-hatton text-white mb-2">
-          ZK Proof Oluşturuluyor
+          Generating ZK Proof
         </h3>
         <p className="text-sm text-zk-gray mb-4">
-          Kriptografik kanıt hesaplanıyor... {progress}%
+          Computing cryptographic proof... {progress}%
         </p>
         
         {/* Progress bar */}

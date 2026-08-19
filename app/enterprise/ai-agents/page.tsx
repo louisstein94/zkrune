@@ -95,7 +95,7 @@ const PROOF_OF_AGENT = [
 
 const COMPARISON = [
   {
-    layer: "Proof of Human (insan kimliği)",
+    layer: "Proof of Human (human identity)",
     incumbent: "World ID 4.0 (Worldcoin)",
     incumbentNote:
       "April 2026 'Lift Off' launch — proof-of-human SDK with Browserbase, Exa, Okta, Vercel partners. Closed ecosystem, Orb hardware, WLD token. Strong distribution.",
