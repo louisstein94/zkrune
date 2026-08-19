@@ -403,7 +403,6 @@ const { isValid } = await zk.verifyRemote({
                 </svg>
                 Android APK
               </a>
-              <a href="/zcash" className="text-zk-gray hover:text-zk-primary transition-colors">Zcash Integration</a>
             </div>
             
             <div className="flex flex-col gap-2">
@@ -433,22 +432,6 @@ const { isValid } = await zk.verifyRemote({
               </a>
             </div>
             
-            <div className="flex flex-col gap-2">
-              <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Token</h4>
-              <a href="/governance" className="text-zk-gray hover:text-zk-primary transition-colors">
-                Governance
-              </a>
-              <a href="/staking" className="text-zk-gray hover:text-zk-primary transition-colors">
-                Staking
-              </a>
-              <a href="/marketplace" className="text-zk-gray hover:text-zk-primary transition-colors">
-                Marketplace
-              </a>
-              <a href="/premium" className="text-zk-gray hover:text-zk-primary transition-colors">
-                Premium
-              </a>
-            </div>
-
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Legal</h4>
               <a href="/terms" className="text-zk-gray hover:text-zk-primary transition-colors">

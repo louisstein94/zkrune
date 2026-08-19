@@ -19,8 +19,6 @@ export default function DownloadPage() {
           </Link>
           <nav className="flex gap-6">
             <Link href="/templates" className="text-slate-400 hover:text-white transition-colors">Templates</Link>
-            <Link href="/staking" className="text-slate-400 hover:text-white transition-colors">Staking</Link>
-            <Link href="/governance" className="text-slate-400 hover:text-white transition-colors">DAO</Link>
           </nav>
         </div>
       </header>
