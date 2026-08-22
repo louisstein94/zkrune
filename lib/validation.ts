@@ -64,6 +64,8 @@ export const templateIdSchema = z.enum([
   'token-swap',
   'signature-verification',
   'patience-proof',
+  'rwa-eligibility',
+  'lockup-proof',
   'quadratic-voting',
   'nft-ownership',
   'anonymous-reputation',

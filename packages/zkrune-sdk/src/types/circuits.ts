@@ -100,6 +100,8 @@ export interface CircuitInputMap {
   'private-voting': PrivateVotingInputs;
   'hash-preimage': HashPreimageInputs;
   'credential-proof': CredentialProofInputs;
+  'rwa-eligibility': RwaEligibilityInputs;
+  'lockup-proof': LockupProofInputs;
   'token-swap': TokenSwapInputs;
   'signature-verification': SignatureVerificationInputs;
   'patience-proof': PatienceProofInputs;
@@ -109,3 +111,42 @@ export interface CircuitInputMap {
 }
 
 export type TemplateId = keyof CircuitInputMap;
+
+export interface RwaEligibilityInputs {
+  /** Holder-generated. The issuer never sees it, so a leaked credential is unusable. Private. */
+  subjectSecret: string;
+  /** See ACCREDITATION_TIERS. Private — a higher tier is never disclosed to a lower gate. */
+  accreditationTier: string;
+  /** ISO 3166-1 numeric. Private — only allowlist membership is revealed. */
+  jurisdictionCode: string;
+  issuedAt: string;
+  expiresAt: string;
+  /** EdDSA-Poseidon signature from the issuer over the credential hash. Private. */
+  issuerR8x: string;
+  issuerR8y: string;
+  issuerS: string;
+  jurisdictionPathElements: string[];
+  jurisdictionPathIndices: string[];
+  /** Issuer public key. The verifier's trust anchor. Public. */
+  issuerAx: string;
+  issuerAy: string;
+  currentTime: string;
+  requiredTier: string;
+  jurisdictionRoot: string;
+  /** Identifies the offering. Scopes the nullifier. Public. */
+  policyId: string;
+  /** Verifier-chosen and single-use. Binds the proof to one session. Public. */
+  sessionNonce: string;
+}
+
+export interface LockupProofInputs {
+  credentialSecret: string;
+  lockedAmount: string;
+  unlockTime: string;
+  pathElements: string[];
+  pathIndices: string[];
+  issuerRoot: string;
+  minimumAmount: string;
+  currentTime: string;
+  contextId: string;
+}

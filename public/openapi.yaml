@@ -154,7 +154,7 @@ components:
   schemas:
     CircuitName:
       type: string
-      description: One of the 14 production circuits supported by the hosted verifier.
+      description: One of the 16 production circuits supported by the hosted verifier.
       enum:
         - age-verification
         - balance-proof
@@ -170,6 +170,8 @@ components:
         - whale-holder
         - token-swap
         - patience-proof
+        - rwa-eligibility
+        - lockup-proof
 
     Groth16Proof:
       type: object

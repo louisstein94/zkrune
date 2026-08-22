@@ -25,6 +25,8 @@ export const CIRCUIT_IDS = [
   "whale-holder",
   "token-swap",
   "patience-proof",
+  "rwa-eligibility",
+  "lockup-proof",
 ] as const;
 
 export type CircuitId = (typeof CIRCUIT_IDS)[number];

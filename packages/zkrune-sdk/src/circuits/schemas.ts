@@ -102,6 +102,46 @@ export const CIRCUIT_SCHEMAS: Record<TemplateId, CircuitSchema> = {
     ],
   },
 
+  'rwa-eligibility': {
+    id: 'rwa-eligibility',
+    name: 'RWA Eligibility',
+    description: 'Prove an issuer attested you are eligible for a regulated offering, without revealing who you are, where you live, or what tier you hold',
+    category: 'identity',
+    fields: [
+      { name: 'subjectSecret', label: 'Subject Secret', description: 'Holder-generated secret behind the commitment the issuer signed', required: true, type: 'hash' },
+      { name: 'accreditationTier', label: 'Accreditation Tier', description: 'Tier the issuer attested. Never disclosed to the verifier', required: true, type: 'number' },
+      { name: 'jurisdictionCode', label: 'Jurisdiction Code', description: 'ISO 3166-1 numeric country code. Never disclosed', required: true, type: 'number' },
+      { name: 'issuedAt', label: 'Issued At', description: 'Start of the credential validity window', required: true, type: 'timestamp' },
+      { name: 'expiresAt', label: 'Expires At', description: 'End of the credential validity window', required: true, type: 'timestamp' },
+      { name: 'issuerR8x', label: 'Signature R8x', description: 'Issuer EdDSA signature component', required: true, type: 'hash' },
+      { name: 'issuerR8y', label: 'Signature R8y', description: 'Issuer EdDSA signature component', required: true, type: 'hash' },
+      { name: 'issuerS', label: 'Signature S', description: 'Issuer EdDSA signature component', required: true, type: 'hash' },
+      { name: 'issuerAx', label: 'Issuer Public Key X', description: "The verifier's trust anchor", required: true, type: 'hash' },
+      { name: 'issuerAy', label: 'Issuer Public Key Y', description: "The verifier's trust anchor", required: true, type: 'hash' },
+      { name: 'requiredTier', label: 'Required Tier', description: 'Minimum tier this offering demands', required: true, type: 'number' },
+      { name: 'jurisdictionRoot', label: 'Jurisdiction Allowlist Root', description: 'Merkle root of the countries the venue serves', required: true, type: 'hash' },
+      { name: 'currentTime', label: 'Current Time', description: 'Verification timestamp', required: true, type: 'timestamp' },
+      { name: 'policyId', label: 'Policy ID', description: 'Identifies the offering. Scopes the nullifier', required: true, type: 'number' },
+      { name: 'sessionNonce', label: 'Session Nonce', description: 'Verifier-chosen and single-use. Prevents proof replay', required: true, type: 'number' },
+    ],
+  },
+
+  'lockup-proof': {
+    id: 'lockup-proof',
+    name: 'Lock-up Proof',
+    description: 'Prove a transfer restriction has elapsed and the position still meets a minimum, without revealing the position size or the holder',
+    category: 'financial',
+    fields: [
+      { name: 'credentialSecret', label: 'Credential Secret', description: 'Secret behind the position the agent recorded', required: true, type: 'hash' },
+      { name: 'lockedAmount', label: 'Locked Amount', description: 'Position size. Never disclosed', required: true, type: 'number' },
+      { name: 'unlockTime', label: 'Unlock Time', description: 'When the restriction lifts. Never disclosed', required: true, type: 'timestamp' },
+      { name: 'issuerRoot', label: 'Agent Root', description: "Merkle root of the transfer agent's recorded positions", required: true, type: 'hash' },
+      { name: 'minimumAmount', label: 'Minimum Amount', description: 'Smallest position the venue accepts', required: true, type: 'number' },
+      { name: 'currentTime', label: 'Current Time', description: 'Verification timestamp', required: true, type: 'timestamp' },
+      { name: 'contextId', label: 'Context ID', description: 'Scopes the nullifier to one venue', required: true, type: 'number' },
+    ],
+  },
+
   'token-swap': {
     id: 'token-swap',
     name: 'Token Swap',

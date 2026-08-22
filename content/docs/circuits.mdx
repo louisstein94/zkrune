@@ -177,3 +177,62 @@ Prove minimum wait period elapsed.
 | `secret`           | `hash`      | Secret             |
 | `minimumWaitTime`  | `integer`   | Min Wait           |
 | `commitmentHash`   | `hash`      | Commitment Hash    |
+
+### `rwa-eligibility` — issuer-attested
+
+Prove an issuer attested you are eligible for a regulated offering, without
+revealing who you are, where you live, or what tier you hold.
+
+The trust anchor is the issuer's public key. A venue configures the transfer
+agent or KYC provider it already relies on, once, and every credential that
+issuer signs verifies against it — there is no per-investor commitment to
+publish and no root to refresh as investors are onboarded.
+
+The holder generates the subject secret and sends only a commitment to the
+issuer, so the issuer signs a claim about a commitment it cannot open. It
+cannot prove eligibility on an investor's behalf, and a breach of issuer
+records yields no usable credentials.
+
+Four things are proven at once: the issuer signed this exact claim, the prover
+knows the secret behind the commitment, the tier clears the offering's bar, and
+the country is on the venue's allowlist. Each proof is bound to a session nonce
+the verifier issues, so a captured proof cannot be replayed elsewhere.
+
+The published nullifier is deterministic per investor per offering. A gate can
+enforce one entry each without being able to follow that investor anywhere else.
+
+Credentials carry a validity window and no revocation list. Until revocation
+ships, issue short-lived credentials and re-issue on demand.
+
+| Field                      | Type        | Visibility |
+| -------------------------- | ----------- | ---------- |
+| `subjectSecret`            | `hash`      | private    |
+| `accreditationTier`        | `number`    | private    |
+| `jurisdictionCode`         | `number`    | private    |
+| `issuedAt` / `expiresAt`   | `timestamp` | private    |
+| `issuerR8x` / `issuerR8y` / `issuerS` | `hash` | private |
+| `issuerAx` / `issuerAy`    | `hash`      | public     |
+| `requiredTier`             | `number`    | public     |
+| `jurisdictionRoot`         | `hash`      | public     |
+| `currentTime`              | `timestamp` | public     |
+| `policyId`                 | `number`    | public     |
+| `sessionNonce`             | `number`    | public     |
+
+### `lockup-proof` — agent-attested
+
+Prove a transfer restriction has elapsed and the position still meets a venue
+minimum, without revealing the size of the position or whose it is.
+
+The transfer agent publishes a Merkle root over the positions it recorded.
+Both the amount and the unlock date are hashed into the leaf, so a holder can
+neither inflate the position nor bring the unlock date forward.
+
+| Field              | Type        | Visibility |
+| ------------------ | ----------- | ---------- |
+| `credentialSecret` | `hash`      | private    |
+| `lockedAmount`     | `number`    | private    |
+| `unlockTime`       | `timestamp` | private    |
+| `issuerRoot`       | `hash`      | public     |
+| `minimumAmount`    | `number`    | public     |
+| `currentTime`      | `timestamp` | public     |
+| `contextId`        | `number`    | public     |

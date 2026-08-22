@@ -14,6 +14,7 @@ Each example is self-contained — open the folder, read the local
 | [`age-gate-widget`](./age-gate-widget)             | Browser       | Drop-in age gate using the script-tag widget. No build step.           | ~75   |
 | [`server-verify-node`](./server-verify-node)       | Backend       | Node `http` proxy that forwards proofs to the hosted verifier.          | ~65   |
 | [`agent-rwa-eligibility`](./agent-rwa-eligibility) | Agent + API   | An AI agent proving tokenized-RWA eligibility to a gated endpoint, x402-style. Verified on-chain on Base. | ~110  |
+| [`rwa-private-offering`](./rwa-private-offering)   | Issuer + venue | A private offering verifying investor eligibility without learning identity, country or tier. | ~120  |
 
 The first two are complementary: the browser generates the proof with the
 widget, your backend re-verifies it with the proxy before granting

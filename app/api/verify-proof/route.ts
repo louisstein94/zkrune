@@ -59,6 +59,8 @@ const TRUSTED_CIRCUITS = new Set([
   'whale-holder',
   'token-swap',
   'patience-proof',
+  'rwa-eligibility',
+  'lockup-proof',
 ]);
 
 // No circuits currently under maintenance.

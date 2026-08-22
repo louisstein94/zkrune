@@ -8,6 +8,8 @@ export const templates = {
   PRIVATE_VOTING: 'private-voting',
   HASH_PREIMAGE: 'hash-preimage',
   CREDENTIAL_PROOF: 'credential-proof',
+  RWA_ELIGIBILITY: 'rwa-eligibility',
+  LOCKUP_PROOF: 'lockup-proof',
   TOKEN_SWAP: 'token-swap',
   SIGNATURE_VERIFICATION: 'signature-verification',
   PATIENCE_PROOF: 'patience-proof',
