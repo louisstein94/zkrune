@@ -27,7 +27,7 @@ security_txt! {
 }
 
 // Template names for logging
-const TEMPLATE_NAMES: [&str; 13] = [
+const TEMPLATE_NAMES: [&str; 15] = [
     "age-verification",
     "balance-proof", 
     "membership-proof",
@@ -41,6 +41,8 @@ const TEMPLATE_NAMES: [&str; 13] = [
     "token-swap",
     "patience-proof",
     "signature-verification",
+    "rwa-eligibility",
+    "lockup-proof",
 ];
 
 /// Minimum instruction data size: 1 (template) + 64 (A) + 128 (B) + 64 (C) + 32 (>=1 input).
@@ -128,7 +130,7 @@ pub fn process_instruction(
             .map_err(|_| ProgramError::InvalidInstructionData)
     };
 
-    // Dynamically handle public inputs (up to 5 supported)
+    // Dynamically handle public inputs (up to 8 supported)
     match vk.nr_pubinputs {
         1 => {
             let inputs: [[u8; 32]; 1] = [slice_32(offset)?];
@@ -165,6 +167,42 @@ pub fn process_instruction(
                 slice_32(offset + 64)?,
                 slice_32(offset + 96)?,
                 slice_32(offset + 128)?,
+            ];
+            verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
+        }
+        6 => {
+            let inputs: [[u8; 32]; 6] = [
+                slice_32(offset)?,
+                slice_32(offset + 32)?,
+                slice_32(offset + 64)?,
+                slice_32(offset + 96)?,
+                slice_32(offset + 128)?,
+                slice_32(offset + 160)?,
+            ];
+            verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
+        }
+        7 => {
+            let inputs: [[u8; 32]; 7] = [
+                slice_32(offset)?,
+                slice_32(offset + 32)?,
+                slice_32(offset + 64)?,
+                slice_32(offset + 96)?,
+                slice_32(offset + 128)?,
+                slice_32(offset + 160)?,
+                slice_32(offset + 192)?,
+            ];
+            verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
+        }
+        8 => {
+            let inputs: [[u8; 32]; 8] = [
+                slice_32(offset)?,
+                slice_32(offset + 32)?,
+                slice_32(offset + 64)?,
+                slice_32(offset + 96)?,
+                slice_32(offset + 128)?,
+                slice_32(offset + 160)?,
+                slice_32(offset + 192)?,
+                slice_32(offset + 224)?,
             ];
             verify_proof(proof_a, proof_b, proof_c, &inputs, vk)?;
         }
@@ -253,16 +291,16 @@ mod tests {
         assert_eq!(res, Ok(5));
     }
 
-    // P2-04b: VK integrity — every template ID 0..13 must resolve to a valid VK
+    // P2-04b: VK integrity — every template ID 0..15 must resolve to a valid VK
     #[test]
     fn all_template_ids_have_vk() {
-        for template_id in 0..13u8 {
+        for template_id in 0..15u8 {
             let vk = get_vk_by_id(template_id);
             assert!(vk.is_some(), "Template ID {} has no VK", template_id);
             let vk = vk.unwrap();
-            // Sanity: nr_pubinputs must be between 1 and 5 (our match arms support only 1..=5)
+            // Sanity: nr_pubinputs must be between 1 and 8 (our match arms support only 1..=8)
             assert!(
-                vk.nr_pubinputs >= 1 && vk.nr_pubinputs <= 5,
+                vk.nr_pubinputs >= 1 && vk.nr_pubinputs <= 8,
                 "Template {} has unsupported nr_pubinputs={}",
                 template_id,
                 vk.nr_pubinputs
@@ -278,8 +316,8 @@ mod tests {
 
     #[test]
     fn template_names_match_vk_count() {
-        // We have VKs for template_ids 0..13 (see all_template_ids_have_vk).
+        // We have VKs for template_ids 0..15 (see all_template_ids_have_vk).
         // TEMPLATE_NAMES must cover the same range to avoid "unknown" logs.
-        assert_eq!(TEMPLATE_NAMES.len(), 13);
+        assert_eq!(TEMPLATE_NAMES.len(), 15);
     }
 }

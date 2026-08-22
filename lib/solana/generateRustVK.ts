@@ -22,6 +22,8 @@ const CIRCUITS = [
   { name: 'token-swap', id: 10 },
   { name: 'patience-proof', id: 11 },
   { name: 'signature-verification', id: 12 },
+  { name: 'rwa-eligibility', id: 13 },
+  { name: 'lockup-proof', id: 14 },
 ];
 
 function toConstName(circuitName: string): string {
