@@ -33,6 +33,17 @@ export const maxDuration = 30;
 // it does not establish accreditation itself.
 const CIRCUIT = 'credential-proof';
 
+// The mainnet verifier still carries the pre-fix credential-proof key, while
+// this route now proves against the corrected circuit. A transaction built
+// from that pairing fails in the visitor's wallet, which is a worse outcome
+// than saying so, so the on-chain path is held until the verifier upgrade.
+//
+// Set ELIGIBILITY_BLINK_ONCHAIN=1 once the mainnet program carries the
+// current key to re-enable it. /rwa demonstrates the same flow meanwhile,
+// with its chain step on devnet and labelled as such.
+const ONCHAIN_ENABLED = process.env.ELIGIBILITY_BLINK_ONCHAIN === '1';
+
+
 // Stand-in for a credential an issuer (broker, KYC provider) handed to a
 // holder. In production the holder keeps the secret and the issuer publishes
 // only the commitment; here both sides live in this file so the Blink can
@@ -118,7 +129,10 @@ export async function GET(req: NextRequest) {
     icon: iconUrl,
     title: 'zkRune — Tokenized-RWA Eligibility',
     description: ELIGIBILITY_DESCRIPTION,
-    label: 'Verify Eligibility On-Chain',
+    label: ONCHAIN_ENABLED
+      ? 'Verify Eligibility On-Chain'
+      : 'Paused — see /rwa',
+    disabled: !ONCHAIN_ENABLED,
     links: {
       actions: [
         {
@@ -134,6 +148,13 @@ export async function GET(req: NextRequest) {
 // ─── POST: Build and return a serialized transaction ─────────────────
 
 export async function POST(req: NextRequest) {
+  if (!ONCHAIN_ENABLED) {
+    return actionErrorResponse(
+      'On-chain eligibility verification is paused while the mainnet verifier is updated. ' +
+        'The same flow runs at /rwa, verified on devnet.',
+    );
+  }
+
   try {
     const baseUrl = getBaseUrl(req);
     const { proof, publicSignals } = await generateEligibilityProof(baseUrl);
