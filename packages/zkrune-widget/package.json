@@ -1,16 +1,19 @@
 {
   "name": "zkrune-widget",
   "version": "1.0.0",
-  "description": "Embeddable ZK verification widget — drop a script tag to add privacy proofs to any site",
+  "description": "Embeddable ZK verification widget \u2014 drop a script tag to add privacy proofs to any site",
   "main": "dist/zkrune-widget.js",
   "module": "dist/zkrune-widget.mjs",
-  "types": "dist/index.d.ts",
+  "types": "dist/zkrune-widget.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
+      "types": "./dist/zkrune-widget.d.ts",
       "import": "./dist/zkrune-widget.mjs",
-      "require": "./dist/zkrune-widget.js"
-    }
+      "require": "./dist/zkrune-widget.js",
+      "default": "./dist/zkrune-widget.global.js"
+    },
+    "./dist/zkrune-widget.global.js": "./dist/zkrune-widget.global.js",
+    "./package.json": "./package.json"
   },
   "files": [
     "dist"
@@ -40,5 +43,8 @@
   "devDependencies": {
     "tsup": "^8.0.1",
     "typescript": "^5.3.3"
-  }
+  },
+  "unpkg": "dist/zkrune-widget.global.js",
+  "jsdelivr": "dist/zkrune-widget.global.js",
+  "sideEffects": false
 }
