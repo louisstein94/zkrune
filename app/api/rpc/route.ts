@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getSolanaRpcUrl } from '@/lib/solanaRpc';
+import { getHeliusRpcUrl, getSolanaRpcUrl } from '@/lib/solanaRpc';
+import { isDasMethod } from '@/lib/solana/das';
 
 const RPC_URL = getSolanaRpcUrl();
 
@@ -11,6 +12,10 @@ const RPC_URL = getSolanaRpcUrl();
 //
 // The list mirrors read-only queries the UI needs plus `sendTransaction`
 // for user-signed transactions. Keep alphabetized.
+//
+// DAS methods are allowed too, but handled separately below: they are a Helius
+// extension rather than part of the JSON-RPC surface, so forwarding one to the
+// public endpoint returns a method-not-found that reads like our bug.
 const ALLOWED_RPC_METHODS = new Set<string>([
   'getAccountInfo',
   'getBalance',
@@ -138,8 +143,21 @@ export async function POST(req: NextRequest) {
     if (!call || typeof call !== 'object' || typeof call.method !== 'string') {
       return jsonRpcError(call?.id ?? null, -32600, 'Invalid JSON-RPC request', 400);
     }
-    if (!ALLOWED_RPC_METHODS.has(call.method)) {
+    const dasCall = isDasMethod(call.method);
+
+    if (!ALLOWED_RPC_METHODS.has(call.method) && !dasCall) {
       return jsonRpcError(call.id ?? null, -32601, `Method not allowed: ${call.method}`, 403);
+    }
+
+    // Fail loudly rather than forwarding a Helius-only method to an endpoint
+    // that never implemented it.
+    if (dasCall && !getHeliusRpcUrl()) {
+      return jsonRpcError(
+        call.id ?? null,
+        -32601,
+        `${call.method} requires a Helius endpoint. Set HELIUS_API_KEY or HELIUS_RPC_URL.`,
+        501,
+      );
     }
   }
 
