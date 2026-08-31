@@ -266,6 +266,31 @@ export default function Home() {
             </a>
           </div>
 
+          {/* Private RWA Access — the compliance surface, not just another template */}
+          <a
+            href="/rwa"
+            className="group mt-8 block p-8 bg-gradient-to-br from-zk-primary/10 to-purple-500/10 border border-zk-primary/25 rounded-2xl hover:border-zk-primary/50 transition-all"
+          >
+            <div className="flex flex-col md:flex-row md:items-center gap-6">
+              <div className="flex-1">
+                <p className="text-xs font-bold text-zk-primary uppercase tracking-wider mb-3">
+                  Private RWA Access
+                </p>
+                <h3 className="text-2xl font-hatton text-white mb-3">
+                  Eligibility for regulated offerings
+                </h3>
+                <p className="text-sm text-zk-gray leading-relaxed max-w-2xl">
+                  An offering checks that an investor is accredited and in a jurisdiction it
+                  serves, and learns neither. Afterwards a regulator can re-verify that every
+                  admission met the stated policy — still without learning who was admitted.
+                </p>
+              </div>
+              <span className="text-sm text-zk-primary font-medium whitespace-nowrap group-hover:translate-x-1 transition-transform">
+                Run the demo &rarr;
+              </span>
+            </div>
+          </a>
+
           {/* See All Templates Link */}
           <div className="mt-8 text-center">
             <a
@@ -390,6 +415,7 @@ const { isValid } = await zk.verifyRemote({
             <div className="flex flex-col gap-2">
               <h4 className="text-xs font-bold text-zk-gray uppercase tracking-wider opacity-60 mb-1">Product</h4>
               <a href="/templates" className="text-zk-gray hover:text-zk-primary transition-colors">Templates</a>
+              <a href="/rwa" className="text-zk-gray hover:text-zk-primary transition-colors">Private RWA Access</a>
               <a href="/install" className="text-zk-gray hover:text-zk-primary transition-colors">Install PWA</a>
               <a 
                 href="https://github.com/louisstein94/zkrune/releases/download/v0.2.0-mobile/zkRune-v0.2.0-signed.apk" 

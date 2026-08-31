@@ -28,6 +28,7 @@ export default function Navigation() {
 
   const navItems: NavItem[] = [
     { name: "Templates", href: "/templates" },
+    { name: "RWA", href: "/rwa" },
     { name: "Enterprise", href: "/enterprise" },
     { name: "Trust", href: "/trust" },
     { name: "Docs", href: "/docs" },
