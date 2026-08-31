@@ -17,6 +17,13 @@ import {
   issueCredential,
   subjectCommitment,
 } from '@/lib/rwa/credential';
+import {
+  admissionRecord,
+  admissionsCommitment,
+  auditOffering,
+  type AdmissionRecord,
+  type OfferingPolicy,
+} from '@/lib/rwa/audit';
 
 export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
@@ -188,11 +195,14 @@ export async function POST(req: NextRequest) {
       sessionNonce,
     });
 
+    const wasmBytes = new Uint8Array(await wasmResp.arrayBuffer());
+    const zkeyBytes = new Uint8Array(await zkeyResp.arrayBuffer());
+
     const provingStarted = Date.now();
     const { proof, publicSignals } = await snarkjs.groth16.fullProve(
       input,
-      new Uint8Array(await wasmResp.arrayBuffer()),
-      new Uint8Array(await zkeyResp.arrayBuffer()),
+      wasmBytes,
+      zkeyBytes,
     );
     const provingMs = Date.now() - provingStarted;
 
@@ -202,6 +212,51 @@ export async function POST(req: NextRequest) {
     const chain = verified
       ? await submitToDevnet(proof, publicSignals)
       : { error: 'proof did not verify locally' };
+
+    // ── The auditor's view ───────────────────────────────────────────
+    //
+    // A second admission is run against a deliberately laxer bar, the kind a
+    // venue might quietly apply and then report as compliant. Both records go
+    // into the same set, and the audit is asked whether the offering held to
+    // the policy it states. Catching the lax one is the point: a proof that
+    // verifies is not the same as a proof checked against the stated policy.
+    const statedPolicy: OfferingPolicy = {
+      policyId,
+      requiredTier: ACCREDITATION_TIERS.ACCREDITED,
+      jurisdictionRoot: allowlist.root,
+      issuerAx: issuer.publicKey.Ax,
+      issuerAy: issuer.publicKey.Ay,
+    };
+
+    const records: AdmissionRecord[] = [admissionRecord(proof, publicSignals, now)];
+
+    const laxSecret = BigInt('0x' + randomBytes(31).toString('hex'));
+    const laxCredential = await issueCredential(issuer, {
+      subjectCommitment: await subjectCommitment(laxSecret),
+      accreditationTier: ACCREDITATION_TIERS.KYC_CLEARED,
+      jurisdictionCode: GERMANY,
+      issuedAt: now - 60,
+      expiresAt: now + 30 * 86_400,
+    });
+    const laxProof = await snarkjs.groth16.fullProve(
+      buildCircuitInput({
+        subjectSecret: laxSecret,
+        credential: laxCredential,
+        issuerPublicKey: issuer.publicKey,
+        jurisdictionPath: allowlist.pathFor(GERMANY),
+        jurisdictionRoot: allowlist.root,
+        requiredTier: ACCREDITATION_TIERS.KYC_CLEARED,
+        currentTime: now,
+        policyId,
+        sessionNonce: String(BigInt('0x' + randomBytes(8).toString('hex'))),
+      }),
+      wasmBytes,
+      zkeyBytes,
+    );
+    records.push(admissionRecord(laxProof.proof, laxProof.publicSignals, now));
+
+    const audit = await auditOffering(records, statedPolicy, vkey);
+    const commitment = await admissionsCommitment(records);
 
     return NextResponse.json({
       verified,
@@ -216,6 +271,19 @@ export async function POST(req: NextRequest) {
         issuerPublicKey: issuer.publicKey.Ax,
       },
       undisclosed: ['identity', 'jurisdiction', 'accreditation tier', 'credential'],
+      audit: {
+        statedBar: 'ACCREDITED',
+        admissions: audit.admissions,
+        passed: audit.passed,
+        upheld: audit.ok,
+        findings: audit.findings.map((f) => ({
+          nullifier: `${f.nullifier.slice(0, 18)}…`,
+          ok: f.ok,
+          reason: f.reason ?? null,
+        })),
+        commitment: `${commitment.slice(0, 18)}…`,
+        note: 'The second admission was deliberately let in below the stated bar. The audit reads the policy each proof was checked against, so it is caught without revealing either investor.',
+      },
       onChain:
         'signature' in chain
           ? {

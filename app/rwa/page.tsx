@@ -11,6 +11,15 @@ type DemoResult = {
   publicSignalCount: number;
   policy: { requiredTier: string; jurisdictionsServed: number[]; issuerPublicKey: string };
   undisclosed: string[];
+  audit: {
+    statedBar: string;
+    admissions: number;
+    passed: number;
+    upheld: boolean;
+    findings: { nullifier: string; ok: boolean; reason: string | null }[];
+    commitment: string;
+    note: string;
+  };
   onChain:
     | { cluster: string; signature: string; explorer: string; note: string }
     | { cluster: string; unavailable: string };
@@ -166,6 +175,66 @@ export default function RwaPage() {
                   away a second entry. Unlinkable to the same investor anywhere else.
                 </p>
               </Panel>
+
+              {result.audit && (
+                <Panel title="What an auditor can check later">
+                  <p className="text-sm text-zk-gray/80 leading-relaxed mb-4">
+                    Every admission is kept with the proof that granted it. A regulator
+                    the venue authorises re-verifies the set and learns whether policy
+                    held — without learning who was admitted.
+                  </p>
+
+                  <div className="flex flex-wrap gap-3 mb-4">
+                    <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-zk-gray">
+                      stated bar: {result.audit.statedBar}
+                    </span>
+                    <span className="text-xs px-3 py-1 rounded-full border border-white/10 text-zk-gray">
+                      {result.audit.passed} of {result.audit.admissions} upheld
+                    </span>
+                  </div>
+
+                  <div className="space-y-2 mb-4">
+                    {result.audit.findings.map((f) => (
+                      <div
+                        key={f.nullifier}
+                        className={`flex items-start gap-3 p-3 rounded-lg border ${
+                          f.ok
+                            ? "border-zk-secondary/25 bg-zk-secondary/5"
+                            : "border-red-500/25 bg-red-500/5"
+                        }`}
+                      >
+                        <span
+                          className={`mt-1 w-1.5 h-1.5 rounded-full flex-shrink-0 ${
+                            f.ok ? "bg-zk-secondary" : "bg-red-400"
+                          }`}
+                        />
+                        <div className="min-w-0">
+                          <p className="text-xs font-mono text-zk-gray truncate">{f.nullifier}</p>
+                          <p className={`text-sm ${f.ok ? "text-zk-secondary" : "text-red-400"}`}>
+                            {f.ok ? "Met the stated policy" : f.reason}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <p className="text-sm text-zk-gray/70 leading-relaxed">{result.audit.note}</p>
+
+                  <div className="mt-4 pt-4 border-t border-white/5">
+                    <p className="text-xs text-zk-gray/60 uppercase tracking-wider mb-1">
+                      Admissions commitment
+                    </p>
+                    <p className="text-xs font-mono text-zk-gray break-all">
+                      {result.audit.commitment}
+                    </p>
+                    <p className="text-sm text-zk-gray/70 mt-2 leading-relaxed">
+                      Published as admissions happen, this is what stops a venue quietly
+                      dropping a record before the audit. Proofs alone show that what is
+                      in the set is sound; they cannot show nothing was left out.
+                    </p>
+                  </div>
+                </Panel>
+              )}
 
               {chainSignature ? (
                 <div className="p-5 bg-zk-secondary/5 border border-zk-secondary/25 rounded-xl">
