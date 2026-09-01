@@ -1,0 +1,1 @@
+/Users/hakkioz/Desktop/zkrune-main/solana-nullifier-registry/target/sbf-solana-solana/release/libsolana_nullifier_registry.rlib: /Users/hakkioz/Desktop/zkrune-main/solana-nullifier-registry/src/lib.rs

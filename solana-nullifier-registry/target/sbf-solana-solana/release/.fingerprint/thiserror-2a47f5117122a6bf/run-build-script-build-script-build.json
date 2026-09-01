@@ -1,0 +1,1 @@
+{"rustc":12275994350512301641,"features":"","declared_features":"","target":0,"profile":0,"path":0,"deps":[[4012234191921133045,"build_script_build",false,6209749009636309775]],"local":[{"RerunIfChanged":{"output":"sbf-solana-solana/release/build/thiserror-2a47f5117122a6bf/output","paths":["build/probe.rs"]}}],"rustflags":["-Zremap-cwd-prefix="],"config":0,"compile_kind":0}

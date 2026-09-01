@@ -1,0 +1,18 @@
+[package]
+name = "solana-nullifier-registry"
+version = "0.1.0"
+edition = "2021"
+description = "Compressed-state registry recording one admission per investor per offering"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+
+[dependencies]
+light-sdk = { version = "0.24", features = ["keccak"] }
+light-hasher = "6.0"
+borsh = "1.5"
+solana-program = "4.0"
+solana-pubkey = "4.2"
+
+[features]
+default = []

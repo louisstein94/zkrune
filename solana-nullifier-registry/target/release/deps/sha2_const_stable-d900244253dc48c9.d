@@ -1,0 +1,10 @@
+/Users/hakkioz/Desktop/zkrune-main/solana-nullifier-registry/target/release/deps/sha2_const_stable-d900244253dc48c9.d: /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/constants.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/sha.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/util.rs
+
+/Users/hakkioz/Desktop/zkrune-main/solana-nullifier-registry/target/release/deps/libsha2_const_stable-d900244253dc48c9.rlib: /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/constants.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/sha.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/util.rs
+
+/Users/hakkioz/Desktop/zkrune-main/solana-nullifier-registry/target/release/deps/libsha2_const_stable-d900244253dc48c9.rmeta: /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/lib.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/constants.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/sha.rs /Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/util.rs
+
+/Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/lib.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/constants.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/sha.rs:
+/Users/hakkioz/.cargo/registry/src/index.crates.io-1949cf8c6b5b557f/sha2-const-stable-0.1.0/src/util.rs:
